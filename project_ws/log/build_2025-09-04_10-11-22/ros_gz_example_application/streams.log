@@ -1,0 +1,27 @@
+[0.005s] Invoking command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/src/ros_gz_example_application -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application
+[0.015s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.130s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.232s] -- Configuring done
+[0.234s] -- Generating done
+[0.234s] -- Build files have been written to: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application
+[0.237s] Invoked command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/src/ros_gz_example_application -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application
+[0.238s] Invoking command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application -- -j16 -l16
+[0.263s] Invoked command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application -- -j16 -l16
+[0.264s] Invoking command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application
+[0.271s] -- Install configuration: ""
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ament_index/resource_index/package_run_dependencies/ros_gz_example_application
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ament_index/resource_index/parent_prefix_path/ros_gz_example_application
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/environment/ament_prefix_path.sh
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/environment/ament_prefix_path.dsv
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/environment/path.sh
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/environment/path.dsv
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/local_setup.bash
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/local_setup.sh
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/local_setup.zsh
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/local_setup.dsv
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/package.dsv
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ament_index/resource_index/packages/ros_gz_example_application
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/cmake/ros_gz_example_applicationConfig.cmake
+[0.271s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/cmake/ros_gz_example_applicationConfig-version.cmake
+[0.272s] -- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_application/share/ros_gz_example_application/package.xml
+[0.273s] Invoked command in '/home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_application

@@ -1,0 +1,41 @@
+-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+-- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/build/ros_gz_example_description
+-- Install configuration: ""
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/meshes
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/meshes/limo_base.stl
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/meshes/limo_wheel.stl
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/meshes/limo_wheel.dae
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/meshes/limo_base.dae
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/model.sdf
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_diff_drive/model.config
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/meshes
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/meshes/limo_base.stl
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/meshes/limo_wheel.stl
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/meshes/limo_wheel.dae
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/meshes/limo_base.dae
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/model.sdf
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/models/limo_ackerman/model.config
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/ros_gz_example_description.dsv
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/ros_gz_example_description.sh
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ament_index/resource_index/package_run_dependencies/ros_gz_example_description
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ament_index/resource_index/parent_prefix_path/ros_gz_example_description
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/ament_prefix_path.sh
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/ament_prefix_path.dsv
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/path.sh
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/environment/path.dsv
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/local_setup.bash
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/local_setup.sh
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/local_setup.zsh
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/local_setup.dsv
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/package.dsv
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ament_index/resource_index/packages/ros_gz_example_description
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/cmake/ros_gz_example_descriptionConfig.cmake
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/cmake/ros_gz_example_descriptionConfig-version.cmake
+-- Installing: /home/arnaudgrd/INF3995/INF3995-Templates/project_ws/install/ros_gz_example_description/share/ros_gz_example_description/package.xml
