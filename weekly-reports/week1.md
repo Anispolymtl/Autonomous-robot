@@ -40,20 +40,21 @@ création des dossiers requis à la racine (weekly-reports/, demos/).
 6. Contribution à la préparation des contenus pour la Documentation du projet (PDR).
 
 Félix Paillé Dowell
-Tutoriel ROS2
-Tests de mouvement et de connexion aux robots.
-Complétion de la question 2 du PDR 
-Planification pour un premier script sur le robot
-Planification de l’intégration du nouveau script avec le site web croquis.
+1. Tutoriel ROS2
+2. Tests de mouvement et de connexion aux robots.
+3. Complétion de la question 2 du PDR 
+4. Planification pour un premier script sur le robot
+5. Planification de l’intégration du nouveau script avec le site web croquis.
+
 Patrick Léonnel Nzudom Ketchateu
-Tutoriel ROS2.
-Première utilisation avec les robots physiques dans les laboratoires.
-Complétion de deux questions pour le PDR.
+1. Tutoriel ROS2.
+2. Première utilisation avec les robots physiques dans les laboratoires.
+3. Complétion de deux questions pour le PDR.
 
 
 Les enjeux majeurs rencontrés :
-La faible connaissance de l’environnement nous a fait prendre du temps pour commencer pour suivre des tutoriels.
-C’est assez nouveau pour nous de mener un projet de grande envergure du début à la fin c’est une adaptation supplémentaire en terme d’organisation et de distribution du temps
+1. La faible connaissance de l’environnement nous a fait prendre du temps pour commencer pour suivre des tutoriels.
+2. C’est assez nouveau pour nous de mener un projet de grande envergure du début à la fin c’est une adaptation supplémentaire en terme d’organisation et de distribution du temps
 
 
 
