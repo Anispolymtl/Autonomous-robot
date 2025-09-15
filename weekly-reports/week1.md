@@ -60,26 +60,33 @@ Les enjeux majeurs rencontrés :
 
 Le plan d’action pour la semaine en cours :
 
-1. Alignement technique
-Vérifier que toute l’équipe partage la même compréhension de l’architecture physique (robots AgileX Limo, station au sol, simulation Gazebo) et de l’architecture logicielle (serveur web, conteneurs Docker, ROS2).
-Discuter des standards de programmation et d’intégration (style de code, conventions, GitLab).
-2. Manipulation et tests préliminaires
-Prendre en main le robot physique et valider sa connexion au serveur web via le réseau fourni.
-Explorer les fonctionnalités de base exigées (ex. commande Identifier – R.F.1).
-3. Premiers fichiers Launch (ROS2)
-Continuer à créer et tester des fichiers .launch.py permettant de lancer différents packages.
-Utiliser ces fichiers comme base pour atteindre rapidement les requis R.F.1 et R.F.2 (démonstrations PDR).
-4. Simulation et outils
-Continuer à suivre des tutoriels ROS2 et analyser les scripts existants (.py) sur GitLab pour s’approprier le projet.
-Assurer la compréhension de la simulation Gazebo (lancer un environnement, manipuler deux robots).
-5. Docker & intégration
-Explorer l’usage de Docker Compose pour organiser les services (un launch file par service, ou un global).
-Définir une structure de travail commune avec Docker pour respecter le requis de conteneurisation obligatoire.
-6. Identification et interaction
-Étudier comment implémenter l’identification d’un robot (clignoter une DEL, son, mouvement) pour satisfaire R.F.1.
-Définir les scénarios de connexion serveur ↔ robot physique (1) et serveur ↔ simulation (2).
-7. Documentation et planification
-Poursuivre la rédaction d’une première version de la Documentation du projet (réponse à l’appel d’offres).
-Préparer l’organigramme technique, le plan de projet et l’échéancier graphique, conformément à l’Annexe B de l’appel d’offres.
+1. **Alignement technique**  
+   - Vérifier que toute l’équipe partage la même compréhension de l’architecture physique (robots AgileX Limo, station au sol, simulation Gazebo) et logicielle (serveur web, conteneurs Docker, ROS2).  
+   - Discuter des standards de programmation et d’intégration (style de code, conventions, GitLab).  
+
+2. **Manipulation et tests préliminaires**  
+   - Prendre en main le robot physique et valider sa connexion au serveur web via le réseau fourni.  
+   - Explorer les fonctionnalités de base exigées (ex. commande *Identifier* – R.F.1).  
+
+3. **Premiers fichiers Launch (ROS2)**  
+   - Continuer à créer et tester des fichiers `.launch.py` permettant de lancer différents packages.  
+   - Utiliser ces fichiers comme base pour atteindre rapidement les requis R.F.1 et R.F.2 (démonstrations PDR).  
+
+4. **Simulation et outils**  
+   - Continuer à suivre des tutoriels ROS2 et analyser les scripts existants (`.py`) sur GitLab.  
+   - Assurer la compréhension de la simulation Gazebo (lancer un environnement, manipuler deux robots).  
+
+5. **Docker & intégration**  
+   - Explorer l’usage de Docker Compose pour organiser les services (un launch file par service, ou un global).  
+   - Définir une structure de travail commune avec Docker pour respecter le requis de conteneurisation obligatoire.  
+
+6. **Identification et interaction**  
+   - Étudier comment implémenter l’identification d’un robot (clignoter une DEL, son, mouvement) pour satisfaire R.F.1.  
+   - Définir les scénarios de connexion serveur ↔ robot physique (1) et serveur ↔ simulation (2).  
+
+7. **Documentation et planification**  
+   - Poursuivre la rédaction d’une première version de la Documentation du projet (réponse à l’appel d’offres).  
+   - Préparer l’organigramme technique, le plan de projet et l’échéancier graphique, conformément à l’Annexe B de l’appel d’offres.  
+
 
 
