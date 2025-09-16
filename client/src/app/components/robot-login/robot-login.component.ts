@@ -1,49 +1,85 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { RobotKeyService } from '../../services/robot-key.service';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+type ModeType = 'simulation' | 'reel';
 
 @Component({
   selector: 'app-robot-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './robot-login.component.html',
-  styleUrls: ['./robot-login.component.scss']
+  styleUrls: ['./robot-login.component.scss'],
 })
-export class RobotLoginComponent {
-  form = this.fb.group({
-    robotName: ['', Validators.required],
-    teamName: ['', Validators.required],
-  });
-
-  loading = false;
+export class RobotLoginComponent implements OnInit {
+  modeForm!: FormGroup;   // contient un booléen: false=simulation, true=reel
+  form!: FormGroup;       // formulaire "réel"
+  submittedMode = false;
   submitted = false;
-  generatedKey: string | null = null;
+  loading = false;
   error: string | null = null;
 
-  constructor(private fb: FormBuilder, private keyService: RobotKeyService) {}
+  selectedMode: ModeType | null = null;
 
-  onSubmit() {
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.modeForm = this.fb.group({
+      modeToggle: [false], // false = Simulation (par défaut), true = Réel
+    });
+
+    this.form = this.fb.group({
+      robotName: ['', Validators.required],
+      teamName: ['', Validators.required],
+    });
+  }
+
+ onModeSubmit(): void {
+  this.submittedMode = true;
+  this.error = null;
+
+  if (this.modeForm.invalid) return;
+
+  this.selectedMode = this.modeForm.value.modeToggle ? 'reel' : 'simulation';
+
+  if (this.selectedMode === 'simulation') {
+    this.form.reset();
+    this.submitted = false;
+    this.startSimulationFlow(); // direct
+  }
+}
+  onSubmit(): void {
     this.submitted = true;
     this.error = null;
-
     if (this.form.invalid) return;
 
-    const { robotName, teamName } = this.form.value as { robotName: string; teamName: string };
     this.loading = true;
-    this.generatedKey = null;
+    const payload = {
+      mode: this.selectedMode, // "reel"
+      robotName: this.form.value.robotName,
+      teamName: this.form.value.teamName,
+    };
 
-    this.keyService.getKey(robotName, teamName).subscribe({
-      next: (key) => {
-        this.generatedKey = key;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Impossible de générer la clé. Réessayez.';
-        console.error(err);
-        this.loading = false;
-      }
-    });
+    try {
+      if (!payload.robotName || !payload.teamName) throw new Error('Champs manquants');
+      this.loading = false;
+      // TODO: navigation ou suite logique
+    } catch (e: any) {
+      this.loading = false;
+      this.error = e?.message ?? 'Une erreur est survenue.';
+    }
+  }
+
+  private startSimulationFlow(): void {
+    // TODO: logique simulation (navigation/init)
+  }
+
+  changeMode(): void {
+    this.selectedMode = null;
+    this.submittedMode = false;
+    this.modeForm.setValue({ modeToggle: false });
+    this.form.reset();
+    this.submitted = false;
+    this.error = null;
   }
 }

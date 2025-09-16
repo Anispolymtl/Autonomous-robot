@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RobotLoginComponent } from '@app/components/robot-login/robot-login.component';
 
+
 @Component({
     selector: 'app-main-page',
     templateUrl: './main-page.component.html',

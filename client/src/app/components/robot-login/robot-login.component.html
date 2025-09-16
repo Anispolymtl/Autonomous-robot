@@ -2,7 +2,46 @@
   <div class="card" role="region" aria-labelledby="robot-login-title">
     <h1 id="robot-login-title" class="title">Connexion au robot</h1>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <!-- 🔹 Formulaire choix du mode -->
+    <form *ngIf="!selectedMode"
+          [formGroup]="modeForm"
+          (ngSubmit)="onModeSubmit()"
+          novalidate
+          class="mode-form">
+      
+      <label for="modeToggle" class="toggle-label">Mode</label>
+
+      <div class="toggle-wrap">
+        <span class="mode-label">Simulation</span>
+
+        <label class="switch">
+          <input
+            id="modeToggle"
+            type="checkbox"
+            formControlName="modeToggle"
+          />
+          <span class="slider round"></span>
+        </label>
+
+        <span class="mode-label">Réel</span>
+      </div>
+
+      <div class="helper">
+        Mode sélectionné :
+        <strong>{{ modeForm.value.modeToggle ? 'Réel' : 'Simulation' }}</strong>
+      </div>
+
+      <button class="btn" type="submit">
+        Continuer
+      </button>
+    </form>
+
+    <!-- 🔹 Formulaire réel -->
+    <form *ngIf="selectedMode === 'reel'"
+          [formGroup]="form"
+          (ngSubmit)="onSubmit()"
+          novalidate>
+      
       <div class="form-group">
         <label for="robotName">Nom du robot</label>
         <input
@@ -36,7 +75,7 @@
       </div>
 
       <button class="btn" type="submit" [disabled]="loading || form.invalid">
-        {{ loading ? 'Vérification' : 'Connection' }}
+        {{ loading ? 'Vérification' : 'Connexion' }}
       </button>
     </form>
 
