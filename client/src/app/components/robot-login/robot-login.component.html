@@ -1,0 +1,50 @@
+<div class="page-wrap">
+  <div class="card" role="region" aria-labelledby="robot-login-title">
+    <h1 id="robot-login-title" class="title">Connexion du robot</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="robotName">Nom du robot</label>
+        <input
+          id="robotName"
+          type="text"
+          formControlName="robotName"
+          [class.invalid]="submitted && form.controls['robotName'].invalid"
+          placeholder="Ex: lm1132"
+          required
+          aria-required="true"
+        />
+        <small *ngIf="submitted && form.controls['robotName'].hasError('required')" class="error">
+          Le nom du robot est requis.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="teamName">Nom de l’équipe</label>
+        <input
+          id="teamName"
+          type="text"
+          formControlName="teamName"
+          [class.invalid]="submitted && form.controls['teamName'].invalid"
+          placeholder="Ex: 206"
+          required
+          aria-required="true"
+        />
+        <small *ngIf="submitted && form.controls['teamName'].hasError('required')" class="error">
+          Le nom de l’équipe est requis.
+        </small>
+      </div>
+
+      <button class="btn" type="submit" [disabled]="loading || form.invalid">
+        {{ loading ? 'Génération...' : 'Obtenir la clé' }}
+      </button>
+    </form>
+
+    <div class="result" *ngIf="generatedKey && !loading">
+      <h2>Clé générée</h2>
+      <code>{{ generatedKey }}</code>
+    </div>
+
+    <p class="error" *ngIf="error">{{ error }}</p>
+  </div>
+</div>

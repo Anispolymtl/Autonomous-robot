@@ -25,3 +25,4 @@ const routes: Routes = [
 bootstrapApplication(AppComponent, {
     providers: [provideHttpClient(), provideRouter(routes, withHashLocation()), provideAnimations()],
 })
+ 

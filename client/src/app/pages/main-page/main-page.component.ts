@@ -5,12 +5,13 @@ import { CommunicationService } from '@app/services/communication.service';
 import { Message } from '@common/message';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { RobotLoginComponent } from '@app/components/robot-login/robot-login.component';
 
 @Component({
     selector: 'app-main-page',
     templateUrl: './main-page.component.html',
     styleUrls: ['./main-page.component.scss'],
-    imports: [RouterLink],
+    imports: [RouterLink, RobotLoginComponent],
 })
 export class MainPageComponent {
     readonly title: string = 'LOG2990';
