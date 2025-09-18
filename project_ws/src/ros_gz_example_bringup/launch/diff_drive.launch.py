@@ -82,10 +82,18 @@ def generate_launch_description():
         output='screen'
     )
 
+    test_node = Node(
+        package='robot_exploration',
+        executable='test_node',
+        name='cmd_vel_publisher',
+        output='both'
+    )
+
     return LaunchDescription([
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher,
         # rviz
+        test_node,
     ])
