@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'robot_exploration'
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -19,8 +22,10 @@ setup(
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [
-       		'test_node = robot_exploration.test_node:main',
-	],
+    'console_scripts': [
+        'client_service = robot_exploration.service.client_service_test_node:main',
+        'identify_service = robot_exploration.service.identify_robot_service:main',
+        'test_node = robot_exploration.test_node:main',
+    ],
     },
 )
