@@ -11,7 +11,8 @@ class IdentifyRobotService(Node):
         self.srv = self.create_service(Trigger, 'identify_robot', self.identify_callback)
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
         self.routine_started = False
-        self.routine_duration = 5.0 # seconde
+        self.routine_duration = 0.1 # frequency
+        self.number_of_cycle = 20
 
     def identify_callback(self, request, response):
         if not self.routine_started:
@@ -36,13 +37,16 @@ class IdentifyRobotService(Node):
 
     def routine(self):
 
-        twist = Twist()
-        twist.linear.x = 0.0
-        twist.angular.z = 0.5
+        for _ in range(self.number_of_cycle):
+            twist = Twist()
+            twist.linear.x = 0.0
+            twist.angular.z = 5.0
 
-        self.publisher_.publish(twist)
-        self.get_logger().info("Tourne...")
-        time.sleep(self.routine_duration)
+            self.publisher_.publish(twist)
+            self.get_logger().info("Tourne...")
+            time.sleep(self.routine_duration)
+        
+        self.routine_started = False
 
 def main(args=None):
     rclpy.init(args=args)
