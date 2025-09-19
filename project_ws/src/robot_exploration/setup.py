@@ -25,7 +25,7 @@ setup(
     'console_scripts': [
         'client_service = robot_exploration.service.client_service_test_node:main',
         'identify_service = robot_exploration.service.identify_robot_service:main',
-        'test_node = robot_exploration.test_node:main',
+        #'test_node = robot_exploration.test_node:main',
     ],
     },
 )
