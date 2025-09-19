@@ -27,7 +27,10 @@ class IdentifyRobotService(Node):
                 response.success = True
                 response.message = "test_node lancé avec succès"
                 self.get_logger().info("test_node lancé avec succès")
-
+            except Exception as e:
+                response.success = False
+                response.message = f"Échec du lancement de test_node : {e}"
+                self.get_logger().info(response.message)
         return response
 
 
