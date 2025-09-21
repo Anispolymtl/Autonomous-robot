@@ -36,9 +36,13 @@ def generate_launch_description():
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     # Load the SDF file from "description" package
-    sdf_file = os.path.join(pkg_project_description, 'models', 'limo_diff_drive', 'model.sdf')
-    with open(sdf_file, 'r') as infp:
-        robot_desc = infp.read()
+    sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
+    with open(sdf_file_limo1, 'r') as infp:
+        robot_desc_limo1 = infp.read()
+
+    sdf_file_limo2 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive2', 'model.sdf')
+    with open(sdf_file_limo2, 'r') as infp:
+        robot_desc_limo2 = infp.read()
 
     # Setup to launch the simulator and Gazebo world
     gz_sim = IncludeLaunchDescription(
@@ -52,14 +56,27 @@ def generate_launch_description():
     )
 
     # Takes the description and joint angles as inputs and publishes the 3D poses of the robot links
-    robot_state_publisher = Node(
+    robot_state_publisher_limo1 = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        name='robot_state_publisher',
+        name='robot_state_publisher_limo1',
+        namespace='limo1',
         output='both',
         parameters=[
             {'use_sim_time': True},
-            {'robot_description': robot_desc},
+            {'robot_description': robot_desc_limo1},
+        ]
+    )
+
+    robot_state_publisher_limo2 = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher_limo2',
+        namespace='limo2',
+        output='both',
+        parameters=[
+            {'use_sim_time': True},
+            {'robot_description': robot_desc_limo2},
         ]
     )
 
@@ -82,10 +99,19 @@ def generate_launch_description():
         output='screen'
     )
 
-    test_node = Node(
+    test_node1 = Node(
         package='robot_exploration',
         executable='test_node',
-        name='cmd_vel_publisher',
+        name='cmd_vel_publisher_limo1',
+        namespace='limo1',
+        output='both'
+    )
+
+    test_node2 = Node(
+        package='robot_exploration',
+        executable='test_node',
+        name='cmd_vel_publisher_limo2',
+        namespace='limo2',
         output='both'
     )
 
@@ -93,7 +119,9 @@ def generate_launch_description():
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
-        robot_state_publisher,
+        robot_state_publisher_limo1,
+        robot_state_publisher_limo2,
         # rviz
-        test_node,
+        #test_node1,
+        #test_node2,
     ])
