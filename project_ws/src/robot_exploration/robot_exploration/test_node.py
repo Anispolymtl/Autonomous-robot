@@ -8,7 +8,7 @@ from std_srvs.srv import SetBool
 class CmdVelPublisher(Node):
     def __init__(self):
         super().__init__('cmd_vel_publisher')
-        self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.publisher_ = self.create_publisher(Twist, '/limo1/cmd_vel', 10)
 
         # Etat d'activation contrôlé par service pour s'intégrer à l'architecture
         self.identified = False
