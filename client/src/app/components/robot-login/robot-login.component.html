@@ -2,83 +2,92 @@
   <div class="card" role="region" aria-labelledby="robot-login-title">
     <h1 id="robot-login-title" class="title">Connexion au robot</h1>
 
-    <!-- 🔹 Formulaire choix du mode -->
-    <form *ngIf="!selectedMode"
-          [formGroup]="modeForm"
-          (ngSubmit)="onModeSubmit()"
-          novalidate
-          class="mode-form">
-      
-      <label for="modeToggle" class="toggle-label">Mode</label>
+    @if (!selectedMode) {
+      <form
+        [formGroup]="modeForm"
+        (ngSubmit)="onModeSubmit()"
+        novalidate
+        class="mode-form">
+        
+        <label for="modeToggle" class="toggle-label">Mode</label>
 
-      <div class="toggle-wrap">
-        <span class="mode-label">Simulation</span>
+        <div class="toggle-wrap">
+          <span class="mode-label">Simulation</span>
 
-        <label class="switch">
-          <input
-            id="modeToggle"
-            type="checkbox"
-            formControlName="modeToggle"
-          />
-          <span class="slider round"></span>
-        </label>
+          <label class="switch">
+            <input
+              id="modeToggle"
+              type="checkbox"
+              formControlName="modeToggle"
+            />
+            <span class="slider round"></span>
+          </label>
 
-        <span class="mode-label">Réel</span>
-      </div>
+          <span class="mode-label">Réel</span>
+        </div>
 
-      <div class="helper">
-        Mode sélectionné :
-        <strong>{{ modeForm.value.modeToggle ? 'Réel' : 'Simulation' }}</strong>
-      </div>
+        <div class="helper">
+          Mode sélectionné :
+          <strong>{{ modeForm.value.modeToggle ? 'Réel' : 'Simulation' }}</strong>
+        </div>
 
-      <button class="btn" type="submit">
-        Continuer
-      </button>
-    </form>
+        <button class="btn" type="submit">
+          Continuer
+        </button>
+      </form>
+    }
 
     <!-- 🔹 Formulaire réel -->
-    <form *ngIf="selectedMode === 'reel'"
-          [formGroup]="form"
-          (ngSubmit)="onSubmit()"
-          novalidate>
-      
-      <div class="form-group">
-        <label for="robotName">Nom du robot</label>
-        <input
-          id="robotName"
-          type="text"
-          formControlName="robotName"
-          [class.invalid]="submitted && form.controls['robotName'].invalid"
-          placeholder="Ex: lm1132"
-          required
-          aria-required="true"
-        />
-        <small *ngIf="submitted && form.controls['robotName'].hasError('required')" class="error">
-          Le nom du robot est requis.
-        </small>
-      </div>
+    @if (selectedMode === 'reel') {
+      <form
+        [formGroup]="form"
+        (ngSubmit)="onSubmit()"
+        novalidate>
+        
+        <div class="form-group">
+          <label for="robotName">Nom du robot</label>
+          <input
+            id="robotName"
+            type="text"
+            formControlName="robotName"
+            [class.invalid]="submitted && form.controls['robotName'].invalid"
+            placeholder="Ex: lm1132"
+            required
+            aria-required="true"
+          />
+          @if (submitted && form.controls['robotName'].hasError('required')) {
+            <small class="error">
+              Le nom du robot est requis.
+            </small>
+          }
+        </div>
 
-      <div class="form-group">
-        <label for="teamName">Nom de l’équipe</label>
-        <input
-          id="teamName"
-          type="text"
-          formControlName="teamName"
-          [class.invalid]="submitted && form.controls['teamName'].invalid"
-          placeholder="Ex: 206"
-          required
-          aria-required="true"
-        />
-        <small *ngIf="submitted && form.controls['teamName'].hasError('required')" class="error">
-          Le nom de l’équipe est requis.
-        </small>
-      </div>
+        <div class="form-group">
+          <label for="teamName">Nom de l’équipe</label>
+          <input
+            id="teamName"
+            type="text"
+            formControlName="teamName"
+            [class.invalid]="submitted && form.controls['teamName'].invalid"
+            placeholder="Ex: 206"
+            required
+            aria-required="true"
+          />
+          @if (submitted && form.controls['teamName'].hasError('required')) {
+            <small class="error">
+              Le nom de l’équipe est requis.
+            </small>
+          }
+        </div>
 
-      <button class="btn" type="submit" [disabled]="loading || form.invalid">
-        {{ loading ? 'Vérification' : 'Connexion' }}
-      </button>
-    </form>
+        <button class="btn" type="submit" [disabled]="loading || form.invalid">
+          {{ loading ? 'Vérification' : 'Connexion' }}
+        </button>
+      </form>
+    }
 
-    <p class="error" *ngIf="error">{{ error }}</p>
+    @if (error) {
+      <p class="error">{{ error }}</p>
+    }
   </div>
 </div>
