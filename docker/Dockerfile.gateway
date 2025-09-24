@@ -1,0 +1,26 @@
+
+FROM osrf/ros:humble-ros-core
+
+# Outils système + Node.js 20
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates gnupg build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installer Node.js 20
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV ROS_DISTRO=humble
+WORKDIR /app
+
+COPY server/package*.json ./
+RUN npm ci
+
+COPY server/ .
+
+RUN npm run build
+
+EXPOSE 8080
+
+CMD ["/bin/bash", "-lc", "source /opt/ros/$ROS_DISTRO/setup.bash && node out/app/index.js"]
