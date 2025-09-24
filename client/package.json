@@ -2,7 +2,7 @@
   "name": "client",
   "version": "1.0.0",
   "scripts": {
-    "start": "ng serve --open",
+    "start": "ng serve",
     "build": "ng build",
     "deploy": "ng build",
     "format": "prettier --config ../.prettierrc.yaml --ignore-path ../.prettierignore --write \"src/**/*\"",

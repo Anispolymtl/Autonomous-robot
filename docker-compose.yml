@@ -1,55 +1,60 @@
-version: "3.9"
-
 services:
-  # ROS 2 + Gazebo/bridge
-  ros-sim:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ros
-    image: myproj/ros-sim:humble
-    container_name: ros-sim
-    environment:
-      ROS_DISTRO: humble
-      ROS_DOMAIN_ID: "42"
-      DISPLAY: ${DISPLAY}
-    volumes:
-      - ./project_ws:/ws
-      - /tmp/.X11-unix:/tmp/.X11-unix:ro
-    network_mode: host
-    # Optionde lancer le launch
-    # command: ["/bin/bash","-lc","source /ws/install/setup.bash && ros2 launch ros_gz_example_bringup diff_drive.launch.py"]
 
-  # Backend NestJS (gateway) qui appelle ROS 2 (Trigger) ---
-  gateway:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.gateway
-    image: myproj/gateway:latest
-    container_name: api-gateway
-    depends_on:
-      - ros-sim
-    environment:
-      NODE_ENV: production
-      ROS_DISTRO: humble
-      ROS_DOMAIN_ID: "42"   # aligne avec ros-sim
-    ports:
-      - "8080:8080"
-    network_mode: host
-
-  # client web
   client:
+    image: inf3995-106-client
     build:
       context: .
-      dockerfile: docker/Dockerfile.client
-    image: myproj/client:latest
-    container_name: web-client
-    depends_on:
-      - gateway
-    ports:
-      - "3000:3000"
-    networks:
-      - rosnet
+      dockerfile: ./docker/Dockerfile.client
+    network_mode: host            
+    environment:
+      - PORT=4200
+      - CHOKIDAR_USEPOLLING=true  
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - ./common:/common          
+      - /app/node_modules         
+    command: ["npm", "start"]
+    profiles: ["client"]
 
-networks:
-  rosnet:
-    driver: bridge
+
+  gateway:
+    image: inf3995-106-gateway
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.gateway
+    network_mode: host
+    working_dir: /srv/app/gateways
+    volumes:
+      - ./server/app/gateways:/srv/app/gateways
+      - ./common:/srv/app/common
+      - /srv/app/gateways/node_modules
+    command: ["/bin/bash","-lc","[ -f package.json ] && (npm ci || npm i) || true; node ros.gateway.js"]
+    profiles: ["gateway"]
+
+
+  ros:
+    image: inf3995-106-ros
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.ros
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    working_dir: /ws
+    volumes:
+      - ./projet_ws:/ws
+      - /ws/build
+      - /ws/install
+      - /ws/log
+    command: >
+      bash -lc "
+      set -e
+      source /opt/ros/humble/setup.bash &&
+      cd /ws &&
+      colcon build &&
+      source install/setup.bash &&
+      ros2 run robot_exploration identify_service
+      "
+    profiles: ["ros"]
