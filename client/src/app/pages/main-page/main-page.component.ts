@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommunicationService } from '@app/services/communication.service';
+import { IdentifyService } from '@app/services/identify.service';
 import { Message } from '@common/message';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -16,7 +17,10 @@ export class MainPageComponent {
     readonly title: string = 'LOG2990';
     message: BehaviorSubject<string> = new BehaviorSubject<string>('');
 
-    constructor(private readonly communicationService: CommunicationService) {}
+    constructor(
+        private readonly communicationService: CommunicationService,
+        private readonly identifyService: IdentifyService
+    ) { }
 
     sendTimeToServer(): void {
         const newTimeMessage: Message = {
@@ -46,5 +50,15 @@ export class MainPageComponent {
                 }),
             )
             .subscribe(this.message);
+    }
+    onIdentify(): void {
+        this.identifyService.identifyRobot().subscribe({
+            next: (res: any) => {
+                this.message.next(`Réponse du robot : ${res.message}`);
+            },
+            error: (err: HttpErrorResponse) => {
+                this.message.next(`Erreur lors de l’identification : ${err.message}`);
+            },
+        });
     }
 }
