@@ -2,7 +2,7 @@
   <div class="card" role="region" aria-labelledby="robot-login-title">
     <h1 id="robot-login-title" class="title">Connexion au robot</h1>
     <section id="server-message" class="justified">
-        <p>Petit message du serveur : {{ message.getValue() }}</p>
+        <p>{{ message.getValue() }}</p>
     </section>
     @if (!selectedMode) {
       <form
@@ -36,11 +36,9 @@
         <button class="btn" type="submit">
           Continuer
         </button>
-
         
       </form>
-      <button (click)="onIdentify()">Identifier le robot</button>
-      <button class="button" routerLink="/game">Jouer!</button>
+      <button class="btn" (click)="onIdentify()">Identifier le robot</button>
     }
 
     <!-- 🔹 Formulaire réel -->
