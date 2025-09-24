@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # ROS 2 + Gazebo/bridge
   ros-sim:
     build:
       context: .
@@ -14,6 +15,41 @@ services:
     volumes:
       - ./project_ws:/ws
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
-    network_mode: host  
-    # Pour lancer le launch du bringup:
+    network_mode: host
+    # Optionde lancer le launch
     # command: ["/bin/bash","-lc","source /ws/install/setup.bash && ros2 launch ros_gz_example_bringup diff_drive.launch.py"]
+
+  # Backend NestJS (gateway) qui appelle ROS 2 (Trigger) ---
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    image: myproj/gateway:latest
+    container_name: api-gateway
+    depends_on:
+      - ros-sim
+    environment:
+      NODE_ENV: production
+      ROS_DISTRO: humble
+      ROS_DOMAIN_ID: "42"   # aligne avec ros-sim
+    ports:
+      - "8080:8080"
+    network_mode: host
+
+  # client web
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+    image: myproj/client:latest
+    container_name: web-client
+    depends_on:
+      - gateway
+    ports:
+      - "3000:3000"
+    networks:
+      - rosnet
+
+networks:
+  rosnet:
+    driver: bridge
