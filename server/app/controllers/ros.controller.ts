@@ -7,6 +7,6 @@ export class RosController {
 
   @Get()
   async identify() {
-    return await this.rosService.identifyRobot();
+    return await this.rosService.identifyRobot(0);
   }
 }
