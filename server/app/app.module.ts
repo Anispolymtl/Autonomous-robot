@@ -9,20 +9,22 @@ import { DateService } from '@app/services/date/date.service';
 import { ChatGateway } from '@app/gateways/chat/chat.gateway';
 import { ExampleService } from '@app/services/example/example.service';
 import { ExampleController } from '@app/controllers/example/example.controller';
+import { RosService } from '@app/services/ros.service';
+import { RosController } from '@app/controllers/ros.controller';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: async (config: ConfigService) => ({
-                uri: config.get<string>('DATABASE_CONNECTION_STRING'), // Loaded from .env
-            }),
-        }),
-        MongooseModule.forFeature([{ name: Course.name, schema: courseSchema }]),
+        ConfigModule.forRoot({ isGlobal: true })
+        // MongooseModule.forRootAsync({
+        //     imports: [ConfigModule],
+        //     inject: [ConfigService],
+        //     useFactory: async (config: ConfigService) => ({
+        //         uri: config.get<string>('DATABASE_CONNECTION_STRING'), // Loaded from .env
+        //     }),
+        // }),
+        // MongooseModule.forFeature([{ name: Course.name, schema: courseSchema }]),
     ],
-    controllers: [CourseController, DateController, ExampleController],
-    providers: [ChatGateway, CourseService, DateService, ExampleService, Logger],
+    controllers: [DateController, ExampleController, RosController], // CourseController, 
+    providers: [ChatGateway, DateService, ExampleService, Logger, RosService], // CourseService,
 })
 export class AppModule {}

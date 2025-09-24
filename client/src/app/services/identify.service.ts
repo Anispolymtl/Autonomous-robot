@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class IdentifyService {
-    private apiUrl = 'http://localhost:3000/identify';
+    private apiUrl = 'http://localhost:3000/api/identify';
 
     constructor(private http: HttpClient) { }
 
