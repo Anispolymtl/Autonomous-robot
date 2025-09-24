@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  ros-sim:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros
+    image: myproj/ros-sim:humble
+    container_name: ros-sim
+    environment:
+      ROS_DISTRO: humble
+      ROS_DOMAIN_ID: "42"
+      DISPLAY: ${DISPLAY}
+    volumes:
+      - ./project_ws:/ws
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    network_mode: host  
+    # Pour lancer le launch du bringup:
+    # command: ["/bin/bash","-lc","source /ws/install/setup.bash && ros2 launch ros_gz_example_bringup diff_drive.launch.py"]
