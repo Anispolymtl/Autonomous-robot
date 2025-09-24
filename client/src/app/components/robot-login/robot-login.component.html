@@ -1,7 +1,9 @@
 <div class="page-wrap">
   <div class="card" role="region" aria-labelledby="robot-login-title">
     <h1 id="robot-login-title" class="title">Connexion au robot</h1>
-
+    <section id="server-message" class="justified">
+        <p>Petit message du serveur : {{ message.getValue() }}</p>
+    </section>
     @if (!selectedMode) {
       <form
         [formGroup]="modeForm"
@@ -9,7 +11,7 @@
         novalidate
         class="mode-form">
         
-        <label for="modeToggle" class="toggle-label">Mode</label>
+        <label class="toggle-label">Mode</label>
 
         <div class="toggle-wrap">
           <span class="mode-label">Simulation</span>
@@ -34,7 +36,11 @@
         <button class="btn" type="submit">
           Continuer
         </button>
+
+        
       </form>
+      <button (click)="onIdentify()">Identifier le robot</button>
+      <button class="button" routerLink="/game">Jouer!</button>
     }
 
     <!-- 🔹 Formulaire réel -->

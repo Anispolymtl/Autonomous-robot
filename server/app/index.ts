@@ -19,6 +19,15 @@ const bootstrap = async () => {
     SwaggerModule.setup('', app, document);
 
     await app.listen(process.env.PORT);
+
+    const shutdown = async () => {
+        console.log('Fermeture du serveur...');
+        await app.close();
+        process.exit(0);
+    };
+
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
 };
 
 bootstrap();

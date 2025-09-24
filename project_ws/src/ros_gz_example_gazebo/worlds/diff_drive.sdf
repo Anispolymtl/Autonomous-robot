@@ -54,12 +54,21 @@
         </visual>
       </link>
     </model>
-
-    <model name="limo">
+    <!-- Robot 1 -->
+    <model name="limo1">
       <self_collide>true</self_collide>
       <pose>0 0 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_diff_drive</uri>
+        <uri>package://ros_gz_example_description/models/limo_diff_drive1</uri>
+      </include>
+    </model>
+
+    <!-- Robot 2 -->
+    <model name="limo2">
+      <self_collide>true</self_collide>
+      <pose>2 0 0.35 0 0 0</pose> <!-- décalé de 2m -->
+      <include merge="true">
+        <uri>package://ros_gz_example_description/models/limo_diff_drive2</uri>
       </include>
     </model>
   </world>

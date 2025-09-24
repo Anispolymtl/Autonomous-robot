@@ -1,3 +1,6 @@
 project_ws/build/
 project_ws/install/
 project_ws/log/
+project_ws/*/log/
+project_ws/*/install/
+project_ws/*/build/
