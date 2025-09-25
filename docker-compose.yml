@@ -1,60 +1,73 @@
+version: "3.9"
+
+# Ancre pour les variables ROS (utilisée plus bas avec <<: *ros_env)
+x-ros-env: &ros_env
+  ROS_DISTRO: humble
+  ROS_DOMAIN_ID: "42"
+  RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+  DISPLAY: "${DISPLAY}"
+
 services:
 
-  client:
-    image: inf3995-106-client
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile.client
-    network_mode: host            
-    environment:
-      - PORT=4200
-      - CHOKIDAR_USEPOLLING=true  
-    working_dir: /app
-    volumes:
-      - ./client:/app
-      - ./common:/common          
-      - /app/node_modules         
-    command: ["npm", "start"]
-    profiles: ["client"]
-
-
-  gateway:
-    image: inf3995-106-gateway
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile.gateway
-    network_mode: host
-    working_dir: /srv/app/gateways
-    volumes:
-      - ./server/app/gateways:/srv/app/gateways
-      - ./common:/srv/app/common
-      - /srv/app/gateways/node_modules
-    command: ["/bin/bash","-lc","[ -f package.json ] && (npm ci || npm i) || true; node ros.gateway.js"]
-    profiles: ["gateway"]
-
-
   ros:
-    image: inf3995-106-ros
     build:
       context: .
       dockerfile: ./docker/Dockerfile.ros
+    image: inf3995-106-ros
     network_mode: host
     environment:
-      - ROS_DOMAIN_ID=0
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      <<: *ros_env
     working_dir: /ws
     volumes:
-      - ./projet_ws:/ws
+      - ./project_ws:/ws               # change en ./projet_ws si c'est ton vrai dossier
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
       - /ws/build
       - /ws/install
       - /ws/log
     command: >
       bash -lc "
       set -e
-      source /opt/ros/humble/setup.bash &&
+      source /opt/ros/${ROS_DISTRO}/setup.bash &&
       cd /ws &&
-      colcon build &&
+      colcon build --symlink-install &&
       source install/setup.bash &&
       ros2 run robot_exploration identify_service
       "
-    profiles: ["ros"]
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.gateway
+    image: myproj/gateway:latest
+    container_name: api-gateway
+    depends_on:
+      - ros
+    environment:
+      NODE_ENV: production
+      <<: *ros_env
+    network_mode: host
+    working_dir: /srv/app/gateways
+    volumes:
+      - ./server/app/gateways:/srv/app/gateways
+      - ./common:/srv/app/common
+      - /srv/app/gateways/node_modules
+    # npm ci se fait dans l'image; au runtime on lance juste le service
+    command: ["bash","-lc","source /opt/ros/${ROS_DISTRO}/setup.bash && node ros.gateway.js"]
+
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.client
+    image: inf3995-106-client
+    container_name: web-client
+    network_mode: host
+    environment:
+      PORT: "4200"    
+      HOST: "0.0.0.0"                  # mets 3000 si besoin
+      CHOKIDAR_USEPOLLING: "true"
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - ./common:/common
+      - /app/node_modules
+    command: ["npm","start"]

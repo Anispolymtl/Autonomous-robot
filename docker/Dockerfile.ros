@@ -1,23 +1,33 @@
-FROM osrf/ros:humble-desktop-full
+FROM ros:humble-ros-core
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget ca-certificates \
     build-essential cmake \
     python3-pip python3-colcon-common-extensions python3-vcstool \
+    python3-rosdep \
     ros-humble-ros-gz-bridge ros-humble-ros-gz-sim ros-humble-ros-gz-image \
     ros-humble-xacro ros-humble-robot-state-publisher ros-humble-joint-state-publisher-gui \
-    && rm -rf /var/lib/apt/lists/*
+    ros-humble-cartographer ros-humble-cartographer-ros ros-humble-cartographer-ros-msgs \
+  && rm -rf /var/lib/apt/lists/*
 
-ENV ROS_DISTRO=humble
-ENV WS=/ws
+SHELL ["/bin/bash","-lc"]
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    ROS_DISTRO=humble \
+    WS=/ws
+
+RUN rosdep init || true && rosdep update
+
 WORKDIR $WS
 
-COPY ./project_ws ./   
+COPY project_ws/ $WS/
 
-RUN rosdep update && \
-    rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y
+RUN rosdep install --rosdistro ${ROS_DISTRO} -i --from-paths src --ignore-src -r -y \
+    --skip-keys="ros_gz sdformat_urdf cartographer_ros cartographer_ros_msgs"
 
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+RUN rm -rf $WS/build $WS/install $WS/log
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     colcon build --merge-install --symlink-install
 
 CMD ["/bin/bash", "-lc", "source $WS/install/setup.bash && bash"]
