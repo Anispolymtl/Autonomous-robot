@@ -34,25 +34,32 @@ services:
       ros2 run robot_exploration identify_service
       "
 
-  gateway:
+  server:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.gateway
-    image: myproj/gateway:latest
-    container_name: api-gateway
+      dockerfile: ./docker/Dockerfile.server
+    image: myproj/server:latest
+    container_name: api-server
     depends_on:
       - ros
     environment:
       NODE_ENV: production
-      <<: *ros_env
+      ROS_DISTRO: humble
+      ROS_DOMAIN_ID: "42"
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
     network_mode: host
-    working_dir: /srv/app/gateways
+    working_dir: /server
     volumes:
-      - ./server/app/gateways:/srv/app/gateways
-      - ./common:/srv/app/common
-      - /srv/app/gateways/node_modules
-    # npm ci se fait dans l'image; au runtime on lance juste le service
-    command: ["bash","-lc","source /opt/ros/${ROS_DISTRO}/setup.bash && node ros.gateway.js"]
+      - ./server:/server
+      - ./common:/common
+      - /server/node_modules
+    command: >
+      bash -lc "
+        source /opt/ros/${ROS_DISTRO}/setup.bash;
+        cd /server;
+        if [ ! -d node_modules ]; then (npm ci || npm i); fi;
+        npm start
+      "
 
   client:
     build:

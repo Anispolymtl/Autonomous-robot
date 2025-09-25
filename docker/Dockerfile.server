@@ -13,17 +13,10 @@ ENV ROS_DISTRO=humble \
     PATH="/opt/ros/${ROS_DISTRO}/bin:${PATH}" \
     LD_LIBRARY_PATH="/opt/ros/${ROS_DISTRO}/lib:${LD_LIBRARY_PATH}"
 
-WORKDIR /app
+WORKDIR /server
 
 COPY server/package*.json ./
-
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
-    if [ -f package-lock.json ]; then \
-      npm_config_build_from_source=true npm ci; \
-    else \
-      echo "No lockfile -> npm install"; \
-      npm_config_build_from_source=true npm install; \
-    fi
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && (npm ci || npm i)
 
 COPY server/ ./
 
@@ -31,4 +24,4 @@ RUN source /opt/ros/${ROS_DISTRO}/setup.bash && npm run build || true
 
 EXPOSE 8080
 
-CMD ["/bin/bash","-lc","source /opt/ros/$ROS_DISTRO/setup.bash && node out/app/index.js"]
+CMD ["/bin/bash","-lc","source /opt/ros/$ROS_DISTRO/setup.bash && npm start"]
