@@ -1,87 +1,68 @@
 import os
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import Node, PushRosNamespace
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import LaunchConfiguration
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+
+def launch_limo(context, *args, **kwargs):
+    namespace = LaunchConfiguration('namespace').perform(context)
+    if namespace not in ['limo1', 'limo2']:
+        raise RuntimeError(f"Namespace invalide: {namespace}. Choisir 'limo1' ou 'limo2'.")
+
+    pkg_limo_bringup = get_package_share_directory('limo_bringup')
+
+    limo_launch = GroupAction(
+        actions=[
+            PushRosNamespace(namespace),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(pkg_limo_bringup, 'launch', 'limo_start.launch.py')
+                )
+            ),
+            Node(
+                package='robot_exploration',
+                executable='identify_service',
+                name='identify_robot_service',
+                output='screen'
+            )
+        ]
+    )
+    return [limo_launch]
+
+def launch_sim(context, *args, **kwargs):
+    pkg_sim_bringup = get_package_share_directory('ros_gz_example_bringup')
+
+    sim_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_sim_bringup, 'launch', 'diff_drive.launch.py'))
+    )
+
+    return [sim_launch]
 
 def generate_launch_description():
+    use_limo = LaunchConfiguration('use_limo')
+    namespace = LaunchConfiguration('namespace')
 
-    use_limo_arg = DeclareLaunchArgument(
-        'use_limo_bringup',
+    declare_use_limo = DeclareLaunchArgument(
+        'use_limo',
         default_value='false',
         description='Inclure limo_bringup si true'
     )
-    pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
-    pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
-    pkg_project_description = get_package_share_directory('ros_gz_example_description')
-    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    # Lancer les drivers du robot (optionnel)
-    limo_launch = IncludeLaunchDescription(
-        AnyLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare('limo_bringup'),
-                'launch',
-                'limo_start.launch.py'
-            ])
-        ),
-        condition=IfCondition(LaunchConfiguration('use_limo_bringup'))
-    )
-
-    # Load the SDF file from "description" package
-    sdf_file = os.path.join(pkg_project_description, 'models', 'limo_diff_drive', 'model.sdf')
-    with open(sdf_file, 'r') as infp:
-        robot_desc = infp.read()
-
-    # Setup to launch the simulator and Gazebo world
-    gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-        launch_arguments={'gz_args': PathJoinSubstitution([
-            pkg_project_gazebo,
-            'worlds',
-            'diff_drive.sdf'
-        ])}.items(),
-    )
-
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='both',
-        parameters=[
-            {'use_sim_time': True},
-            {'robot_description': robot_desc},
-        ]
-    )
-
-    bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        parameters=[{
-            'config_file': os.path.join(pkg_project_bringup, 'config', 'ros_gz_example_bridge.yaml'),
-            'qos_overrides./tf_static.publisher.durability': 'transient_local',
-        }],
-        output='screen'
+    declare_namespace = DeclareLaunchArgument(
+        'namespace',
+        default_value='limo1',
+        description="Namespace obligatoire (limo1 ou limo2) si use_limo est vrai"
     )
 
     # Lancer le service d'identification
-    srv_id = Node(
-        package='robot_exploration',
-        executable='identify_service',
-        name='identify_robot_service',
-        output='screen'
-    )
 
     return LaunchDescription([
-        use_limo_arg,
-        gz_sim,
-        limo_launch,
-        srv_id,
-        bridge,
-        robot_state_publisher,
+        declare_use_limo,
+        declare_namespace,
+        OpaqueFunction(function=launch_limo, condition=IfCondition(use_limo)),
+        OpaqueFunction(function=launch_sim, condition=UnlessCondition(use_limo))
     ])
