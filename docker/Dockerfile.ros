@@ -23,6 +23,9 @@ WORKDIR $WS
 
 COPY project_ws/ $WS/
 
+COPY docker/entrypoint.robot.sh /docker/entrypoint.robot.sh
+RUN chmod +x /docker/entrypoint.robot.sh
+
 RUN rosdep install --rosdistro ${ROS_DISTRO} -i --from-paths src --ignore-src -r -y \
     --skip-keys="ros_gz sdformat_urdf cartographer_ros cartographer_ros_msgs"
 
