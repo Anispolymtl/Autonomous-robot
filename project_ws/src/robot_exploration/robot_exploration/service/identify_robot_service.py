@@ -22,7 +22,7 @@ class IdentifyRobotService(Node):
                 self.routine_started = True
                 self.routine()
                 response.success = True
-                response.message = "Debut de la routine..."
+                response.message = f"Debut de la routine de {self.get_namespace()}"
             
             except Exception as e:
                 # Capture toute erreur et renvoie une réponse négative
