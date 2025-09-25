@@ -6,8 +6,11 @@ export class RosController {
   constructor(private readonly rosService: RosService) {}
 
   @Get()
-  async identify(@Query('robotId') robotId: number) {
-    console.log('Identification robot demandée par robot', robotId);
-    return await this.rosService.identifyRobot(robotId);
+  async identify(@Query('id') id: number) {
+    console.log('Identification robot demandée par robot', id);
+    if (id === undefined || id < 0 || id > 1) {
+      return { success: false, message: 'ID de robot invalide' };
+    }
+    return await this.rosService.identifyRobot(id);
   }
 }
