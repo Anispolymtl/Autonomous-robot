@@ -94,13 +94,13 @@ export class RobotLoginComponent implements OnInit {
           .subscribe(this.message);
   }
 
-  onIdentify(): void {
-      this.identifyService.identifyRobot().subscribe({
+  onIdentify(robotId: number): void {
+      this.identifyService.identifyRobot(robotId).subscribe({
           next: (res: any) => {
-              this.message.next(`Réponse du robot : ${res.message}`);
+              this.message.next(`Réponse du robot ${robotId} : ${res.message}`);
           },
           error: (err: HttpErrorResponse) => {
-              this.message.next(`Erreur lors de l’identification : ${err.message}`);
+              this.message.next(`Erreur lors de l'identification du robot ${robotId} : ${err.message}`);
           },
       });
   }

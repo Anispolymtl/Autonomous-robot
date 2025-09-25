@@ -10,7 +10,7 @@ export class IdentifyService {
 
     constructor(private http: HttpClient) { }
 
-    identifyRobot(): Observable<any> {
-        return this.http.get<any>(this.apiUrl);
+    identifyRobot(robotId: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}`, { params: { id: robotId.toString() } });
     }
 }
