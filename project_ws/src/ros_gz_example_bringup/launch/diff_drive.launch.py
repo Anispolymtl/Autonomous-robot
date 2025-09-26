@@ -77,7 +77,7 @@ def generate_launch_description():
         parameters=[
             {'use_sim_time': True},
             {'robot_description': robot_desc_limo2},
-        ]
+        ],
     )
 
     # Visualize in RViz
@@ -102,9 +102,12 @@ def generate_launch_description():
     srv1_id = Node(
         package='robot_exploration',
         executable='identify_service',
-        name='indentify_service',
+        name='identify_service',
         namespace='limo1',
-        output='both'
+        output='both',
+        remappings=[
+                ("/limo1/cmd_vel", "/cmd_vel")  # redirige cmd_vel local vers le vrai /cmd_vel du robot 1. C-a-d redirige vers le bon topic physique
+        ]
     )
 
     srv2_id = Node(
@@ -112,7 +115,10 @@ def generate_launch_description():
         executable='identify_service',
         name='identify_service',
         namespace='limo2',
-        output='both'
+        output='both',
+        remappings=[
+                ("/limo2/cmd_vel", "/cmd_vel")  # redirige cmd_vel local vers le vrai /cmd_vel du robot 2. C-a-d redirige vers le bon topic physique
+        ]
     )
 
     return LaunchDescription([
