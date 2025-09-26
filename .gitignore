@@ -4,3 +4,5 @@ project_ws/log/
 project_ws/*/log/
 project_ws/*/install/
 project_ws/*/build/
+*.pyc
+__pycache__/

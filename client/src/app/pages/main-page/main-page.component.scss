@@ -1,44 +1,22 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
 .container {
-    min-height: 100vh;
-    height: auto;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr auto;
 }
 
-.justified {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.button {
-    margin-top: 10px;
-    text-align: center;
-}
-
-.team-name {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
-    color: green;
-}
-
-.header-item {
-    justify-content: center;
-    text-align: center;
+#server-message {
+  margin: 0 auto;
+  width: min(1100px, 92vw);
 }
 
 .footer-item {
-    text-align: center;
-}
-
-.footer-item p :nth-child(even) {
-    color: orange;
-}
-.footer-item p :nth-child(odd) {
-    color: blue;
-}
-
-.server-message {
-    justify-content: center;
-    width: 20%;
-    min-width: min-content;
+  padding: 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
 }

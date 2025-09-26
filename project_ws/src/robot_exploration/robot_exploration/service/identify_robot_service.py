@@ -9,7 +9,7 @@ class IdentifyRobotService(Node):
     def __init__(self):
         super().__init__('identify_robot_service')
         self.srv = self.create_service(Trigger, 'identify_robot', self.identify_callback)
-        self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
         self.routine_started = False
         self.routine_duration = 0.1 # frequency
         self.number_of_cycle = 20
@@ -22,7 +22,7 @@ class IdentifyRobotService(Node):
                 self.routine_started = True
                 self.routine()
                 response.success = True
-                response.message = "Debut de la routine..."
+                response.message = f"Debut de la routine de {self.get_namespace()}"
             
             except Exception as e:
                 # Capture toute erreur et renvoie une réponse négative

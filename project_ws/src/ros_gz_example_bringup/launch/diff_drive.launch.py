@@ -99,18 +99,18 @@ def generate_launch_description():
         output='screen'
     )
 
-    test_node1 = Node(
+    srv1_id = Node(
         package='robot_exploration',
-        executable='test_node',
-        name='cmd_vel_publisher_limo1',
+        executable='identify_service',
+        name='indentify_service',
         namespace='limo1',
         output='both'
     )
 
-    test_node2 = Node(
+    srv2_id = Node(
         package='robot_exploration',
-        executable='test_node',
-        name='cmd_vel_publisher_limo2',
+        executable='identify_service',
+        name='identify_service',
         namespace='limo2',
         output='both'
     )
@@ -122,6 +122,6 @@ def generate_launch_description():
         robot_state_publisher_limo1,
         robot_state_publisher_limo2,
         # rviz
-        #test_node1,
-        #test_node2,
+        srv1_id,
+        srv2_id
     ])
