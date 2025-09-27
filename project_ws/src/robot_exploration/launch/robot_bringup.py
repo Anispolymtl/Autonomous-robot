@@ -33,7 +33,7 @@ def launch_limo(context, *args, **kwargs):
     return [limo_launch]
 
 def launch_sim(context, *args, **kwargs):
-    pkg_sim_bringup = get_package_share_directory('ros_gz_example_bringup')
+    pkg_sim_bringup = get_package_share_directory('simulation_bringup')
 
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

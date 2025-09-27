@@ -17,7 +17,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
     network_mode: host
     # Optionde lancer le launch
-    # command: ["/bin/bash","-lc","source /ws/install/setup.bash && ros2 launch ros_gz_example_bringup diff_drive.launch.py"]
+    # command: ["/bin/bash","-lc","source /ws/install/setup.bash && ros2 launch simulation_bringup diff_drive.launch.py"]
 
   # Backend NestJS (gateway) qui appelle ROS 2 (Trigger) ---
   gateway:
