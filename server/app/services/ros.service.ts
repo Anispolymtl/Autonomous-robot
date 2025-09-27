@@ -15,8 +15,8 @@ export class RosService implements OnModuleInit {
     const clientLimo1 = nodeLimo1.createClient(Trigger, 'identify_robot');
     const clientLimo2 = nodeLimo2.createClient(Trigger, 'identify_robot');
     this.limoList = [
-      {node: nodeLimo1, identifyClient: clientLimo1},
-       {node: nodeLimo2, identifyClient: clientLimo2}
+      { node: nodeLimo1, identifyClient: clientLimo1 },
+      { node: nodeLimo2, identifyClient: clientLimo2 }
     ];
     nodeLimo1.spin();
     nodeLimo2.spin();
@@ -24,7 +24,7 @@ export class RosService implements OnModuleInit {
   }
 
   async identifyRobot(id: number): Promise<{ success: boolean; message: string }> {
-    const obj = this.limoList[id];
+    const obj = this.limoList[id - 1];
     if (!obj.identifyClient) {
       this.logger.error('Client ROS2 non initialisé');
       return { success: false, message: 'ROS2 non initialisé' };

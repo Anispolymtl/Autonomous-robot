@@ -1,0 +1,29 @@
+<div class="card">
+    <h1>Connexion au robot</h1>
+    <p>Mode sélectionné : <strong>Réel</strong></p>
+
+    <button class="btn" (click)="onIdentify(1)">Identifier le premier robot</button>
+    <button class="btn" (click)="onIdentify(2)">Identifier le deuxième robot</button>
+    <button class="btn">Lancer la mission</button>
+    <button class="btn">Terminer la mission</button>
+    <button class="btn secondary" (click)="back()">⬅ Revenir au choix du mode</button>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="robotName">Nom du robot</label>
+            <input id="robotName" type="text" formControlName="robotName" placeholder="Ex: lm1132" required />
+        </div>
+
+        <div class="form-group">
+            <label for="teamName">Nom de l’équipe</label>
+            <input id="teamName" type="text" formControlName="teamName" placeholder="Ex: 206" required />
+        </div>
+
+        <button class="btn" type="submit" [disabled]="form.invalid">
+            Connexion
+        </button>
+    </form>
+    @if (message) {
+
+    <div class="message-box">{{ message }}</div> }
+</div>
