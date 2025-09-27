@@ -16,8 +16,8 @@
   <depend>cartographer_ros</depend>
   <depend>cartographer_ros_msgs</depend>
 
-  <depend>ros_gz_example_description</depend>
-  <depend>ros_gz_example_gazebo</depend>
+  <depend>simulation_description</depend>
+  <depend>simulation_gazebo</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
