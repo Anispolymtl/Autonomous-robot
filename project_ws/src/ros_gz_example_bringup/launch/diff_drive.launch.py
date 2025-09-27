@@ -34,6 +34,7 @@ def generate_launch_description():
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
     pkg_project_description = get_package_share_directory('ros_gz_example_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    limo_cfg = os.path.join(pkg_project_bringup, 'config', 'limo_params.yaml')
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -115,6 +116,14 @@ def generate_launch_description():
         output='both'
     )
 
+    mission_action = Node(
+        package='robot_exploration',
+        executable='mission_server',
+        name='mission_server',
+        output='screen',
+        parameters=[limo_cfg]
+    )
+
     return LaunchDescription([
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
@@ -123,5 +132,6 @@ def generate_launch_description():
         robot_state_publisher_limo2,
         # rviz
         srv1_id,
-        srv2_id
+        srv2_id,
+        mission_action
     ])

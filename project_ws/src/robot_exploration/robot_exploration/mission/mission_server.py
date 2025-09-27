@@ -3,11 +3,16 @@ from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.action.server import ServerGoalHandle
 from limo_interfaces.action import DoMission
+from geometry_msgs.msg import Twist
+import time
 
 
 class MissionServer(Node):
     def __init__(self):
-        super().__init__("mission_server")
+        super().__init__(
+            "mission_server",
+            automatically_declare_parameters_from_overrides=True
+        )
         self._action_server = ActionServer(
             self,
             DoMission,
@@ -16,7 +21,14 @@ class MissionServer(Node):
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback,
         )
+        ns_list = list(self.get_parameter('robot_namespaces').get_parameter_value().string_array_value)
+        if len(ns_list) != 2:
+            self.get_logger().error("robot_namespaces parameter must contain exactly two namespaces.")
+            raise ValueError("robot_namespaces parameter must contain exactly two namespaces.")
+        self.publisher1_ = self.create_publisher(Twist, f'/{ns_list[0]}/cmd_vel', 10)
+        self.publisher2_ = self.create_publisher(Twist, f'/{ns_list[1]}/cmd_vel', 10)
         self.get_logger().info("Mission Server is running.")
+
 
     def goal_callback(self, goal_request):
         self.get_logger().info("Received goal request")
@@ -39,7 +51,17 @@ class MissionServer(Node):
 
             # Simulate some work being done
             self.get_logger().info(f"Mission step {i+1}/{mission_length}")
-            await rclpy.sleep(1)
+
+            twist1 = Twist()
+            twist1.linear.x = 0.0
+            twist1.angular.z = 5.0
+            self.publisher1_.publish(twist1)
+
+            twist2 = Twist()
+            twist2.linear.x = 0.0
+            twist2.angular.z = -5.0
+            self.publisher2_.publish(twist2)
+            time.sleep(1)
         
         # set goal final state 
         goal_handle.succeed()

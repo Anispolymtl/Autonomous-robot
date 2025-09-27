@@ -77,6 +77,14 @@ def generate_launch_description():
         output='screen'
     )
 
+    mission_action = Node(
+        package='robot_exploration',
+        executable='mission_server',
+        name='mission_server',
+        output='screen',
+        parameters=['config/limo_params.yaml']
+    )
+
     return LaunchDescription([
         use_limo_arg,
         gz_sim,
@@ -84,4 +92,5 @@ def generate_launch_description():
         srv_id,
         bridge,
         robot_state_publisher,
+        mission_action
     ])
