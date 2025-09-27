@@ -12,14 +12,14 @@ def launch_limo(context, *args, **kwargs):
     if namespace not in ['limo1', 'limo2']:
         raise RuntimeError(f"Namespace invalide: {namespace}. Choisir 'limo1' ou 'limo2'.")
 
-    pkg_limo_bringup = get_package_share_directory('limo_bringup')
+    pkg_limo_bringup = get_package_share_directory('robot_exploration')
 
     limo_launch = GroupAction(
         actions=[
             PushRosNamespace(namespace),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    os.path.join(pkg_limo_bringup, 'launch', 'limo_start.launch.py')
+                    os.path.join(pkg_limo_bringup, 'launch', 'robot_start.launch.py')
                 )
             ),
             Node(
