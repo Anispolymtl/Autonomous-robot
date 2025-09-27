@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RobotLoginComponent } from '@app/components/robot-login/robot-login.component';
+import { RobotLoginComponent } from '@app/pages/robot-login-page/robot-login.component';
 
 
 @Component({

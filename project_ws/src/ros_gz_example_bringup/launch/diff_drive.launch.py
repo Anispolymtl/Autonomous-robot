@@ -103,7 +103,7 @@ def generate_launch_description():
     srv1_id = Node(
         package='robot_exploration',
         executable='identify_service',
-        name='indentify_service',
+        name='identify_service',
         namespace='limo1',
         output='both'
     )

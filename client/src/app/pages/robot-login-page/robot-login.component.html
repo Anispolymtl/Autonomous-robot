@@ -1,0 +1,22 @@
+<div class="card">
+  <h1>Connexion au robot</h1>
+
+  <form [formGroup]="modeForm" (ngSubmit)="onModeSubmit()" novalidate>
+    <label>Mode</label>
+    <div class="toggle-wrap">
+      <span>Simulation</span>
+      <label class="switch">
+        <input type="checkbox" formControlName="modeToggle" />
+        <span class="slider round"></span>
+      </label>
+      <span>Réel</span>
+    </div>
+
+    <p>
+      Mode sélectionné :
+      <strong>{{ modeForm.value.modeToggle ? 'Réel' : 'Simulation' }}</strong>
+    </p>
+
+    <button class="btn" type="submit">Continuer</button>
+  </form>
+</div>
