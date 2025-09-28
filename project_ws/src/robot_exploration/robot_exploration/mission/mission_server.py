@@ -10,8 +10,7 @@ import time
 class MissionServer(Node):
     def __init__(self):
         super().__init__(
-            "mission_server",
-            automatically_declare_parameters_from_overrides=True
+            "mission_server"
         )
         self._action_server = ActionServer(
             self,
@@ -21,12 +20,7 @@ class MissionServer(Node):
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback,
         )
-        ns_list = list(self.get_parameter('robot_namespaces').get_parameter_value().string_array_value)
-        if len(ns_list) != 2:
-            self.get_logger().error("robot_namespaces parameter must contain exactly two namespaces.")
-            raise ValueError("robot_namespaces parameter must contain exactly two namespaces.")
-        self.publisher1_ = self.create_publisher(Twist, f'/{ns_list[0]}/cmd_vel', 10)
-        self.publisher2_ = self.create_publisher(Twist, f'/{ns_list[1]}/cmd_vel', 10)
+        self.publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         self.get_logger().info("Mission Server is running.")
 
 
@@ -40,35 +34,34 @@ class MissionServer(Node):
 
     async def execute_callback(self, goal_handle: ServerGoalHandle):
         mission_length = goal_handle.request.mission_length
-
-        #execute turning for mission_length seconds
+        feedback_msg = DoMission.Feedback()
+        feedback_msg.time_elapsed = 0
+        feedback_msg.percent_complete = 0.0
+        goal_handle.publish_feedback(feedback_msg)
         self.get_logger().info("Executing goal...")
-        i = 0
-        while mission_length == 0 or i < mission_length:            
+        while mission_length == 0 or feedback_msg.time_elapsed < mission_length:            
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info("Goal canceled")
                 result = DoMission.Result()
                 result.result_code = 1 # 1 = canceled
                 result.result_message = "Mission was canceled"
-                return 
+                return result
 
             # Simulate some work being done
-            self.get_logger().info(f"Mission step {i+1}/{mission_length}")
+            self.get_logger().info(f"Mission step {feedback_msg.time_elapsed+1}/{mission_length}")
 
-            twist1 = Twist()
-            twist1.linear.x = 0.0
-            twist1.angular.z = 5.0
-            self.publisher1_.publish(twist1)
-
-            twist2 = Twist()
-            twist2.linear.x = 0.0
-            twist2.angular.z = -5.0
-            self.publisher2_.publish(twist2)
-            time.sleep(1)
-            i += 1
+            twist = Twist()
+            twist.linear.x = 0.0
+            twist.angular.z = 5.0
+            self.publisher.publish(twist)
+            feedback_msg.time_elapsed += 1
+            feedback_msg.percent_complete = (feedback_msg.time_elapsed / mission_length) * 100 if mission_length > 0 else 0.0
+            goal_handle.publish_feedback(feedback_msg)
+            time.sleep(0.01)
         
         # set goal final state 
+        self.publisher.publish(Twist())
         goal_handle.succeed()
         self.get_logger().info("Goal succeeded")
 

@@ -116,12 +116,20 @@ def generate_launch_description():
         output='both'
     )
 
-    mission_action = Node(
+    mission_action_1 = Node(
         package='robot_exploration',
         executable='mission_server',
         name='mission_server',
+        namespace='limo1',
         output='screen',
-        parameters=[limo_cfg]
+    )
+
+    mission_action_2 = Node(
+        package='robot_exploration',
+        executable='mission_server',
+        name='mission_server',
+        namespace='limo2',
+        output='screen',
     )
 
     return LaunchDescription([
@@ -134,5 +142,6 @@ def generate_launch_description():
         # rviz
         srv1_id,
         srv2_id,
-        mission_action
+        mission_action_1,
+        mission_action_2
     ])
