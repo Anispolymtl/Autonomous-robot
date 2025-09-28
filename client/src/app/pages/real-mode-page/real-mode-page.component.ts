@@ -1,0 +1,50 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { IdentifyService } from '@app/services/identify.service';
+
+
+@Component({
+  selector: 'app-real-page',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './real-mode-page.component.html',
+  styleUrls: ['./real-mode-page.component.scss'],
+})
+export class RealPageComponent {
+  form: FormGroup;
+  message: string | null = null;
+
+  constructor(private fb: FormBuilder, private router: Router, private identifyService: IdentifyService) {
+    this.form = this.fb.group({
+      robotName: ['', Validators.required],
+      teamName: ['', Validators.required],
+    });
+  }
+
+  onIdentify(robotId: number): void {
+    this.identifyService.identifyRobot(robotId).subscribe({
+      next: (res: any) => {
+        this.message = `✅ Réponse du robot ${robotId} : ${res.message}`;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.message = `❌ Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
+      },
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.valid) {
+      this.message = `Connexion réussie pour l’équipe ${this.form.value.teamName} avec le robot ${this.form.value.robotName}.`;
+      console.log('Connexion envoyée', this.form.value);
+    } else {
+      this.message = 'Veuillez remplir tous les champs.';
+    }
+  }
+
+  back(): void {
+    this.router.navigate(['/robot-login']);
+  }
+}
