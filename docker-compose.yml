@@ -19,12 +19,14 @@ services:
       <<: *ros_env
     working_dir: /ws
     volumes:
-      - ./project_ws:/ws               # change en ./projet_ws si c'est ton vrai dossier
-      - /tmp/.X11-unix:/tmp/.X11-unix:ro
-      - /ws/build
-      - /ws/install
-      - /ws/log
+      - ./project_ws:/ws
+      - /tmp/.X11-unix:/tmp/.X11-unix 
+      - build_ws:/ws/build
+      - install_ws:/ws/install
+      - log_ws:/ws/log
     entrypoint: ["/docker/entrypoint.robot.sh"]
+    tty: true
+    stdin_open: true
 
   server:
     build:
@@ -62,7 +64,7 @@ services:
     network_mode: host
     environment:
       PORT: "4200"    
-      HOST: "0.0.0.0"                  # mets 3000 si besoin
+      HOST: "0.0.0.0"                 
       HOKIDAR_USEPOLLING: "true"
     working_dir: /app
     volumes:
@@ -70,3 +72,9 @@ services:
       - ./common:/common
       - /app/node_modules
     command: ["npm","start","--","--host","0.0.0.0","--port","4200"]
+
+
+volumes:
+  build_ws:
+  install_ws:
+  log_ws:

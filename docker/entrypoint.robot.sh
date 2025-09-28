@@ -1,11 +1,10 @@
-set -e
+#!/usr/bin/env bash
+set -eo pipefail
 
-source /opt/ros/${ROS_DISTRO}/setup.bash
-
+source /opt/ros/"${ROS_DISTRO}"/setup.bash
 cd /ws
 
-colcon build --symlink-install
-
+colcon build --merge-install --symlink-install
 source install/setup.bash
 
-exec ros2 run robot_exploration identify_service
+exec ros2 launch robot_exploration test_node.launch.py 
