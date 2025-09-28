@@ -43,11 +43,15 @@ class MissionServer(Node):
 
         #execute turning for mission_length seconds
         self.get_logger().info("Executing goal...")
-        for i in range(mission_length):
+        i = 0
+        while mission_length == 0 or i < mission_length:            
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info("Goal canceled")
-                return DoMission.Result()
+                result = DoMission.Result()
+                result.result_code = 1 # 1 = canceled
+                result.result_message = "Mission was canceled"
+                return 
 
             # Simulate some work being done
             self.get_logger().info(f"Mission step {i+1}/{mission_length}")
@@ -62,6 +66,7 @@ class MissionServer(Node):
             twist2.angular.z = -5.0
             self.publisher2_.publish(twist2)
             time.sleep(1)
+            i += 1
         
         # set goal final state 
         goal_handle.succeed()

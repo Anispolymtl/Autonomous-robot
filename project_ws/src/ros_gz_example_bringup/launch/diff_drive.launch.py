@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -125,6 +125,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,

@@ -11,9 +11,10 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/DoMission.action"
+   DEPENDENCIES action_msgs
 )
 
-ament_export_dependencies(rosild_default_runtime)
+ament_export_dependencies(rosidl_default_runtime)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
