@@ -47,12 +47,12 @@ export class MissionService implements OnModuleInit {
 
         console.log('But de la mission accepté, attente du résultat...');
 
-        const { result1, status1 } = await this.goalHandle1.getResult();
-        const { result2, status2 } = await this.goalHandle2.getResult();
+        // const { result1, status1 } = await this.goalHandle1.getResult();
+        // const { result2, status2 } = await this.goalHandle2.getResult();
 
-        console.log('Résultat de la mission reçu :', result1, result2);
+        // console.log('Résultat de la mission reçu :', result1, result2);
         
-        return result1;
+        // return result1;
     }
 
     async stopMission(): Promise<any> {
