@@ -29,6 +29,11 @@ export class MissionService implements OnModuleInit {
             return;
         }
 
+        if (!await this.missionClient1.waitForServer(1000) || !await this.missionClient2.waitForServer(1000)) {
+            console.error('The action servers are not up')
+            return;
+        }
+
         if (this.goalHandle1 || this.goalHandle2) {
             console.warn('Une mission est déjà en cours');
             return;
