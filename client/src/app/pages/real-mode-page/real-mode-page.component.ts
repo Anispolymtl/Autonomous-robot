@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { IdentifyService } from '@app/services/identify.service';
+import { MissionService } from 'src/app/services/mission/mission.service';
 
 
 @Component({
@@ -17,7 +18,7 @@ export class RealPageComponent {
   form: FormGroup;
   message: string | null = null;
 
-  constructor(private fb: FormBuilder, private router: Router, private identifyService: IdentifyService) {
+  constructor(private fb: FormBuilder, private router: Router, private identifyService: IdentifyService,  private missonService: MissionService) {
     this.form = this.fb.group({
       robotName: ['', Validators.required],
       teamName: ['', Validators.required],
@@ -32,6 +33,32 @@ export class RealPageComponent {
       error: (err: HttpErrorResponse) => {
         this.message = `❌ Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
       },
+    });
+  }
+
+    startMission(): void {
+    this.message = 'Mission simulation demandée.';
+    console.log('Mission simulation demandée');
+    this.missonService.startMission().subscribe({
+      next: (response: any) => {
+        console.log('Mission started successfully:', response);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error starting mission:', error);
+      }
+    });
+  }
+
+  stopMission(): void {
+    this.message = 'Mission simulation terminée.';
+    console.log('Mission simulation terminée');
+    this.missonService.cancelMission().subscribe({
+      next: (response: any) => {
+        console.log('Mission stopped successfully:', response);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error stopping mission:', error);
+      }
     });
   }
 
