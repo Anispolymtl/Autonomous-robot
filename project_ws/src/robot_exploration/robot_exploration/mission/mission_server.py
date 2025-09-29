@@ -2,10 +2,10 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.action.server import ServerGoalHandle
+from rclpy.executors import MultiThreadedExecutor
 from limo_interfaces.action import DoMission
 from geometry_msgs.msg import Twist
 import time
-
 
 class MissionServer(Node):
     def __init__(self):
@@ -58,7 +58,7 @@ class MissionServer(Node):
             feedback_msg.time_elapsed += 1
             feedback_msg.percent_complete = (feedback_msg.time_elapsed / mission_length) * 100 if mission_length > 0 else 0.0
             goal_handle.publish_feedback(feedback_msg)
-            time.sleep(0.01)
+            time.sleep(0.1)
         
         # set goal final state 
         self.publisher.publish(Twist())
@@ -75,7 +75,8 @@ class MissionServer(Node):
 def main(args=None):
     rclpy.init(args=args)
     mission_server = MissionServer()
-    rclpy.spin(mission_server)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(mission_server, executor=executor)
     rclpy.shutdown()
 
 if __name__ == "__main__":
