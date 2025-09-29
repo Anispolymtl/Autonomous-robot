@@ -2,7 +2,7 @@ import os
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node, PushRosNamespace
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction, SetEnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -27,6 +27,12 @@ def launch_limo(context, *args, **kwargs):
                 executable='identify_service',
                 name='identify_robot_service',
                 output='screen'
+            ),
+            Node(
+                package='robot_exploration',
+                executable='mission_server',
+                name='mission_server',
+                output='screen'
             )
         ]
     )
@@ -34,6 +40,7 @@ def launch_limo(context, *args, **kwargs):
 
 def launch_sim(context, *args, **kwargs):
     pkg_sim_bringup = get_package_share_directory('ros_gz_example_bringup')
+    SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
 
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

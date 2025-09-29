@@ -1,0 +1,10 @@
+# Goal
+int64 mission_length
+---
+# Result
+int64 result_code
+string result_message
+---
+# Feedback
+int64 time_elapsed
+float32 percent_complete

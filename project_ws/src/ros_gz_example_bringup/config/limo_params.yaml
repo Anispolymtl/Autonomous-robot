@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    robot_namespaces:
+      - limo1
+      - limo2
