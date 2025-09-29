@@ -52,7 +52,7 @@ class MissionServer(Node):
             self.get_logger().info(f"Mission step {feedback_msg.time_elapsed+1}/{mission_length}")
 
             twist = Twist()
-            twist.linear.x = 0.0
+            twist.linear.x = 1.0
             twist.angular.z = 5.0
             self.publisher.publish(twist)
             feedback_msg.time_elapsed += 1

@@ -39,14 +39,14 @@ class IdentifyRobotService(Node):
     def routine(self):
 
         twist = Twist()
-        twist.linear.x = 2.0
+        twist.linear.x = 1.0
         twist.angular.z = 0.0
         self.publisher_.publish(twist)
         self.get_logger().info("Avance...")
         time.sleep(self.routine_duration)
 
         twist = Twist()
-        twist.linear.x = -2.0
+        twist.linear.x = -1.0
         twist.angular.z = 0.0
         self.publisher_.publish(twist)
         self.get_logger().info("Recule...")
