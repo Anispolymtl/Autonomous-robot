@@ -3,7 +3,7 @@ version: "3.9"
 # Ancre pour les variables ROS (utilisée plus bas avec <<: *ros_env)
 x-ros-env: &ros_env
   ROS_DISTRO: humble
-  ROS_DOMAIN_ID: "42"
+  ROS_DOMAIN_ID: "66"
   RMW_IMPLEMENTATION: rmw_fastrtps_cpp
   DISPLAY: "${DISPLAY}"
 
@@ -39,19 +39,24 @@ services:
     environment:
       NODE_ENV: production
       ROS_DISTRO: humble
-      ROS_DOMAIN_ID: "42"
+      ROS_DOMAIN_ID: "66"
       RMW_IMPLEMENTATION: rmw_fastrtps_cpp
     network_mode: host
     working_dir: /server
     volumes:
       - ./server:/server
+      - ./project_ws:/project_ws
       - ./common:/common
       - /server/node_modules
     command: >
       bash -lc "
         source /opt/ros/${ROS_DISTRO}/setup.bash;
-        cd /server;
+        cd /project_ws;
+        colcon build 
+        source install/setup.bash;
+        cd ../server;
         if [ ! -d node_modules ]; then (npm ci || npm i); fi;
+        npm rebuild rclnodejs;
         npm start
       "
 
