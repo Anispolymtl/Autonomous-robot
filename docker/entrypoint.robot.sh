@@ -3,8 +3,6 @@ set -eo pipefail
 
 source /opt/ros/"${ROS_DISTRO}"/setup.bash
 cd /ws
-
-colcon build --merge-install --symlink-install
+rm -rf /build /log /install 
+colcon build --merge-install
 source install/setup.bash
-
-exec ros2 launch robot_exploration robot_bringup.launch.py 
