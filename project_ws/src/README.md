@@ -3,13 +3,13 @@ A template project integrating ROS 2 and Gazebo simulator.
 
 ## Included packages
 
-* `ros_gz_example_description` - holds the sdf description of the simulated system and any other assets.
+* `simulation_description` - holds the sdf description of the simulated system and any other assets.
 
-* `ros_gz_example_gazebo` - holds gazebo specific code and configurations. Namely this is where systems end up.
+* `simulation_gazebo` - holds gazebo specific code and configurations. Namely this is where systems end up.
 
-* `ros_gz_example_application` - holds ros2 specific code and configurations.
+* `simulation_application` - holds ros2 specific code and configurations.
 
-* `ros_gz_example_bringup` - holds launch files and high level utilities.
+* `simulation_bringup` - holds launch files and high level utilities.
 
 ## Usage
 
@@ -36,7 +36,7 @@ you might also want to look into using the `--symlink-install` flag to make modi
 4. Launch the simulation
 
     ```bash
-    ros2 launch ros_gz_example_bringup diff_drive.launch.py
+    ros2 launch simulation_bringup diff_drive.launch.py
     ```
 
 For a more detailed guide on using this template see [documentation](https://gazebosim.org/docs/latest/ros_gz_project_template_guide).

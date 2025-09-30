@@ -4,8 +4,8 @@
 
     <button class="btn" (click)="onIdentify(1)">Identifier le premier robot</button>
     <button class="btn" (click)="onIdentify(2)">Identifier le deuxième robot</button>
-    <button class="btn">Lancer la mission</button>
-    <button class="btn">Terminer la mission</button>
+    <button class="btn" (click)="startMission()">Lancer la mission</button>
+    <button class="btn" (click)="stopMission()">Terminer la mission</button>
     <button class="btn secondary" (click)="back()">⬅ Revenir au choix du mode</button>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">

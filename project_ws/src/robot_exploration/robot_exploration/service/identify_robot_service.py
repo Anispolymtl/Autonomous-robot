@@ -11,8 +11,7 @@ class IdentifyRobotService(Node):
         self.srv = self.create_service(Trigger, 'identify_robot', self.identify_callback)
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
         self.routine_started = False
-        self.routine_duration = 0.1 # frequency
-        self.number_of_cycle = 20
+        self.routine_duration = 1 # seconde
 
     def identify_callback(self, request, response):
         if not self.routine_started:
@@ -22,7 +21,7 @@ class IdentifyRobotService(Node):
                 self.routine_started = True
                 self.routine()
                 response.success = True
-                response.message = f"Debut de la routine de {self.get_namespace()}"
+                response.message = f"Fin de la routine de {self.get_namespace()}"
             
             except Exception as e:
                 # Capture toute erreur et renvoie une réponse négative
@@ -39,14 +38,19 @@ class IdentifyRobotService(Node):
 
     def routine(self):
 
-        for _ in range(self.number_of_cycle):
-            twist = Twist()
-            twist.linear.x = 0.0
-            twist.angular.z = 5.0
+        twist = Twist()
+        twist.linear.x = 1.0
+        twist.angular.z = 0.0
+        self.publisher_.publish(twist)
+        self.get_logger().info("Avance...")
+        time.sleep(self.routine_duration)
 
-            self.publisher_.publish(twist)
-            self.get_logger().info("Tourne...")
-            time.sleep(self.routine_duration)
+        twist = Twist()
+        twist.linear.x = -1.0
+        twist.angular.z = 0.0
+        self.publisher_.publish(twist)
+        self.get_logger().info("Recule...")
+        time.sleep(self.routine_duration)
         
         self.routine_started = False
 

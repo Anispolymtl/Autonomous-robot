@@ -59,7 +59,7 @@
       <self_collide>true</self_collide>
       <pose>0 0 0.35 0 0 0</pose>
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_diff_drive1</uri>
+        <uri>package://simulation_description/models/limo_diff_drive1</uri>
       </include>
     </model>
 
@@ -68,7 +68,7 @@
       <self_collide>true</self_collide>
       <pose>2 0 0.35 0 0 0</pose> <!-- décalé de 2m -->
       <include merge="true">
-        <uri>package://ros_gz_example_description/models/limo_diff_drive2</uri>
+        <uri>package://simulation_description/models/limo_diff_drive2</uri>
       </include>
     </model>
   </world>

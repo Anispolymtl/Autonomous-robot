@@ -29,6 +29,11 @@ export class MissionService implements OnModuleInit {
             return;
         }
 
+        if (!await this.missionClient1.waitForServer(1000) || !await this.missionClient2.waitForServer(1000)) {
+            console.error('The action servers are not up')
+            return;
+        }
+
         if (this.goalHandle1 || this.goalHandle2) {
             console.warn('Une mission est déjà en cours');
             return;
@@ -47,12 +52,12 @@ export class MissionService implements OnModuleInit {
 
         console.log('But de la mission accepté, attente du résultat...');
 
-        const { result1, status1 } = await this.goalHandle1.getResult();
-        const { result2, status2 } = await this.goalHandle2.getResult();
+        // const { result1, status1 } = await this.goalHandle1.getResult();
+        // const { result2, status2 } = await this.goalHandle2.getResult();
 
-        console.log('Résultat de la mission reçu :', result1, result2);
+        // console.log('Résultat de la mission reçu :', result1, result2);
         
-        return result1;
+        // return result1;
     }
 
     async stopMission(): Promise<any> {
