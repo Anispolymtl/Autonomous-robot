@@ -40,20 +40,17 @@ class MissionServer(Node):
 
         try:
             while mission_length == 0 or feedback_msg.time_elapsed < mission_length:
-                # Vérifie si cancel demandé
                 if goal_handle.is_cancel_requested:
                     goal_handle.canceled()
                     self.get_logger().info("Goal canceled")
 
-                    # 🔴 Stop robot explicitement (sinon Gazebo continue à bouger)
                     self.publisher.publish(Twist())
 
                     result = DoMission.Result()
-                    result.result_code = 1  # 1 = canceled
+                    result.result_code = 1
                     result.result_message = "Mission was canceled"
                     return result
 
-                # Exécution de la mission (simule du travail)
                 self.get_logger().info(
                     f"Mission step {feedback_msg.time_elapsed+1}/{mission_length}"
                 )
@@ -71,21 +68,19 @@ class MissionServer(Node):
                 )
                 goal_handle.publish_feedback(feedback_msg)
 
-                time.sleep(0.1)  # ⏱️ blocage volontaire (ok ici)
+                time.sleep(0.1)
 
         except Exception as e:
             self.get_logger().error(f"Erreur dans execute_callback: {e}")
 
         finally:
-            # 🔴 Toujours envoyer un stop à la fin (success, cancel, ou erreur)
             self.publisher.publish(Twist())
 
-        # Mission terminée avec succès
         goal_handle.succeed()
         self.get_logger().info("Goal succeeded")
 
         result = DoMission.Result()
-        result.result_code = 0  # 0 = success
+        result.result_code = 0
         result.result_message = "Mission completed successfully"
         return result
 
