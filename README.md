@@ -2,21 +2,25 @@
 
 Ce guide regroupe **toutes les étapes** nécessaires pour démarrer les robots et l’application web, de manière **simple et uniforme**.
 
+- **Simulation** → Étape 3  
+- **Robots réels** → Étape 1 + Étape 2  
+- Puis → Étape 4 (serveur + client)
 ---
 
-## 1) Connexion au robot (dans chaque terminal)
-Exécutez ces étapes **dans chaque terminal** avant de lancer un robot :
+## Étape 1 : Connexion au robot (mode physique)
+Exécutez ces étapes **dans chaque terminal** avant de lancer un robot physique :
 ```bash
 ssh -X [votre_user]@lmXXX.local
 # Mot de passe (quand demandé) : h2025!
 
 sudo chmod 666 /dev/ttyTHS1
 ```
-> Remplacez `lmXXX.local` par l’identifiant de votre robot (ex. lm1335.local, lm1166local, etc.).  
+> Remplacez `lmXXX.local` par l’identifiant de votre robot (ex. lm1335.local, lm1166.local, etc.).  
+> L’option `-X` permet l’export d’affichage X11 si nécessaire.
 
 ---
 
-## 2) Démarrage des robots (deux terminaux séparés)
+## Étape 2 : Démarrage des robots réels (deux terminaux séparés)
 
 ### Terminal équipe201
 Dans le dossier `project_ws` :
@@ -35,10 +39,23 @@ ros2 launch robot_exploration robot_bringup.launch.py use_limo:=true namespace:=
 ```
 
 ---
+## Étape 3 : La simulation
 
-## 3) Application Web (sur votre ordinateur)
+Ceci est pour rouler en **mode simulation**.  
+⚠️ **Ne pas utiliser pour le mode physique**. Voir **Étape 3** pour le mode réel.
 
-### 3.1 Lancer le serveur (avec connexion ROS2)
+Dans un terminal ouvert dans `INF3995-106/project_ws` :
+```bash
+colcon build
+source install/setup.sh
+ros2 launch robot_exploration robot_bringup.launch.py
+```
+
+---
+
+## Étape 4 : Application Web (sur votre ordinateur)
+
+### 4.1 Lancer le serveur (avec connexion ROS2)
 Depuis le dossier `project_ws` :
 ```bash
 colcon build
@@ -48,7 +65,7 @@ npm rebuild rclnodejs
 npm start
 ```
 
-### 3.2 Lancer le client
+### 4.2 Lancer le client
 Dans le dossier `client` :
 ```bash
 npm start
@@ -56,7 +73,7 @@ npm start
 
 ---
 
-## 4) Nettoyage d’un ancien build (si nécessaire)
+## Nettoyage d’un ancien build (si nécessaire)
 Dans le dossier `project_ws` :
 ```bash
 rm -rf build log install
@@ -65,4 +82,3 @@ rm -rf build log install
 
 ---
 
-✅ C’est tout ! Suivez ces étapes dans l’ordre : **connexion → build + lancement des robots → serveur → client**.
