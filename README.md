@@ -42,7 +42,7 @@ ros2 launch robot_exploration robot_bringup.launch.py use_limo:=true namespace:=
 ## Étape 3 : La simulation
 
 Ceci est pour rouler en **mode simulation**.  
-⚠️ **Ne pas utiliser pour le mode physique**. Voir **Étape 3** pour le mode réel.
+⚠️ **Ne pas utiliser pour le mode physique**. Voir **Étape 1 et 2** pour le mode réel.
 
 Dans un terminal ouvert dans `INF3995-106/project_ws` :
 ```bash
