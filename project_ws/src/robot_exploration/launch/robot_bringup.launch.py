@@ -53,6 +53,12 @@ def generate_launch_description():
     use_limo = LaunchConfiguration('use_limo')
     namespace = LaunchConfiguration('namespace')
 
+    slam_config = os.path.join(
+        get_package_share_directory('slam_toolbox'),
+        'config',
+        'mapper_params_online_sync.yaml'
+    )
+
     declare_use_limo = DeclareLaunchArgument(
         'use_limo',
         default_value='false',
@@ -65,11 +71,26 @@ def generate_launch_description():
         description="Namespace obligatoire (limo1 ou limo2) si use_limo est vrai"
     )
 
+    slam_toolbox_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("slam_toolbox"),
+                "launch",
+                "online_async_launch.py",
+            )
+        ),
+        launch_arguments={
+            "slam_params_file": slam_config,
+            "use_sim_time": False,
+        }.items(),
+    ),
+
     # Lancer le service d'identification
 
     return LaunchDescription([
         declare_use_limo,
         declare_namespace,
         OpaqueFunction(function=launch_limo, condition=IfCondition(use_limo)),
-        OpaqueFunction(function=launch_sim, condition=UnlessCondition(use_limo))
+        OpaqueFunction(function=launch_sim, condition=UnlessCondition(use_limo)),
+        slam_toolbox_launch
     ])
