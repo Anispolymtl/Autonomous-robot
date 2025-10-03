@@ -83,7 +83,7 @@ def generate_launch_description():
             "slam_params_file": slam_config,
             "use_sim_time": False,
         }.items(),
-    ),
+    )
 
     # Lancer le service d'identification
 
