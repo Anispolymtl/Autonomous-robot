@@ -54,9 +54,9 @@ def generate_launch_description():
     namespace = LaunchConfiguration('namespace')
 
     slam_config = os.path.join(
-        get_package_share_directory('slam_toolbox'),
+        get_package_share_directory('robot_exploration'),
         'config',
-        'mapper_params_online_sync.yaml'
+        'slam_config.yaml'
     )
 
     declare_use_limo = DeclareLaunchArgument(
