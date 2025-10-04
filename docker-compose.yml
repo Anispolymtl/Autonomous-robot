@@ -6,6 +6,7 @@ x-ros-env: &ros_env
   ROS_DOMAIN_ID: "66"
   RMW_IMPLEMENTATION: rmw_fastrtps_cpp
   DISPLAY: "${DISPLAY}"
+  QT_X11_NO_MITSHM: "1"
 
 services:
 
@@ -17,6 +18,9 @@ services:
     network_mode: host
     environment:
       <<: *ros_env
+      UID: "${UID}"
+      GID: "${GID}"
+    user: "${UID}:${GID}"
     working_dir: /ws
     volumes:
       - ./project_ws:/ws
