@@ -8,7 +8,7 @@
     <button class="btn" (click)="stopMission()">Terminer la mission</button>
     <button class="btn secondary" (click)="back()">⬅ Revenir au choix du mode</button>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="form-group">
             <label for="robotName">Nom du robot</label>
             <input id="robotName" type="text" formControlName="robotName" placeholder="Ex: lm1132" required />
@@ -22,7 +22,7 @@
         <button class="btn" type="submit" [disabled]="form.invalid">
             Connexion
         </button>
-    </form>
+    </form> -->
     @if (message) {
 
     <div class="message-box">{{ message }}</div> }

@@ -72,6 +72,6 @@ export class RealPageComponent {
   }
 
   back(): void {
-    this.router.navigate(['/robot-login']);
+    this.router.navigate(['/home']);
   }
 }

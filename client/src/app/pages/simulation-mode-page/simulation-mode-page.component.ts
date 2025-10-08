@@ -42,6 +42,6 @@ export class SimulationPageComponent {
   }
 
   back(): void {
-    this.router.navigate(['/robot-login']);
+    this.router.navigate(['/home']);
   }
 }

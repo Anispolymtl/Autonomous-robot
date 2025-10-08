@@ -1,22 +1,42 @@
-<div class="card">
-  <h1>Connexion au robot</h1>
+<div class="page-wrap">
+  <div class="card">
+    <h2 class="title">Connexion au robot</h2>
 
-  <form [formGroup]="modeForm" (ngSubmit)="onModeSubmit()" novalidate>
-    <label>Mode</label>
-    <div class="toggle-wrap">
-      <span>Simulation</span>
-      <label class="switch">
-        <input type="checkbox" formControlName="modeToggle" />
-        <span class="slider round"></span>
-      </label>
-      <span>Réel</span>
+    <div class="mode-selection">
+      <label>Choisir le mode :</label>
+
+      <div class="button-group">
+        <button
+          type="button"
+          class="btn"
+          [class.active]="selectedMode === 'simulation'"
+          (click)="selectMode('simulation')"
+        >
+          Simulation
+        </button>
+
+        <button
+          type="button"
+          class="btn"
+          [class.active]="selectedMode === 'real'"
+          (click)="selectMode('real')"
+        >
+          Réel
+        </button>
+      </div>
+
+      <p *ngIf="selectedMode">
+        Mode sélectionné :
+        <strong>{{ selectedMode === 'real' ? 'Réel' : 'Simulation' }}</strong>
+      </p>
+
+      <button 
+        class="btn-continue" 
+        (click)="onModeSubmit()" 
+        [disabled]="!selectedMode"
+      >
+        Continuer
+      </button>
     </div>
-
-    <p>
-      Mode sélectionné :
-      <strong>{{ modeForm.value.modeToggle ? 'Réel' : 'Simulation' }}</strong>
-    </p>
-
-    <button class="btn" type="submit">Continuer</button>
-  </form>
+  </div>
 </div>
