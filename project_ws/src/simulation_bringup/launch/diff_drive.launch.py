@@ -17,8 +17,8 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
+from launch_ros.actions import PushRosNamespace
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable,GroupAction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -35,6 +35,11 @@ def generate_launch_description():
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     limo_cfg = os.path.join(pkg_project_bringup, 'config', 'limo_params.yaml')
+    slam_config = os.path.join(
+        get_package_share_directory('robot_exploration'),
+        'config',
+        'slam_config.yaml'
+    )
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -132,6 +137,65 @@ def generate_launch_description():
         output='screen',
     )
 
+    slam_toolbox_launch = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory("slam_toolbox"),
+                        "launch",
+                        "online_async_launch.py",
+                    )
+                ),
+                launch_arguments={
+                    "slam_params_file": slam_config,
+                    "use_sim_time": "true",
+                }.items(),
+            )
+    
+    slam_1 = GroupAction(
+        actions=[
+            PushRosNamespace("limo1"),
+            slam_toolbox_launch
+        ]
+    )
+
+    # slam_toolbox_launch_1 = GroupAction(
+    #     actions= [
+    #         PushRosNamespace('limo1'),
+    #         IncludeLaunchDescription(
+    #             PythonLaunchDescriptionSource(
+    #                 os.path.join(
+    #                     get_package_share_directory("slam_toolbox"),
+    #                     "launch",
+    #                     "online_async_launch.py",
+    #                 )
+    #             ),
+    #             launch_arguments={
+    #                 "slam_params_file": slam_config,
+    #                 "use_sim_time": "true",
+    #             }.items(),
+    #         ),
+    #     ] 
+    # )
+
+    slam_toolbox_launch_2 = GroupAction(
+        actions= [
+            PushRosNamespace('limo2'),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory("slam_toolbox"),
+                        "launch",
+                        "online_async_launch.py",
+                    )
+                ),
+                launch_arguments={
+                    "slam_params_file": slam_config,
+                    "use_sim_time": "true",
+                }.items(),
+            ),
+        ] 
+    )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -143,5 +207,7 @@ def generate_launch_description():
         srv1_id,
         srv2_id,
         mission_action_1,
-        mission_action_2
+        mission_action_2,
+        slam_1,
+        #slam_toolbox_launch_2
     ])

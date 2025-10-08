@@ -38,16 +38,16 @@ def launch_limo(context, *args, **kwargs):
     )
     return [limo_launch]
 
-def launch_sim(context, *args, **kwargs):
-    pkg_sim_bringup = get_package_share_directory('simulation_bringup')
-    SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
+# def launch_sim(context, *args, **kwargs):
+#     pkg_sim_bringup = get_package_share_directory('simulation_bringup')
+#     SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
 
-    sim_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_sim_bringup, 'launch', 'diff_drive.launch.py'))
-    )
+#     sim_launch = IncludeLaunchDescription(
+#         PythonLaunchDescriptionSource(
+#             os.path.join(pkg_sim_bringup, 'launch', 'diff_drive.launch.py'))
+#     )
 
-    return [sim_launch]
+#     return [sim_launch]
 
 def generate_launch_description():
     use_limo = LaunchConfiguration('use_limo')
@@ -59,11 +59,11 @@ def generate_launch_description():
         'slam_config.yaml'
     )
 
-    declare_use_limo = DeclareLaunchArgument(
-        'use_limo',
-        default_value='false',
-        description='Inclure limo_bringup si true'
-    )
+    # declare_use_limo = DeclareLaunchArgument(
+    #     'use_limo',
+    #     default_value='false',
+    #     description='Inclure limo_bringup si true'
+    # )
 
     declare_namespace = DeclareLaunchArgument(
         'namespace',
@@ -88,9 +88,9 @@ def generate_launch_description():
     # Lancer le service d'identification
 
     return LaunchDescription([
-        declare_use_limo,
+        # declare_use_limo,
         declare_namespace,
-        OpaqueFunction(function=launch_limo, condition=IfCondition(use_limo)),
-        OpaqueFunction(function=launch_sim, condition=UnlessCondition(use_limo)),
+        OpaqueFunction(function=launch_limo),# condition=IfCondition(use_limo)),
+        # OpaqueFunction(function=launch_sim, condition=UnlessCondition(use_limo)),
         slam_toolbox_launch
     ])
