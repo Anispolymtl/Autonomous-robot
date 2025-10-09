@@ -1,0 +1,65 @@
+import os
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace
+
+def generate_launch_description():
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    slam_params_file = LaunchConfiguration('slam_params_file')
+    namespace = LaunchConfiguration('namespace')
+
+    declare_use_sim_time_argument = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='true',
+        description='Use simulation/Gazebo clock')
+    
+    declare_slam_params_file_cmd = DeclareLaunchArgument(
+        'slam_params_file',
+        default_value=os.path.join(get_package_share_directory("robot_exploration"),
+                                   'config', 'slam_config.yaml'),
+        description='Full path to the ROS2 parameters file to use for the slam_toolbox node')
+    
+    declare_slam_namespace = DeclareLaunchArgument(
+        'namespace',
+        default_value='limo1',
+        description='Create a namespace for the robot chore')
+
+    start_async_slam_toolbox_node = Node(
+        parameters=[
+          slam_params_file,
+          {'use_sim_time': use_sim_time}
+        ],
+        package='slam_toolbox',
+        executable='async_slam_toolbox_node',
+        name='slam_toolbox',
+        output='screen',
+        remappings=[
+            ('/map','map'),
+            ('/map_metadata','map_metadata'),
+            ('/tf','tf'),
+            ('/tf_static','tf_static'),
+            ('/scan','scan')
+        ]
+    )
+
+    start_async_slam_toolbox_with_namespace = GroupAction(
+     actions = [
+        PushRosNamespace(namespace),
+        start_async_slam_toolbox_node,
+      ]
+    )
+
+    ld = LaunchDescription()
+
+    ld.add_action(declare_use_sim_time_argument)
+    ld.add_action(declare_slam_params_file_cmd)
+    ld.add_action(declare_slam_namespace)
+    ld.add_action(start_async_slam_toolbox_with_namespace)
+
+    return ld
