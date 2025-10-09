@@ -42,8 +42,6 @@ def generate_launch_description():
         remappings=[
             ('/map','map'),
             ('/map_metadata','map_metadata'),
-            ('/tf','tf'),
-            ('/tf_static','tf_static'),
             ('/scan','scan')
         ]
     )
