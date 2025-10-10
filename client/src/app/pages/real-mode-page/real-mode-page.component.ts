@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { IdentifyService } from '@app/services/identify.service';
 import { MissionService } from 'src/app/services/mission/mission.service';
+import { MapGridComponent } from '@app/components/map-grid/map-grid.component';
 
 
 @Component({
   selector: 'app-real-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+      MapGridComponent,
+      CommonModule,
+      ReactiveFormsModule
+  ],
   templateUrl: './real-mode-page.component.html',
   styleUrls: ['./real-mode-page.component.scss'],
 })
@@ -18,27 +23,23 @@ export class RealPageComponent {
   form: FormGroup;
   message: string | null = null;
 
-  constructor(private fb: FormBuilder, private router: Router, private identifyService: IdentifyService,  private missonService: MissionService) {
-    this.form = this.fb.group({
-      robotName: ['', Validators.required],
-      teamName: ['', Validators.required],
-    });
+  constructor(private router: Router, private identifyService: IdentifyService,  private missonService: MissionService) {
   }
 
   onIdentify(robotId: number): void {
     this.identifyService.identifyRobot(robotId).subscribe({
       next: (res: any) => {
-        this.message = `✅ Réponse du robot ${robotId} : ${res.message}`;
+        this.message = `Réponse du robot ${robotId} : ${res.message}`;
       },
       error: (err: HttpErrorResponse) => {
-        this.message = `❌ Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
+        this.message = `Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
       },
     });
   }
 
     startMission(): void {
-    this.message = 'Mission simulation demandée.';
-    console.log('Mission simulation demandée');
+    this.message = 'Mission demandée.';
+    console.log('Mission demandée');
     this.missonService.startMission().subscribe({
       next: (response: any) => {
         console.log('Mission started successfully:', response);
@@ -50,8 +51,8 @@ export class RealPageComponent {
   }
 
   stopMission(): void {
-    this.message = 'Mission simulation terminée.';
-    console.log('Mission simulation terminée');
+    this.message = 'Mission terminée.';
+    console.log('Mission terminée');
     this.missonService.cancelMission().subscribe({
       next: (response: any) => {
         console.log('Mission stopped successfully:', response);
