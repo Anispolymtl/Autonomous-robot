@@ -19,8 +19,10 @@ def launch_limo(context, *args, **kwargs):
             PushRosNamespace(namespace),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    os.path.join(pkg_limo_bringup, 'launch', 'robot_start.launch.py')
-                )
+                    os.path.join(pkg_limo_bringup, 'launch', 'robot_start.launch.py')),
+                launch_arguments={
+                    'namespace': namespace
+                }.items(),
             ),
             Node(
                 package='robot_exploration',
@@ -50,7 +52,7 @@ def launch_limo(context, *args, **kwargs):
 #     return [sim_launch]
 
 def generate_launch_description():
-    use_limo = LaunchConfiguration('use_limo')
+    # use_limo = LaunchConfiguration('use_limo')
     namespace = LaunchConfiguration('namespace')
 
     slam_config = os.path.join(
@@ -68,20 +70,20 @@ def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
         'namespace',
         default_value='limo1',
-        description="Namespace obligatoire (limo1 ou limo2) si use_limo est vrai"
+        description="Namespace obligatoire (limo1 ou limo2)"
     )
 
     slam_toolbox_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory("slam_toolbox"),
+                get_package_share_directory("robot_exploration"),
                 "launch",
-                "online_async_launch.py",
+                "robot_slam.launch.py",
             )
         ),
         launch_arguments={
-            "slam_params_file": slam_config,
             "use_sim_time": "false",
+            "namespace": namespace,
         }.items(),
     )
 
