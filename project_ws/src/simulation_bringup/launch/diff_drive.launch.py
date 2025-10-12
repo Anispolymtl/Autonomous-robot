@@ -29,6 +29,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Configure ROS nodes for launch
 
+    slam_params_file = os.path.join(get_package_share_directory("simulation_bringup"),'config', 'slam_config.yaml')
+
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('simulation_bringup')
     pkg_project_gazebo = get_package_share_directory('simulation_gazebo')
@@ -41,9 +43,9 @@ def generate_launch_description():
     with open(sdf_file_limo1, 'r') as infp:
         robot_desc_limo1 = infp.read()
 
-    sdf_file_limo2 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive2', 'model.sdf')
-    with open(sdf_file_limo2, 'r') as infp:
-        robot_desc_limo2 = infp.read()
+    # sdf_file_limo2 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive2', 'model.sdf')
+    # with open(sdf_file_limo2, 'r') as infp:
+    #     robot_desc_limo2 = infp.read()
 
     # Setup to launch the simulator and Gazebo world
     gz_sim = IncludeLaunchDescription(
@@ -69,17 +71,17 @@ def generate_launch_description():
         ]
     )
 
-    robot_state_publisher_limo2 = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher_limo2',
-        namespace='limo2',
-        output='both',
-        parameters=[
-            {'use_sim_time': True},
-            {'robot_description': robot_desc_limo2},
-        ]
-    )
+    # robot_state_publisher_limo2 = Node(
+    #     package='robot_state_publisher',
+    #     executable='robot_state_publisher',
+    #     name='robot_state_publisher_limo2',
+    #     namespace='limo2',
+    #     output='both',
+    #     parameters=[
+    #         {'use_sim_time': True},
+    #         {'robot_description': robot_desc_limo2},
+    #     ]
+    # )
 
     # Visualize in RViz
     # rviz = Node(
@@ -108,13 +110,13 @@ def generate_launch_description():
         output='both'
     )
 
-    srv2_id = Node(
-        package='robot_exploration',
-        executable='identify_service',
-        name='identify_service',
-        namespace='limo2',
-        output='both'
-    )
+    # srv2_id = Node(
+    #     package='robot_exploration',
+    #     executable='identify_service',
+    #     name='identify_service',
+    #     namespace='limo2',
+    #     output='both'
+    # )
 
     mission_action_1 = Node(
         package='robot_exploration',
@@ -124,12 +126,20 @@ def generate_launch_description():
         output='screen',
     )
 
-    mission_action_2 = Node(
-        package='robot_exploration',
-        executable='mission_server',
-        name='mission_server',
-        namespace='limo2',
+    # mission_action_2 = Node(
+    #     package='robot_exploration',
+    #     executable='mission_server',
+    #     name='mission_server',
+    #     namespace='limo2',
+    #     output='screen',
+    # )
+
+    async_slam_node = Node(
+        package='slam_toolbox',
+        executable='async_slam_toolbox_node',
+        name='slam_toolbox',
         output='screen',
+        parameters=[slam_params_file],
     )
 
     return LaunchDescription([
@@ -138,10 +148,11 @@ def generate_launch_description():
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher_limo1,
-        robot_state_publisher_limo2,
+        #robot_state_publisher_limo2,
         # rviz
         srv1_id,
-        srv2_id,
+        #srv2_id,
         mission_action_1,
-        mission_action_2
+        #mission_action_2
+        async_slam_node
     ])
