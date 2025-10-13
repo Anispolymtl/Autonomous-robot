@@ -1,5 +1,3 @@
-@if (imageUrl) {
-  <img [src]="imageUrl" alt="Map" class="map-image">
-} @else {
-  <p class="loading-text">loading map...</p>
-}
+<div class="map-container">
+  <canvas #canvas></canvas>
+</div>

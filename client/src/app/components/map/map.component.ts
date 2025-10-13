@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component,ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MapService } from '@app/services/map/map.service';
 
@@ -11,18 +11,20 @@ import { MapService } from '@app/services/map/map.service';
 })
 
 export class MapComponent implements OnInit {
-  imageUrl?: string;
+  @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   constructor(private mapService: MapService) {}
 
   ngOnInit() {
-    this.mapService.getMap().subscribe({
-      next: (blob) => {
-        this.imageUrl = URL.createObjectURL(blob);
+    this.mapService.getGMap().subscribe({
+      next: ({ imageData }) => {
+        const canvas = this.canvasRef.nativeElement;
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.putImageData(imageData, 0, 0);
       },
-      error: (err) => {
-        console.error('Error when loading map :', err);
-      },
+      error: (err) => console.error('Error loading map:', err),
     });
   }
 }
