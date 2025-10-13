@@ -5,14 +5,14 @@ import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { IdentifyService } from '@app/services/identify.service';
 import { MissionService } from 'src/app/services/mission/mission.service';
-import { MapGridComponent } from '@app/components/map-grid/map-grid.component';
+import { MapComponent } from '@app/components/map/map.component';
 
 
 @Component({
   selector: 'app-real-page',
   standalone: true,
   imports: [
-      MapGridComponent,
+      MapComponent,
       CommonModule,
       ReactiveFormsModule
   ],

@@ -11,6 +11,8 @@ import { RosService } from '@app/services/ros.service';
 import { RosController } from '@app/controllers/ros.controller';
 import { MissionController } from './controllers/mission/mission.controller';
 import { MissionService } from './services/misson/mission.service';
+// import { MapController } from '@app/controllers/map/map.controller';
+// import { MapService } from '@app/services/map/map.service';
 
 @Module({
     imports: [
@@ -24,7 +26,7 @@ import { MissionService } from './services/misson/mission.service';
         // }),
         // MongooseModule.forFeature([{ name: Course.name, schema: courseSchema }]),
     ],
-    controllers: [DateController, RosController, MissionController], // CourseController, 
-    providers: [DateService, ExampleService, Logger, RosService, MissionService], // CourseService,
+    controllers: [DateController, RosController, MissionController],
+    providers: [DateService, ExampleService, Logger, RosService, MissionService],
 })
 export class AppModule {}

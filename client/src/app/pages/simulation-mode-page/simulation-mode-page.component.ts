@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MissionService } from 'src/app/services/mission/mission.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MapGridComponent } from '@app/components/map-grid/map-grid.component';
+import { MapComponent } from '@app/components/map/map.component';
 
 @Component({
   selector: 'app-simulation-page',
   standalone: true,
   imports: [
-      MapGridComponent,
+      MapComponent,
       CommonModule
   ],
   templateUrl: './simulation-mode-page.component.html',
