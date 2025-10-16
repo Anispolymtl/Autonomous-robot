@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # Copyright 2020, EAIBOT
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -12,53 +12,72 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import launch
+import launch_ros
+from launch.actions import OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
 
-from launch import LaunchDescription
-from launch_ros.actions import LifecycleNode
-from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-import os
+
+def launch_setup(context, *args, **kwargs):
+    # 🔹 Récupération dynamique des LaunchConfigurations
+    namespace = launch.substitutions.LaunchConfiguration('namespace').perform(context)
+    params_file = launch.substitutions.LaunchConfiguration('params_file').perform(context)
+
+    # 🔹 Construction dynamique des frames avec namespace
+    base_frame = f"{namespace}/base_link"
+    laser_frame = f"{namespace}/laser_frame"
+
+    # 🔹 Définition du chemin du fichier de paramètres
+    share_dir = get_package_share_directory('robot_exploration')
+    if params_file == '':
+        params_file = os.path.join(share_dir, 'param', 'ydlidar.yaml')
+
+    # 🔹 Liste des actions à lancer
+    return [
+        # LIDAR driver node (LifecycleNode)
+        launch_ros.actions.LifecycleNode(
+            package='ydlidar_ros2_driver',
+            executable='ydlidar_ros2_driver_node',
+            name='ydlidar_ros2_driver_node',
+            namespace='',
+            output='screen',
+            emulate_tty=True,
+            parameters=[params_file]
+        ),
+
+        # TF statique base_link → laser_frame
+        launch_ros.actions.Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_pub_laser',
+            arguments=[
+                '0', '0', '0.02',  # translation x, y, z
+                '0', '0', '0',     # rotation roll, pitch, yaw
+                '1',               # quaternion w
+                base_frame,
+                "laser_frame"
+            ]
+        ),
+    ]
 
 
 def generate_launch_description():
-    share_dir = get_package_share_directory('limo_bringup')
-    parameter_file = LaunchConfiguration('params_file')
-    namespace = LaunchConfiguration('namespace')
-
-    params_declare = DeclareLaunchArgument(
-        'params_file',
-        default_value=os.path.join(share_dir, 'param', 'ydlidar.yaml'),
-        description='FPath to the ROS2 parameters file to use.')
-
-    declare_namespace = DeclareLaunchArgument(
-        'namespace',
-        default_value='limo1',
-        description="Namespace obligatoire (limo1 ou limo2)"
-    )
-
-    driver_node = LifecycleNode(
-        package='ydlidar_ros2_driver',
-        executable='ydlidar_ros2_driver_node',
-        name='ydlidar_ros2_driver_node',
-        output='screen',
-        emulate_tty=True,
-        parameters=[parameter_file],
-        namespace=namespace
-    )
-    tf2_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf_pub_laser',
-        arguments=[
-            '0', '0', '0.02', '0', '0', '0', '1', f'{namespace}/base_link', f'{namespace}/laser_frame'
-        ],
-    )
-
-    return LaunchDescription([
-        declare_namespace,
-        params_declare,
-        driver_node,
-        tf2_node,
+    # 🔹 Déclaration des arguments
+    return launch.LaunchDescription([
+        launch.actions.DeclareLaunchArgument(
+            'namespace',
+            default_value='limo1',
+            description='Namespace obligatoire (ex: limo1 ou limo2)'
+        ),
+        launch.actions.DeclareLaunchArgument(
+            'params_file',
+            default_value='',
+            description='Chemin du fichier de paramètres YAML du LIDAR'
+        ),
+        OpaqueFunction(function=launch_setup)
     ])
+
+
+if __name__ == '__main__':
+    generate_launch_description()

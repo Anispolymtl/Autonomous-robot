@@ -24,18 +24,18 @@ def launch_limo(context, *args, **kwargs):
                     'namespace': namespace
                 }.items(),
             ),
-            Node(
-                package='robot_exploration',
-                executable='identify_service',
-                name='identify_robot_service',
-                output='screen'
-            ),
-            Node(
-                package='robot_exploration',
-                executable='mission_server',
-                name='mission_server',
-                output='screen'
-            )
+            # Node(
+            #     package='robot_exploration',
+            #     executable='identify_service',
+            #     name='identify_robot_service',
+            #     output='screen'
+            # ),
+            # Node(
+            #     package='robot_exploration',
+            #     executable='mission_server',
+            #     name='mission_server',
+            #     output='screen'
+            # )
         ]
     )
     return [limo_launch]
