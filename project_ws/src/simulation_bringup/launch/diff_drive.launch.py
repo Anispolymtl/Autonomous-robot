@@ -35,6 +35,9 @@ def generate_launch_description():
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
+    limo2_slam_config = os.path.join(get_package_share_directory("robot_exploration"),
+                                   'config', 'limo2_slam_config.yaml'),
+
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
     with open(sdf_file_limo1, 'r') as infp:
@@ -154,6 +157,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
+                    "slam_params_file" : limo2_slam_config,
                     "namespace":"limo2"
                 }.items(),
             )
