@@ -12,7 +12,7 @@ from launch_ros.actions import PushRosNamespace
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     slam_params_file = LaunchConfiguration('slam_params_file')
-    namespace = LaunchConfiguration('namespace')
+    # namespace = LaunchConfiguration('namespace')
 
     declare_use_sim_time_argument = DeclareLaunchArgument(
         'use_sim_time',
@@ -46,18 +46,18 @@ def generate_launch_description():
         ]
     )
 
-    start_async_slam_toolbox_with_namespace = GroupAction(
-     actions = [
-        PushRosNamespace(namespace),
-        start_async_slam_toolbox_node,
-      ]
-    )
+    # start_async_slam_toolbox_with_namespace = GroupAction(
+    #  actions = [
+    #     PushRosNamespace(namespace),
+    #     start_async_slam_toolbox_node,
+    #   ]
+    # )
 
     ld = LaunchDescription()
 
     ld.add_action(declare_use_sim_time_argument)
     ld.add_action(declare_slam_params_file_cmd)
     ld.add_action(declare_slam_namespace)
-    ld.add_action(start_async_slam_toolbox_with_namespace)
+    ld.add_action(start_async_slam_toolbox_node)
 
     return ld
