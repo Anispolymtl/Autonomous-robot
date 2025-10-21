@@ -19,6 +19,12 @@ def launch_with_namespace(context, *args, **kwargs):
         f'{namespace}_slam_config.yaml'
     )
 
+    nav2_param = os.path.join(
+        pkg_robot,
+        'param',
+        'limo1_navigation2.yaml'
+    )
+
     limo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot, 'launch', 'robot_start.launch.py')
@@ -33,6 +39,17 @@ def launch_with_namespace(context, *args, **kwargs):
         launch_arguments={
             'use_sim_time': 'false',
             'slam_params_file': slam_config
+            # 'namespace': namespace
+        }.items(),
+    )
+
+    nav2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_robot, 'launch', 'limo_navigation.launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': 'false',
+            'params_file' : nav2_param
             # 'namespace': namespace
         }.items(),
     )
@@ -56,7 +73,8 @@ def launch_with_namespace(context, *args, **kwargs):
             limo_launch,
             # id_srv,
             # mission_action,
-            slam_toolbox_launch
+            slam_toolbox_launch,
+            nav2_launch
         ]
     )
 
