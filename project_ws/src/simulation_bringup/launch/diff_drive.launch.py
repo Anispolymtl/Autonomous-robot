@@ -35,6 +35,7 @@ def generate_launch_description():
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     limo_cfg = os.path.join(pkg_project_bringup, 'config', 'limo_params.yaml')
+    cfg_dir   = os.path.join(pkg_project_bringup, 'config')
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -44,6 +45,10 @@ def generate_launch_description():
     sdf_file_limo2 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive2', 'model.sdf')
     with open(sdf_file_limo2, 'r') as infp:
         robot_desc_limo2 = infp.read()
+
+    lua_file = os.path.join(get_package_share_directory("robot_exploration"),
+                                   'config', 'slam_config.yaml')
+
 
     # Setup to launch the simulator and Gazebo world
     gz_sim = IncludeLaunchDescription(
@@ -61,7 +66,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher_limo1',
-        namespace='limo1',
+        # namespace='limo1',
         output='both',
         parameters=[
             {'use_sim_time': True},
@@ -69,17 +74,17 @@ def generate_launch_description():
         ]
     )
 
-    robot_state_publisher_limo2 = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher_limo2',
-        namespace='limo2',
-        output='both',
-        parameters=[
-            {'use_sim_time': True},
-            {'robot_description': robot_desc_limo2},
-        ]
-    )
+    # robot_state_publisher_limo2 = Node(
+    #     package='robot_state_publisher',
+    #     executable='robot_state_publisher',
+    #     name='robot_state_publisher_limo2',
+    #     namespace='limo2',
+    #     output='both',
+    #     parameters=[
+    #         {'use_sim_time': True},
+    #         {'robot_description': robot_desc_limo2},
+    #     ]
+    # )
 
     # Visualize in RViz
     # rviz = Node(
@@ -108,13 +113,13 @@ def generate_launch_description():
         output='both'
     )
 
-    srv2_id = Node(
-        package='robot_exploration',
-        executable='identify_service',
-        name='identify_service',
-        namespace='limo2',
-        output='both'
-    )
+    # srv2_id = Node(
+    #     package='robot_exploration',
+    #     executable='identify_service',
+    #     name='identify_service',
+    #     namespace='limo2',
+    #     output='both'
+    # )
 
     mission_action_1 = Node(
         package='robot_exploration',
@@ -124,13 +129,36 @@ def generate_launch_description():
         output='screen',
     )
 
-    mission_action_2 = Node(
-        package='robot_exploration',
-        executable='mission_server',
-        name='mission_server',
-        namespace='limo2',
+    cartographer_node = Node(
+        package='cartographer_ros',
+        executable='cartographer_node',
+        name='cartographer_node',
         output='screen',
+        parameters=[{'use_sim_time': True}],
+        arguments=[
+            '-configuration_directory', cfg_dir,
+            '-configuration_basename',  'limo_2d.lua',
+        ],
+        remappings=[('scan', '/limo1/scan'), ('odom', '/limo1/odom')] 
     )
+
+    # mission_action_2 = Node(
+    #     package='robot_exploration',
+    #     executable='mission_server',
+    #     name='mission_server',
+    #     namespace='limo2',
+    #     output='screen',
+    # )
+
+    occupancy_node = Node(
+        package='cartographer_ros',
+        executable='cartographer_occupancy_grid_node', 
+        name='occupancy_grid_node',
+        output='screen',
+        parameters=[{'use_sim_time': True}],
+        arguments=['-resolution', '0.05', '-publish_period_sec', '1.0'],
+    )
+
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
@@ -138,10 +166,11 @@ def generate_launch_description():
         # DeclareLaunchArgument('rviz', default_value='true', description='Open RViz.'),
         bridge,
         robot_state_publisher_limo1,
-        robot_state_publisher_limo2,
-        # rviz
+        # robot_state_publisher_limo2,
         srv1_id,
-        srv2_id,
+        # srv2_id,
         mission_action_1,
-        mission_action_2
+        # mission_action_2,
+        cartographer_node,
+        occupancy_node
     ])
