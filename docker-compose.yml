@@ -1,12 +1,15 @@
 version: "3.9"
 
-# Ancre pour les variables ROS (utilisée plus bas avec <<: *ros_env)
 x-ros-env: &ros_env
   ROS_DISTRO: humble
   ROS_DOMAIN_ID: "66"
   RMW_IMPLEMENTATION: rmw_fastrtps_cpp
   DISPLAY: "${DISPLAY}"
   QT_X11_NO_MITSHM: "1"
+  UID: 1000
+  GID: 1000
+  user: "${UID}:${GID}"
+  NODE_ENV: development
 
 services:
 
@@ -17,10 +20,7 @@ services:
     image: inf3995-106-ros
     network_mode: host
     environment:
-      <<: *ros_env
-      UID: "${UID}"
-      GID: "${GID}"
-    user: "${UID}:${GID}"
+      <<: *ros_env    
     working_dir: /ws
     volumes:
       - ./project_ws:/ws
@@ -41,7 +41,7 @@ services:
     depends_on:
       - ros
     environment:
-      NODE_ENV: production
+      <<: *ros_env   
       ROS_DISTRO: humble
       ROS_DOMAIN_ID: "66"
       RMW_IMPLEMENTATION: rmw_fastrtps_cpp
@@ -72,6 +72,7 @@ services:
     container_name: web-client
     network_mode: host
     environment:
+      <<: *ros_env   
       PORT: "4200"    
       HOST: "0.0.0.0"                 
       HOKIDAR_USEPOLLING: "true"

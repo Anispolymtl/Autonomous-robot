@@ -2,14 +2,14 @@ FROM node:20-bullseye
 
 WORKDIR /app
 COPY client/package*.json ./
-RUN npm ci
+RUN npm i
 
 COPY client/ ./
 
 COPY common/ /common/
 
 # Si build front (ex: React/Vite/Angular):
-RUN npm run build
+# RUN npm run build
 
 EXPOSE 4200
 CMD ["npm","start","--","--host","0.0.0.0","--port","4200"]
