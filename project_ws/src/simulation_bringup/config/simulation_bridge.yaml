@@ -2,22 +2,12 @@
 # Commun à tous les robots
 # -----------------------
 - ros_topic_name: "/clock"
-  gz_topic_name: "/clock"
+  gz_topic_name: "clock"
   ros_type_name: "rosgraph_msgs/msg/Clock"
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
 
-- ros_topic_name: "/tf"
-  gz_topic_name: "/tf"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
 
-- ros_topic_name: "/tf_static"
-  gz_topic_name: "/tf_static"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
 
 # -----------------------
 # Robot 1 (diff drive)
@@ -52,6 +42,18 @@
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
+- ros_topic_name: "/tf"
+  gz_topic_name: "/model/limo1/pose"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/tf_static"
+  gz_topic_name: "/model/limo1/pose_static"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
 # -----------------------
 # Robot 2
 # -----------------------
@@ -83,4 +85,16 @@
   gz_topic_name: "/limo2/depth/image_raw"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/tf"
+  gz_topic_name: "/model/limo2/pose"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/tf_static"
+  gz_topic_name: "/model/limo2/pose_static"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
