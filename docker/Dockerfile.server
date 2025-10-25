@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
-    # a vérifier si tout est nécessaire
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget ca-certificates \
     build-essential cmake \
