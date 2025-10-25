@@ -17,8 +17,8 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
+from launch_ros.actions import PushRosNamespace
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable,GroupAction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -34,7 +34,9 @@ def generate_launch_description():
     pkg_project_gazebo = get_package_share_directory('simulation_gazebo')
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    limo_cfg = os.path.join(pkg_project_bringup, 'config', 'limo_params.yaml')
+
+    limo2_slam_config = os.path.join(get_package_share_directory("robot_exploration"),
+                                   'config', 'limo2_slam_config.yaml'),
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -132,6 +134,34 @@ def generate_launch_description():
         output='screen',
     )
 
+    slam_1 = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory("robot_exploration"),
+                        "launch",
+                        "robot_slam.launch.py",
+                    )
+                ),
+                launch_arguments={
+                    "use_sim_time": "true",
+                }.items(),
+            )
+
+    slam_2 = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory("robot_exploration"),
+                        "launch",
+                        "robot_slam.launch.py",
+                    )
+                ),
+                launch_arguments={
+                    "use_sim_time": "true",
+                    "slam_params_file" : limo2_slam_config,
+                    "namespace":"limo2"
+                }.items(),
+            )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -140,8 +170,16 @@ def generate_launch_description():
         robot_state_publisher_limo1,
         robot_state_publisher_limo2,
         # rviz
+
+        # Identification
         srv1_id,
         srv2_id,
+
+        # Mission managment
         mission_action_1,
-        mission_action_2
+        mission_action_2,
+
+        # Slam toolbox
+        slam_1,
+        slam_2
     ])

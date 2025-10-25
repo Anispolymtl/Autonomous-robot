@@ -52,7 +52,8 @@ def generate_launch_description():
                 'control_rate': launch.substitutions.LaunchConfiguration('control_rate'),
         }],
         remappings=[
-            ("/cmd_vel", "cmd_vel")
+            ("/cmd_vel", "cmd_vel"),
+            ("/odom", "odom")
         ]
     )
 
