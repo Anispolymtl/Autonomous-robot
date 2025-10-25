@@ -43,16 +43,12 @@ def launch_with_namespace(context, *args, **kwargs):
 
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_robot, 'launch', 'limo_navigation.launch.py')
+            os.path.join(pkg_robot, 'launch', 'git_nav2.launch.py')
         ),
         launch_arguments={
             'namespace': namespace,
             'params_file': str(nav2_params),
-            'use_sim_time': 'false',
-            'autostart': 'true',
-            'bt_xml_file': str(bt_xml),
-            'use_lifecycle_mgr': 'true',
-            'map_subscribe_transient_local': 'false'
+            'use_sim_time': 'false'
         }.items(),
     )
 

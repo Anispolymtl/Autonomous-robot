@@ -27,10 +27,10 @@ def launch_setup(context, *args, **kwargs):
 
     # 🔹 Remappings
     remappings = [
-        (f'{namespace}/tf', '/tf'),
-        (f'{namespace}/tf_static', '/tf_static'),
-        ('/tf', 'tf'),
-        ('/tf_static', 'tf_static')
+        # (f'{namespace}/tf', '/tf'),
+        # (f'{namespace}/tf_static', '/tf_static'),
+        # ('/tf', 'tf'),
+        # ('/tf_static', 'tf_static')
     ]
 
     # 🔹 Substitutions dynamiques des paramètres

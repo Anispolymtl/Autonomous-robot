@@ -1,0 +1,24 @@
+digraph G {
+"limo1" -> "limo1/rear_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo1" -> "limo1/rear_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo1" -> "limo1/front_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo1" -> "limo1/front_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo2" -> "limo2/rear_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo2" -> "limo2/rear_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo2" -> "limo2/front_right_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo2" -> "limo2/front_left_wheel_link"[label=" Broadcaster: default_authority\nAverage rate: 1000.268\nBuffer length: 3.725\nMost recent transform: 8.101\nOldest transform: 4.376\n"];
+"limo2/base_footprint" -> "limo2/base_footprint/laser_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo2" -> "limo2/base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo2/base_footprint" -> "limo2/base_footprint/imu_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo2/base_footprint" -> "limo2/base_footprint/sensor_camera"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo1/base_footprint" -> "limo1/base_footprint/laser_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo1" -> "limo1/base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo1/base_footprint" -> "limo1/base_footprint/imu_sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo1/base_footprint" -> "limo1/base_footprint/sensor_camera"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"limo2/odom" -> "limo2/base_link"[label=" Broadcaster: default_authority\nAverage rate: 8.286\nBuffer length: 3.5\nMost recent transform: 8.0\nOldest transform: 4.5\n"];
+"limo1/odom" -> "limo1/base_link"[label=" Broadcaster: default_authority\nAverage rate: 8.286\nBuffer length: 3.5\nMost recent transform: 8.0\nOldest transform: 4.5\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1761330835.3998075"[ shape=plaintext ] ;
+}->"limo1/odom";
+}
