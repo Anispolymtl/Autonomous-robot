@@ -36,7 +36,7 @@ def generate_launch_description():
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     limo2_slam_config = os.path.join(get_package_share_directory("robot_exploration"),
-                                   'config', 'limo2_slam_config.yaml'),
+                                   'config', 'limo2_slam_config.yaml')
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -134,7 +134,9 @@ def generate_launch_description():
         output='screen',
     )
 
-    slam_1 = IncludeLaunchDescription(
+    slam_1 = GroupAction([
+        PushRosNamespace('limo1'),
+        IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         get_package_share_directory("robot_exploration"),
@@ -144,10 +146,14 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
+                    "namespace": "limo1",
                 }.items(),
             )
+    ])
 
-    slam_2 = IncludeLaunchDescription(
+    slam_2 = GroupAction([
+        PushRosNamespace('limo2'),
+        IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         get_package_share_directory("robot_exploration"),
@@ -161,6 +167,7 @@ def generate_launch_description():
                     "namespace":"limo2"
                 }.items(),
             )
+    ])
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),

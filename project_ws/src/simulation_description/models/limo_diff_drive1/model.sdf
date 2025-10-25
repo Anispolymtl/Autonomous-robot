@@ -463,7 +463,7 @@
         <plugin filename="ignition-gazebo-odometry-publisher-system" name="ignition::gazebo::systems::OdometryPublisher">
             <odom_frame>limo1/odom</odom_frame>
             <robot_base_frame>limo1</robot_base_frame>
-            <odom_topic>limo1/odom</odom_topic>
+            <odom_topic>/limo1/odom</odom_topic>
             <odom_publish_frequency>8</odom_publish_frequency>
         </plugin>
     </model>
