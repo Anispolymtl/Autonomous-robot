@@ -169,6 +169,50 @@ def generate_launch_description():
             )
     ])
 
+    nav2_1 = GroupAction([
+        PushRosNamespace('limo1'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory("robot_exploration"),
+                    "launch",
+                    "git_nav2.launch.py",
+                )
+            ),
+            launch_arguments={
+                "use_sim_time": "true",
+                "params_file": os.path.join(
+                    get_package_share_directory("robot_exploration"),
+                    "param",
+                    "git_nav2.yaml"
+                ),
+                "namespace": "limo1",
+            }.items(),
+        )
+    ])
+
+    nav2_2 = GroupAction([
+        PushRosNamespace('limo2'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory("robot_exploration"),
+                    "launch",
+                    "git_nav2.launch.py",
+                )
+            ),
+            launch_arguments={
+                "use_sim_time": "true",
+                "params_file": os.path.join(
+                    get_package_share_directory("robot_exploration"),
+                    "param",
+                    "git_nav2_2.yaml"
+                ),
+                "namespace": "limo2",
+            }.items(),
+        )
+    ])
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -188,5 +232,10 @@ def generate_launch_description():
 
         # Slam toolbox
         slam_1,
-        slam_2
+        slam_2,
+
+        #navigation2
+        # nav2_1,
+        # nav2_2
+
     ])

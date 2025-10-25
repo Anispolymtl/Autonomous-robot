@@ -55,10 +55,9 @@ def generate_launch_description():
     # https://github.com/ros/robot_state_publisher/pull/30
     # TODO(orduno) Substitute with `PushNodeRemapping`
     #              https://github.com/ros2/launch_ros/issues/56
-    # remappings = [('/tf', 'tf'),
-    #               ('/tf_static', 'tf_static')]
+    remappings = [('/tf', 'tf'),
+                  ('/tf_static', 'tf_static')]
 
-    remappings = []
 
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {
@@ -88,7 +87,7 @@ def generate_launch_description():
 
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
-        default_value=os.path.join(robot_pkg, 'params', 'git_nav2.yaml'),
+        default_value=os.path.join(robot_pkg, 'param', 'git_nav2.yaml'),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
     declare_autostart_cmd = DeclareLaunchArgument(
@@ -255,7 +254,6 @@ def generate_launch_description():
 
     # Create the launch description and populate
     ld = LaunchDescription()
-
     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
 
