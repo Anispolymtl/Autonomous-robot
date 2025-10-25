@@ -134,7 +134,9 @@ def generate_launch_description():
         output='screen',
     )
 
-    slam_1 = IncludeLaunchDescription(
+    slam_1 = GroupAction([ 
+        PushRosNamespace('limo1'),
+        IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         get_package_share_directory("robot_exploration"),
@@ -146,8 +148,12 @@ def generate_launch_description():
                     "use_sim_time": "true",
                 }.items(),
             )
+    ])
+        
 
-    slam_2 = IncludeLaunchDescription(
+    slam_2 = GroupAction([
+        PushRosNamespace('limo2'),
+        IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         get_package_share_directory("robot_exploration"),
@@ -161,6 +167,7 @@ def generate_launch_description():
                     "namespace":"limo2"
                 }.items(),
             )
+    ])
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
