@@ -235,7 +235,7 @@ def generate_launch_description():
         slam_2,
 
         #navigation2
-        # nav2_1,
+        nav2_1,
         # nav2_2
 
     ])
