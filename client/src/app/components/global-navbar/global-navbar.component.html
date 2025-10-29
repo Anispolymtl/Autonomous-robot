@@ -1,0 +1,53 @@
+<header class="navbar" [class.navbar--scrolled]="isScrolled">
+  <div class="navbar__container">
+    <a class="navbar__brand" routerLink="/home" aria-label="Accueil Station de commande">
+      <img src="assets/limo-icon.png" alt="Logo robot Limo" class="navbar__logo" />
+      <span class="navbar__title">Station de commande</span>
+    </a>
+
+    <nav class="navbar__nav" role="navigation" aria-label="Navigation principale">
+      <a
+        class="navbar__link"
+        routerLink="/home"
+        routerLinkActive="navbar__link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        aria-label="Accueil"
+      >
+        <span class="navbar__link-icon">🏠</span>
+        <span class="navbar__link-text">Accueil</span>
+      </a>
+
+      <a
+        *ngIf="!isHomePage"
+        class="navbar__link"
+        routerLink="/simulation-mode"
+        routerLinkActive="navbar__link--active"
+        aria-label="Simulation"
+      >
+        <span class="navbar__link-icon">🎮</span>
+        <span class="navbar__link-text">Simulation</span>
+      </a>
+
+      <a
+        *ngIf="!isHomePage"
+        class="navbar__link"
+        routerLink="/real-mode"
+        routerLinkActive="navbar__link--active"
+        aria-label="Mode réel"
+      >
+        <span class="navbar__link-icon">⚡</span>
+        <span class="navbar__link-text">Mode réel</span>
+      </a>
+
+      <a
+        class="navbar__link navbar__link--logs"
+        routerLink="/logs"
+        routerLinkActive="navbar__link--active"
+        aria-label="Logs système"
+      >
+        <span class="navbar__link-icon">📈</span>
+        <span class="navbar__link-text">Logs</span>
+      </a>
+    </nav>
+  </div>
+</header>
