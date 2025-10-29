@@ -16,17 +16,9 @@ import { MissionService } from './services/misson/mission.service';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true })
-        // MongooseModule.forRootAsync({
-        //     imports: [ConfigModule],
-        //     inject: [ConfigService],
-        //     useFactory: async (config: ConfigService) => ({
-        //         uri: config.get<string>('DATABASE_CONNECTION_STRING'), // Loaded from .env
-        //     }),
-        // }),
-        // MongooseModule.forFeature([{ name: Course.name, schema: courseSchema }]),
+        ConfigModule.forRoot({ isGlobal: true }),
     ],
     controllers: [DateController, RosController, MissionController],
-    providers: [DateService, ExampleService, Logger, RosService, MissionService],
+    providers: [DateService, ExampleService, Logger, RosService, MissionService,],
 })
 export class AppModule {}
