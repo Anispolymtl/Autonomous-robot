@@ -87,7 +87,7 @@ def generate_launch_description():
 
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
-        default_value=os.path.join(robot_pkg, 'param', 'git_nav2.yaml'),
+        default_value=os.path.join(robot_pkg, 'param', 'limo1_nav.yaml'),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
     declare_autostart_cmd = DeclareLaunchArgument(

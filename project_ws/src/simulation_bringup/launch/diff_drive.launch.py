@@ -176,7 +176,7 @@ def generate_launch_description():
                 os.path.join(
                     get_package_share_directory("robot_exploration"),
                     "launch",
-                    "git_nav2.launch.py",
+                    "robot_navigation.launch.py",
                 )
             ),
             launch_arguments={
@@ -184,7 +184,7 @@ def generate_launch_description():
                 "params_file": os.path.join(
                     get_package_share_directory("robot_exploration"),
                     "param",
-                    "git_nav2.yaml"
+                    "limo1_nav.yaml"
                 ),
                 "namespace": "limo1",
             }.items(),
@@ -198,7 +198,7 @@ def generate_launch_description():
                 os.path.join(
                     get_package_share_directory("robot_exploration"),
                     "launch",
-                    "git_nav2.launch.py",
+                    "robot_navigation.launch.py",
                 )
             ),
             launch_arguments={
@@ -206,7 +206,7 @@ def generate_launch_description():
                 "params_file": os.path.join(
                     get_package_share_directory("robot_exploration"),
                     "param",
-                    "git_nav2_2.yaml"
+                    "limo2_nav.yaml"
                 ),
                 "namespace": "limo2",
             }.items(),
@@ -236,6 +236,6 @@ def generate_launch_description():
 
         #navigation2
         nav2_1,
-        # nav2_2
+        nav2_2
 
     ])
