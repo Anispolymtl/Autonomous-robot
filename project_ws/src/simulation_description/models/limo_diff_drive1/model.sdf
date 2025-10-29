@@ -231,6 +231,14 @@
                 </inertia>
             </inertial>
             <collision name='front_left_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -288,6 +296,14 @@
                 </inertia>
             </inertial>
             <collision name='front_right_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -345,6 +361,14 @@
                 </inertia>
             </inertial>
             <collision name='rear_left_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -402,6 +426,14 @@
                 </inertia>
             </inertial>
             <collision name='rear_right_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
