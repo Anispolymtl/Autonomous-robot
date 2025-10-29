@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import * as rclnodejs from 'rclnodejs';
 
-
 @Injectable()
 export class MissionService implements OnModuleInit {
     private missionNode1: rclnodejs.Node | undefined;
@@ -14,11 +13,11 @@ export class MissionService implements OnModuleInit {
 
     async onModuleInit() {
         this.missionNode1 = new rclnodejs.Node('mission_client_backend', 'limo1');
-        this.DoMission = (rclnodejs.require('limo_interfaces') as any).action.DoMission;  
-        this.missionClient1 = new rclnodejs.ActionClient(this.missionNode1, 'limo_interfaces/action/DoMission', 'do_mission');        
+        this.DoMission = (rclnodejs.require('limo_interfaces') as any).action.DoMission;
+        this.missionClient1 = new rclnodejs.ActionClient(this.missionNode1, 'limo_interfaces/action/DoMission', 'do_mission');
         this.missionNode1.spin();
         this.missionNode2 = new rclnodejs.Node('mission_client_backend', 'limo2');
-        this.missionClient2 = new rclnodejs.ActionClient(this.missionNode2, 'limo_interfaces/action/DoMission', 'do_mission');        
+        this.missionClient2 = new rclnodejs.ActionClient(this.missionNode2, 'limo_interfaces/action/DoMission', 'do_mission');
         this.missionNode2.spin();
         console.log('ROS2 Mission client prêt !');
     }
@@ -79,7 +78,4 @@ export class MissionService implements OnModuleInit {
 
         console.log('Tous les buts de la mission ont été annulés avec succès');
     }
-    
-        
-
 }
