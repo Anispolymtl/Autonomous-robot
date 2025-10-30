@@ -6,7 +6,7 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "limo1"
+    base_frame_id: "limo1/base_link"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.3
@@ -43,7 +43,7 @@ bt_navigator:
   ros__parameters:
     use_sim_time: True
     global_frame: limo1/map
-    robot_base_frame: limo1
+    robot_base_frame: limo1/base_link
     odom_topic: limo1/odom
     bt_loop_duration: 10
     default_server_timeout: 20
@@ -178,7 +178,7 @@ local_costmap:
       use_sim_time: True
       map_topic: /limo1/map
       global_frame: limo1/map
-      robot_base_frame: limo1
+      robot_base_frame: limo1/base_link
       rolling_window: true
       width: 3
       height: 3
@@ -214,7 +214,7 @@ global_costmap:
       use_sim_time: True
       map_topic: /limo1/map
       global_frame: limo1/map
-      robot_base_frame: limo1
+      robot_base_frame: limo1/base_link
       rolling_window: true
       robot_radius: 0.22
       # static_layer removed because there was an error 
@@ -278,7 +278,7 @@ behavior_server:
       plugin: "nav2_behaviors/Wait"
     global_frame: limo1/map
     local_frame: limo1/odom
-    robot_base_frame: limo1
+    robot_base_frame: limo1/base_link
     transform_tolerance: 0.1
     use_sim_time: true
     simulate_ahead_time: 2.0

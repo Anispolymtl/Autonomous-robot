@@ -15,14 +15,8 @@ def launch_with_namespace(context, *args, **kwargs):
 
     slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
 
-    nav2_params = os.path.join(pkg_robot, 'param', 'git_nav2.yaml')  # <- assure-toi que ce fichier existe
-    bt_xml = os.path.join(
-        get_package_share_directory('nav2_bt_navigator'),
-        'behavior_trees', 'navigate_w_replanning_and_recovery.xml'
-    )
+    nav2_params = os.path.join(pkg_robot, 'param', f'{namespace}_nav.yaml')
 
-    # Logs côté parent pour vérifier ce qu’on envoie
-    log_parent = LogInfo(msg=[f"[BRINGUP] namespace={namespace}  params_file={nav2_params}  bt_xml={bt_xml}"])
 
     limo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -43,11 +37,11 @@ def launch_with_namespace(context, *args, **kwargs):
 
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_robot, 'launch', 'git_nav2.launch.py')
+            os.path.join(pkg_robot, 'launch', 'robot_navigation.launch.py')
         ),
         launch_arguments={
             'namespace': namespace,
-            'params_file': str(nav2_params),
+            'params_file': nav2_params,
             'use_sim_time': 'false'
         }.items(),
     )
@@ -67,7 +61,6 @@ def launch_with_namespace(context, *args, **kwargs):
 
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
-        log_parent,
         limo_launch,
         # id_srv,
         # mission_action,

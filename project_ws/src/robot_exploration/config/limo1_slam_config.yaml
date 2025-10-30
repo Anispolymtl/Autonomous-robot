@@ -12,7 +12,7 @@ limo1/slam_toolbox:
     # ROS Parameters
     odom_frame: limo1/odom
     map_frame: limo1/map
-    base_frame: limo1
+    base_frame: limo1/base_link
     scan_topic: /limo1/scan
     use_map_saver: true
     mode: mapping #localization
