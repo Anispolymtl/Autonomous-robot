@@ -7,7 +7,7 @@ import { environment } from 'src/environments/environment';
     providedIn: 'root'
 })
 export class MissionService {
-    private missionUrl = `${environment.serverUrl}/mission`;
+    private missionUrl = `${environment.serverUrl}/api/mission`;
 
     constructor(private http: HttpClient) { }
 
