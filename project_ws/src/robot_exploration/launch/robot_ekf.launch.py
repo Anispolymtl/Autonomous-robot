@@ -36,7 +36,7 @@ def generate_launch_description():
         output='screen',
         parameters=[params_file],
         remappings=[
-            ('/odometry/filtered', 'odom/filtered'),
+            ('/odometry/filtered', 'odometry/filtered'),
             ('/odometry', 'odom'),
             ('/imu/data', 'imu/data')
         ]

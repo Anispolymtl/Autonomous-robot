@@ -25,10 +25,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
     'console_scripts': [
-        'client_service = robot_exploration.service.client_service_test_node:main',
         'identify_service = robot_exploration.service.identify_robot_service:main',
         'mission_server = robot_exploration.mission.mission_server:main',
-        #'test_node = robot_exploration.test_node:main',
+        'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
     ],
     },
 )

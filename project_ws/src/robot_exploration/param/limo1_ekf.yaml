@@ -69,7 +69,7 @@ limo1/ekf_filter_node:
         map_frame: limo1/map              # Defaults to "map" if unspecified
         odom_frame: limo1/odom            # Defaults to "odom" if unspecified
         base_link_frame: limo1/base_link  # Defaults to "base_link" if unspecified
-        world_frame: limo1/map           # Defaults to the value of odom_frame if unspecified
+        world_frame: limo1/odom           # Defaults to the value of odom_frame if unspecified
 
 # The filter accepts an arbitrary number of inputs from each input message type (nav_msgs/Odometry,
 # geometry_msgs/PoseWithCovarianceStamped, geometry_msgs/TwistWithCovarianceStamped,
@@ -88,7 +88,7 @@ limo1/ekf_filter_node:
         odom0_config: [true,  true,  false,
                        false, false, false,
                        false, false, false,
-                       false, false, true,
+                       false, false, false,
                        false, false, false]
 
 # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
@@ -125,7 +125,7 @@ limo1/ekf_filter_node:
         odom0_pose_rejection_threshold: 5.0
         odom0_twist_rejection_threshold: 1.0
 
-        imu0: limo1/imu
+        imu0: limo1/imu_fixed
         imu0_config: [false, false, false,
                       false,  false,  true,
                       false, false, false,
