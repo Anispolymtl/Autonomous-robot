@@ -16,6 +16,9 @@ def launch_setup(context, *args, **kwargs):
     base_frame = f"{namespace}/base_link"
     imu_frame = f"{namespace}/imu_link"
 
+    robot_pkg = get_package_share_directory('robot_exploration')
+    params_file = os.path.join(robot_pkg, 'param', f'{namespace}_ekf.yaml')
+
     # 🔹 Liste des actions de lancement
     return [
 
@@ -36,39 +39,34 @@ def launch_setup(context, *args, **kwargs):
             arguments=['0', '0', '0', '0', '0', '0', f"{base_frame}", f"{imu_frame}"]
         ),
 
-        # launch_ros.actions.Node(
-        #     package='robot_pose_ekf',
-        #     executable='robot_pose_ekf',
-        #     name='robot_pose_ekf',
-        #     parameters=[
-        #         {
-        #             'output_frame': 'odom'
-        #         },
-        #         {
-        #             'base_footprint_frame': 'base_link'
-        #         }
-        #     ]
-        # ),
+        # 🔹 robot_base.launch.py (Limo base node)
+        launch.actions.IncludeLaunchDescription(
+            launch.launch_description_sources.PythonLaunchDescriptionSource(
+                os.path.join(robot_pkg, 'launch', 'robot_ekf.launch.py')
+            ),
+            launch_arguments={
+                'params_file': params_file,
+            }.items()
+        ),
 
         # 🔹 robot_base.launch.py (Limo base node)
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory('robot_exploration'),
-                             'launch', 'robot_base.launch.py')
+                os.path.join(robot_pkg, 'launch', 'robot_base.launch.py')
             ),
             launch_arguments={
                 'port_name': port_name,
                 'odom_frame': odom_frame,
                 'base_frame': base_frame,
-                'odom_topic_name': odom_topic_name
+                'odom_topic_name': odom_topic_name,
+                'odom_tf_arg' : 'false'
             }.items()
         ),
 
         # 🔹 LIDAR
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory('robot_exploration'),
-                             'launch', 'robot_open_ydlidar.launch.py')
+                os.path.join(robot_pkg, 'launch', 'robot_open_ydlidar.launch.py')
             ),
             launch_arguments={'namespace': namespace}.items()
         ),
