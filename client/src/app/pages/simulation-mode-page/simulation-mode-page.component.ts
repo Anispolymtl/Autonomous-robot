@@ -4,13 +4,15 @@ import { Router } from '@angular/router';
 import { MissionService } from 'src/app/services/mission/mission.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MapComponent } from '@app/components/map/map.component';
+import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
 
 @Component({
   selector: 'app-simulation-page',
   standalone: true,
   imports: [
       MapComponent,
-      CommonModule
+      CommonModule,
+      RobotStatusComponent
   ],
   templateUrl: './simulation-mode-page.component.html',
   styleUrls: ['./simulation-mode-page.component.scss'],
