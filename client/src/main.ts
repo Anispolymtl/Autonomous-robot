@@ -9,6 +9,7 @@ import { environment } from './environments/environment';
 import { RobotLoginComponent } from '@app/pages/robot-login-page/robot-login.component';
 import { SimulationPageComponent } from '@app/pages/simulation-mode-page/simulation-mode-page.component';
 import { RealPageComponent } from '@app/pages/real-mode-page/real-mode-page.component';
+import { LogsPageComponent } from '@app/pages/logs-page/logs-page.component';
 
 if (environment.production) {
     enableProdMode();
@@ -21,6 +22,7 @@ export const routes: Routes = [
     { path: 'robot-login', component: RobotLoginComponent },
     { path: 'simulation-mode', component: SimulationPageComponent },
     { path: 'real-mode', component: RealPageComponent },
+    { path: 'logs', component: LogsPageComponent },
     { path: '**', redirectTo: '/home' },
 ];
 

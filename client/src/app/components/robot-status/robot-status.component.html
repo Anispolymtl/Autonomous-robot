@@ -1,0 +1,27 @@
+<div class="robots-status-container">
+  <div class="robot-status">
+    <h2>Robot 1</h2>
+    <div class="label">{{ robot1Status }}</div>
+    <div class="battery">
+      <span class="label">Batterie :</span>
+      <span class="level">{{ robot1Battery }}%</span>
+      <div class="battery-bar">
+        <div class="fill" [style.width.%]="robot1Battery"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="robot-status">
+    <h2>Robot 2</h2>
+    <div class="label">{{ robot2Status }}</div>
+    <div class="battery">
+      <span class="label">Batterie :</span>
+      <span class="level">{{ robot2Battery }}%</span>
+      <div class="battery-bar">
+        <div class="fill" [style.width.%]="robot2Battery"></div>
+      </div>
+    </div>
+  </div>
+</div>
