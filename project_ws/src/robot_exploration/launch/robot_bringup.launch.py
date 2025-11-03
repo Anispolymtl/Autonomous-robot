@@ -2,7 +2,7 @@ import os
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import PushRosNamespace
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction, LogInfo
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -13,11 +13,10 @@ def launch_with_namespace(context, *args, **kwargs):
 
     pkg_robot = get_package_share_directory('robot_exploration')
 
-    slam_config = os.path.join(
-        pkg_robot,
-        'config',
-        f'{namespace}_slam_config.yaml'
-    )
+    slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
+
+    nav2_params = os.path.join(pkg_robot, 'param', f'{namespace}_nav.yaml')
+
 
     limo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -33,7 +32,17 @@ def launch_with_namespace(context, *args, **kwargs):
         launch_arguments={
             'use_sim_time': 'false',
             'slam_params_file': slam_config
-            # 'namespace': namespace
+        }.items(),
+    )
+
+    nav2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_robot, 'launch', 'robot_navigation.launch.py')
+        ),
+        launch_arguments={
+            'namespace': namespace,
+            'params_file': nav2_params,
+            'use_sim_time': 'false'
         }.items(),
     )
 
@@ -50,15 +59,14 @@ def launch_with_namespace(context, *args, **kwargs):
     #     output='screen'
     # )
 
-    group = GroupAction(
-        actions=[
-            PushRosNamespace(namespace),
-            limo_launch,
-            # id_srv,
-            # mission_action,
-            slam_toolbox_launch
-        ]
-    )
+    group = GroupAction(actions=[
+        PushRosNamespace(namespace),
+        limo_launch,
+        # id_srv,
+        # mission_action,
+        slam_toolbox_launch,
+        nav2_launch
+    ])
 
     return [group]
 

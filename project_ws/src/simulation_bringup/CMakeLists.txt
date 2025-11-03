@@ -20,6 +20,20 @@ install(
   DESTINATION share/${PROJECT_NAME}/config
 )
 
+# Install project parameter files
+install(
+  DIRECTORY
+    param/
+  DESTINATION share/${PROJECT_NAME}/param
+)
+
+# Install project script files
+install(
+  DIRECTORY
+    script/
+  DESTINATION lib/${PROJECT_NAME}/script
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
