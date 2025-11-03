@@ -189,7 +189,7 @@
                         <stddev>0.01</stddev>
                     </noise>
                 </ray>
-                <pose relative_to="laser_link">0.103 0 0.116 0 -0 0</pose>
+                <pose relative_to="laser_link">0.103 0 0.08 0 -0 0</pose>
             </sensor>
         </link>
         <joint name='front_left_wheel' type='revolute'>
