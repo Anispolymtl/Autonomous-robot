@@ -35,8 +35,10 @@ def generate_launch_description():
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    limo2_slam_config = os.path.join(get_package_share_directory("robot_exploration"),
-                                   'config', 'limo2_slam_config.yaml')
+    limo1_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
+                                   'config', 'limo1_slam_sim_config.yaml')
+    limo2_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
+                                   'config', 'limo2_slam_sim_config.yaml')
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -146,6 +148,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
+                    "slam_params_file" : limo1_slam_sim_config,
                     "namespace": "limo1",
                 }.items(),
             )
@@ -163,7 +166,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
-                    "slam_params_file" : limo2_slam_config,
+                    "slam_params_file" : limo2_slam_sim_config,
                     "namespace":"limo2"
                 }.items(),
             )
@@ -182,9 +185,9 @@ def generate_launch_description():
             launch_arguments={
                 "use_sim_time": "true",
                 "params_file": os.path.join(
-                    get_package_share_directory("robot_exploration"),
+                    get_package_share_directory("simulation_bringup"),
                     "param",
-                    "limo1_nav.yaml"
+                    "limo1_nav_sim.yaml"
                 ),
                 "namespace": "limo1",
             }.items(),
@@ -204,9 +207,9 @@ def generate_launch_description():
             launch_arguments={
                 "use_sim_time": "true",
                 "params_file": os.path.join(
-                    get_package_share_directory("robot_exploration"),
+                    get_package_share_directory("simulation_bringup"),
                     "param",
-                    "limo2_nav.yaml"
+                    "limo2_nav_sim.yaml"
                 ),
                 "namespace": "limo2",
             }.items(),
