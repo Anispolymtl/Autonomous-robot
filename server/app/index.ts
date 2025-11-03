@@ -2,12 +2,19 @@ import { AppModule } from '@app/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 const bootstrap = async () => {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.setGlobalPrefix('api');
     app.useGlobalPipes(new ValidationPipe());
-    app.enableCors();
+    app.enableCors({
+    origin: '*',
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    });
+    app.useStaticAssets(join(__dirname, '..', '..', '..', 'assets'), { prefix: '/static/' });
+
 
     const config = new DocumentBuilder()
         .setTitle('Cadriciel Serveur')
@@ -18,7 +25,7 @@ const bootstrap = async () => {
     SwaggerModule.setup('api/docs', app, document);
     SwaggerModule.setup('', app, document);
 
-    await app.listen(process.env.PORT);
+    await app.listen(process.env.PORT || 3000);
 
     const shutdown = async () => {
         console.log('Fermeture du serveur...');
