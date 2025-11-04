@@ -17,6 +17,18 @@ import { MissionService } from './services/misson/mission.service';
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        MongooseModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+                const connectionString = configService.get<string>('DATABASE_CONNECTION_STRING') || 'mongodb://localhost:27017/inf3995-106';
+                return {
+                    uri: connectionString,
+                    // Options pour MongoDB Atlas (mongodb+srv://)
+                    // Le driver MongoDB natif est utilisé automatiquement avec mongoose 8
+                };
+            },
+        }),
     ],
     controllers: [DateController, RosController, MissionController],
     providers: [DateService, ExampleService, Logger, RosService, MissionService,],
