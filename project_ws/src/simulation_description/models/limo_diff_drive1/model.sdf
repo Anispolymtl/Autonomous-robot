@@ -189,7 +189,7 @@
                         <stddev>0.01</stddev>
                     </noise>
                 </ray>
-                <pose relative_to="laser_link">0.103 0 0.116 0 -0 0</pose>
+                <pose relative_to="laser_link">0.103 0 0.08 0 -0 0</pose>
             </sensor>
         </link>
         <joint name='front_left_wheel' type='revolute'>
@@ -231,6 +231,14 @@
                 </inertia>
             </inertial>
             <collision name='front_left_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -288,6 +296,14 @@
                 </inertia>
             </inertial>
             <collision name='front_right_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -345,6 +361,14 @@
                 </inertia>
             </inertial>
             <collision name='rear_left_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -402,6 +426,14 @@
                 </inertia>
             </inertial>
             <collision name='rear_right_wheel_link_collision'>
+                <surface>
+                    <friction>
+                    <ode>
+                        <mu>100</mu>
+                        <mu2>50</mu2>
+                    </ode>
+                    </friction>
+                </surface>
                 <pose>0 0.0225 0 1.57 0 0</pose>
                 <geometry>
                     <cylinder>
@@ -463,7 +495,7 @@
         <plugin filename="ignition-gazebo-odometry-publisher-system" name="ignition::gazebo::systems::OdometryPublisher">
             <odom_frame>limo1/odom</odom_frame>
             <robot_base_frame>limo1</robot_base_frame>
-            <odom_topic>limo1/odom</odom_topic>
+            <odom_topic>/limo1/odom</odom_topic>
             <odom_publish_frequency>8</odom_publish_frequency>
         </plugin>
     </model>

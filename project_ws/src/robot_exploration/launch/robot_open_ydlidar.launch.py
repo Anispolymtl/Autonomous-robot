@@ -17,12 +17,12 @@ import launch
 import launch_ros
 from launch.actions import OpaqueFunction
 from ament_index_python.packages import get_package_share_directory
+from launch_ros.parameter_descriptions import ParameterFile
 
 
 def launch_setup(context, *args, **kwargs):
     # 🔹 Récupération dynamique des LaunchConfigurations
     namespace = launch.substitutions.LaunchConfiguration('namespace').perform(context)
-    params_file = launch.substitutions.LaunchConfiguration('params_file').perform(context)
 
     # 🔹 Construction dynamique des frames avec namespace
     base_frame = f"{namespace}/base_link"
@@ -30,8 +30,7 @@ def launch_setup(context, *args, **kwargs):
 
     # 🔹 Définition du chemin du fichier de paramètres
     share_dir = get_package_share_directory('robot_exploration')
-    if params_file == '':
-        params_file = os.path.join(share_dir, 'param', 'ydlidar.yaml')
+    params_file = os.path.join(share_dir, 'param', f'{namespace}_ydlidar.yaml')
 
     # 🔹 Liste des actions à lancer
     return [
@@ -56,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
                 '0', '0', '0',     # rotation roll, pitch, yaw
                 '1',               # quaternion w
                 base_frame,
-                "laser_frame"
+                laser_frame
             ]
         ),
     ]
