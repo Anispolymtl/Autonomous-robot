@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MissionService } from 'src/app/services/mission/mission.service';
+import { MissionService } from '@app/services/mission.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
