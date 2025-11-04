@@ -1,5 +1,13 @@
 FROM ros:humble-ros-base
 
+# Créer l'utilisateur non-root avec UID/GID variables
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=user
+
+RUN groupadd -g ${GROUP_ID} ${USERNAME} 2>/dev/null || true && \
+    useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash ${USERNAME} 2>/dev/null || true
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl ca-certificates gnupg build-essential python3 cmake git \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -27,8 +35,14 @@ ENV ROS_DISTRO=humble \
 
 WORKDIR /server
 
+# Configurer npm pour utiliser un répertoire accessible à l'utilisateur
+RUN mkdir -p /tmp/.npm && \
+    chown -R ${USER_ID}:${GROUP_ID} /tmp/.npm 2>/dev/null || true && \
+    npm config set cache /tmp/.npm --global
+
 COPY server/package*.json ./
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && (npm ci || npm i)
+RUN chown -R ${USER_ID}:${GROUP_ID} /server 2>/dev/null || true && \
+    source /opt/ros/${ROS_DISTRO}/setup.bash && (npm ci || npm i)
 
 COPY server/ ./
 

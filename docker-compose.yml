@@ -15,17 +15,20 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.ros
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
+        USERNAME: ${USER:-user}
     image: inf3995-106-ros
+    user: "${UID:-1000}:${GID:-1000}"
     network_mode: host
     environment:
-      <<: *ros_env    
+      <<: *ros_env
+      npm_config_cache: /tmp/.npm
     working_dir: /ws
     volumes:
       - ./project_ws:/ws
-      - /tmp/.X11-unix:/tmp/.X11-unix 
-      - build_ws:/ws/build
-      - install_ws:/ws/install
-      - log_ws:/ws/log
+      - /tmp/.X11-unix:/tmp/.X11-unix
     entrypoint: ["/docker/entrypoint.robot.sh"]
     tty: true
     stdin_open: true
@@ -34,8 +37,13 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.server
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
+        USERNAME: ${USER:-user}
     image: myproj/server:latest
     container_name: api-server
+    user: "${UID:-1000}:${GID:-1000}"
     depends_on:
       - ros
     environment:
@@ -43,6 +51,7 @@ services:
       ROS_DISTRO: humble
       ROS_DOMAIN_ID: "66"
       RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      npm_config_cache: /tmp/.npm
     network_mode: host
     working_dir: /server
     volumes:
@@ -54,11 +63,117 @@ services:
       bash -lc "
         source /opt/ros/${ROS_DISTRO}/setup.bash;
         cd /project_ws;
-        colcon build 
+        mkdir -p log build install;
+        LOCK_FILE=/project_ws/.build_lock;
+        BUILD_READY=/project_ws/.build_ready;
+        max_wait=300;
+        wait_time=0;
+        
+        # Fonction pour attendre qu'un autre processus finisse de builder
+        wait_for_build() {
+          wait_time=0;
+          while [ -f $$LOCK_FILE ]; do
+            if [ $$wait_time -ge $$max_wait ]; then
+              echo 'ERROR: Timeout waiting for workspace build after 5 minutes';
+              exit 1;
+            fi;
+            sleep 2;
+            wait_time=$$((wait_time + 2));
+            if [ $$((wait_time % 10)) -eq 0 ]; then
+              echo \"Waiting for workspace build to complete... ($$wait_time s / $$max_wait s)\";
+            fi;
+          done;
+          # Attendre un peu après que le lock soit libéré pour que les fichiers soient écrits
+          sleep 2;
+        };
+        
+        # Si le workspace est déjà prêt, l'utiliser directement
+        if [ -f $$BUILD_READY ] && [ -f install/setup.bash ] && ([ -d install/share/limo_interfaces ] || [ -L install/limo_interfaces ] || [ -d install/limo_interfaces ]); then
+          echo 'Workspace already built, using existing build';
+        else
+          # Attendre que le lock soit libéré si un autre processus build
+          wait_for_build;
+          
+          # Vérifier à nouveau si le workspace est prêt (peut-être que ROS vient de finir)
+          if [ -f $$BUILD_READY ] && [ -f install/setup.bash ] && ([ -d install/share/limo_interfaces ] || [ -L install/limo_interfaces ] || [ -d install/limo_interfaces ]); then
+            echo 'Workspace now ready (built by ROS container)';
+          else
+            # Essayer d'acquérir le lock (avec retry)
+            echo 'Trying to acquire build lock...';
+            lock_acquired=false;
+            for i in 1 2 3 4 5; do
+              if [ ! -f $$LOCK_FILE ]; then
+                touch $$LOCK_FILE;
+                sleep 1;
+                # Vérifier qu'on a toujours le lock (pas pris par un autre)
+                if [ -f $$LOCK_FILE ] && [ "$$(stat -c %U $$LOCK_FILE 2>/dev/null || echo 'unknown')" != "unknown" ]; then
+                  lock_acquired=true;
+                  break;
+                fi;
+              fi;
+              echo \"Lock attempt $$i/5 failed, waiting...\";
+              sleep 2;
+            done;
+            
+            if [ "$$lock_acquired" != "true" ]; then
+              echo 'Could not acquire lock, waiting for other process to finish...';
+              wait_for_build;
+              if [ ! -f $$BUILD_READY ] || [ ! -f install/setup.bash ] || [ ! -d install/limo_interfaces ]; then
+                echo 'ERROR: Build not completed by other process';
+                exit 1;
+              fi;
+            else
+              echo 'Build lock acquired, building workspace...';
+              trap 'rm -f $$LOCK_FILE' EXIT;
+              
+              # Nettoyer les anciens builds pour éviter les conflits de chemins
+              echo 'Cleaning old build artifacts...';
+              rm -rf build install log $$BUILD_READY;
+              mkdir -p log build install;
+              
+              echo 'Building ROS2 workspace...';
+              colcon build --merge-install --symlink-install || {
+                echo 'ERROR: colcon build failed';
+                rm -f $$LOCK_FILE $$BUILD_READY;
+                exit 1;
+              };
+              
+              # Attendre un peu pour que les fichiers soient écrits
+              sleep 2;
+              
+              # Créer le marqueur de build réussi
+              # Vérifier que les fichiers critiques existent
+              if [ -f install/setup.bash ] && [ -d install/share/limo_interfaces ]; then
+                touch $$BUILD_READY;
+                echo 'Workspace built successfully!';
+              elif [ -f install/setup.bash ] && [ -L install/limo_interfaces ]; then
+                # Si c'est un lien symbolique, vérifier qu'il pointe vers quelque chose de valide
+                touch $$BUILD_READY;
+                echo 'Workspace built successfully (limo_interfaces is symlink)!';
+              else
+                echo 'ERROR: Build failed - install/setup.bash or limo_interfaces not found';
+                echo 'Checking install directory:';
+                ls -la install/ 2>&1 || echo 'install directory does not exist';
+                echo 'Checking for limo_interfaces:';
+                ls -la install/limo_interfaces 2>&1 || echo 'limo_interfaces not found';
+                ls -la install/share/limo_interfaces 2>&1 || echo 'install/share/limo_interfaces not found';
+                rm -f $$LOCK_FILE $$BUILD_READY;
+                exit 1;
+              fi;
+              
+              # Libérer le lock
+              rm -f $$LOCK_FILE;
+            fi;
+          fi;
+        fi;
+        
         source install/setup.bash;
-        cd ../server;
+        export LD_LIBRARY_PATH=/project_ws/install/lib:$$LD_LIBRARY_PATH;
+        echo 'ROS2 workspace sourced successfully';
+        cd /server;
         if [ ! -d node_modules ]; then (npm ci || npm i); fi;
-        npm rebuild rclnodejs;
+        echo 'Rebuilding rclnodejs with ROS2 workspace sourced...';
+        npm rebuild rclnodejs || echo 'Warning: npm rebuild rclnodejs had errors';
         npm start
       "
 
@@ -66,14 +181,20 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.client
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
+        USERNAME: ${USER:-user}
     image: inf3995-106-client
     container_name: web-client
+    user: "${UID:-1000}:${GID:-1000}"
     network_mode: host
     environment:
       <<: *ros_env   
       PORT: "4200"    
       HOST: "0.0.0.0"                 
       HOKIDAR_USEPOLLING: "true"
+      npm_config_cache: /tmp/.npm
     working_dir: /app
     volumes:
       - ./client:/app
@@ -82,7 +203,3 @@ services:
     command: ["npm","start","--","--host","0.0.0.0","--port","4200"]
 
 
-volumes:
-  build_ws:
-  install_ws:
-  log_ws:

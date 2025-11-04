@@ -1,5 +1,13 @@
 FROM ros:humble-ros-core
 
+# Créer l'utilisateur non-root avec UID/GID variables
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=user
+
+RUN groupadd -g ${GROUP_ID} ${USERNAME} 2>/dev/null || true && \
+    useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash ${USERNAME} 2>/dev/null || true
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget ca-certificates \
     build-essential cmake \
@@ -21,10 +29,15 @@ RUN rosdep init || true && rosdep update
 
 WORKDIR $WS
 
+# S'assurer que le workspace appartient à l'utilisateur
+RUN chown -R ${USER_ID}:${GROUP_ID} $WS || true
+
 COPY project_ws/ $WS/
+RUN chown -R ${USER_ID}:${GROUP_ID} $WS
 
 COPY docker/entrypoint.robot.sh /docker/entrypoint.robot.sh
-RUN chmod +x /docker/entrypoint.robot.sh
+RUN chmod +x /docker/entrypoint.robot.sh && \
+    chown ${USER_ID}:${GROUP_ID} /docker/entrypoint.robot.sh
 
 RUN rosdep install --rosdistro ${ROS_DISTRO} -i --from-paths src --ignore-src -r -y \
     --skip-keys="ros_gz sdformat_urdf cartographer_ros cartographer_ros_msgs"
