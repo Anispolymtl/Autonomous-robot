@@ -2,11 +2,17 @@ process.env.ROS_DOMAIN_ID = '66';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
+import { map } from 'rxjs';
+import { SocketService } from './socket/socket.service';
 
 @Injectable()
 export class RosService implements OnModuleInit {
   private readonly logger = new Logger(RosService.name);
   private limoList: LimoObject[];
+  private mappingNode: rclnodejs.Node | undefined;
+  private mappingSubscription: rclnodejs.Subscription | undefined;
+
+  constructor(private socketService: SocketService) {}
 
   async onModuleInit() {
     await rclnodejs.init();
@@ -21,7 +27,22 @@ export class RosService implements OnModuleInit {
     ];
     nodeLimo1.spin();
     nodeLimo2.spin();
+    this.setupMappingListner();
     this.logger.log('ROS2 client prêt !');
+  }
+
+  private setupMappingListner() {
+    this.mappingNode = new rclnodejs.Node('mapping_listener_backend');
+    this.mappingSubscription = this.mappingNode.createSubscription(
+      'nav_msgs/msg/OccupancyGrid',
+      '/limo1/map',
+      (msg) => {
+        console.log('Received map data:', msg);
+        this.socketService.sendMapToAllSockets(msg);
+      }
+    );
+    this.mappingNode.spin();
+    console.log('ROS2 subscriber started');
   }
 
   async identifyRobot(id: number): Promise<{ success: boolean; message: string }> {
@@ -39,4 +60,6 @@ export class RosService implements OnModuleInit {
       });
     });
   }
+
+
 }
