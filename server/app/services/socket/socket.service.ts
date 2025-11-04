@@ -14,6 +14,7 @@ export class SocketService{
     }
     
     sendMapToAllSockets(mapData: any) {
+        console.log('Sending map data to all sockets');
         this.sockets.forEach((socket) => {
             socket.emit('mapUpdate', mapData);
         });
