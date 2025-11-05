@@ -33,7 +33,7 @@ def generate_launch_description():
     configuration_basename = LaunchConfiguration('configuration_basename',
                                                  default='limo1_cartographer_2d.lua')
 
-    resolution = LaunchConfiguration('resolution', default='0.005')
+    resolution = LaunchConfiguration('resolution', default='0.05')
     publish_period_sec = LaunchConfiguration('publish_period_sec', default='1.0')
 
 

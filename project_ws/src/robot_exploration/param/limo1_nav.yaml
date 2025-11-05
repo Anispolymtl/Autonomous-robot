@@ -212,13 +212,13 @@ global_costmap:
   global_costmap:
     ros__parameters:
       use_sim_time: True
-      map_topic: /limo1/map
+      # map_topic: /limo1/map
       global_frame: limo1/map
       robot_base_frame: limo1/base_link
-      rolling_window: true
+      # rolling_window: true
       robot_radius: 0.22
       # static_layer removed because there was an error 
-      plugins: ["obstacle_layer", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
