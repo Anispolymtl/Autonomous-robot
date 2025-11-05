@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MapService } from '@app/services/map.service';
-import { Map } from '@common/interfaces/map';
 
 @Component({
   selector: 'app-map',
@@ -13,13 +12,13 @@ import { Map } from '@common/interfaces/map';
 
 export class MapComponent implements OnInit, OnDestroy {
 
-  map: Signal<Map[]>;
+  map: {data: ArrayBuffer, height: number, width: number} | undefined;
 
 
   constructor(
     private mapService: MapService
   ) {
-    this.map = this.mapService.map.asReadonly();
+    this.map = this.mapService.map;
   }
 
   ngOnInit() {

@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { SocketService } from '@app/services/socket.service';
 import { MapEvent } from '@common/enums/sockets-events'
 
@@ -6,7 +6,8 @@ import { MapEvent } from '@common/enums/sockets-events'
     providedIn: 'root',
 })
 export class MapService {
-    map: WritableSignal<any> = signal([]);
+
+    map: {data: ArrayBuffer, height: number, width: number} | undefined;
 
     constructor(private readonly socketService: SocketService) {}
     
@@ -23,12 +24,13 @@ export class MapService {
 
     configureMapSocketFeatures() {
         this.socketService.on(MapEvent.RecoverMap, (recoveredMap: any) => {
-            this.map.set(recoveredMap);
-            console.log(recoveredMap)
+            this.map = {data: recoveredMap.data, height: recoveredMap.info.height, width: recoveredMap.info.width}
+            console.log(recoveredMap);
+            console.log(this.map);
         });
     }
 
     resetMap() {
-        this.map.set([]);
+        this.map = undefined;
     }
 }
