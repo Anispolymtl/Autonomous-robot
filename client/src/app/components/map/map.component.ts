@@ -23,10 +23,10 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.mapService.connectToSocket();
     if (this.mapService.isSocketAlive){
       this.mapService.resetMap();
       this.mapService.configureMapSocketFeatures();
-
     }
   }
 

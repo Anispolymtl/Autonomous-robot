@@ -16,9 +16,10 @@ export class SocketService {
         return this.socket?.connected ?? false;
     }
 
-    connect() {
+    connect(namespace: string) {
         const socketUrl = environment.serverUrl;
-        this.socket = io(socketUrl, { transports: ['websocket'], upgrade: false });
+        //console.log(`connection to ${socketUrl}/${namespace}`)
+        this.socket = io(`${socketUrl}/${namespace}`, { transports: ['websocket'], upgrade: false });
     }
 
     disconnect() {
