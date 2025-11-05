@@ -17,7 +17,7 @@ def launch_setup(context, *args, **kwargs):
     imu_frame = f"{namespace}/imu_link"
 
     robot_pkg = get_package_share_directory('robot_exploration')
-    params_file = os.path.join(robot_pkg, 'param', f'{namespace}_ekf.yaml')
+    # params_file = os.path.join(robot_pkg, 'param', f'{namespace}_ekf.yaml')
 
     # 🔹 Liste des actions de lancement
     return [
@@ -40,14 +40,14 @@ def launch_setup(context, *args, **kwargs):
         ),
 
         # 🔹 robot_base.launch.py (Limo base node)
-        launch.actions.IncludeLaunchDescription(
-            launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(robot_pkg, 'launch', 'robot_ekf.launch.py')
-            ),
-            launch_arguments={
-                'params_file': params_file,
-            }.items()
-        ),
+        # launch.actions.IncludeLaunchDescription(
+        #     launch.launch_description_sources.PythonLaunchDescriptionSource(
+        #         os.path.join(robot_pkg, 'launch', 'robot_ekf.launch.py')
+        #     ),
+        #     launch_arguments={
+        #         'params_file': params_file,
+        #     }.items()
+        # ),
 
         # 🔹 robot_base.launch.py (Limo base node)
         launch.actions.IncludeLaunchDescription(
@@ -59,7 +59,6 @@ def launch_setup(context, *args, **kwargs):
                 'odom_frame': odom_frame,
                 'base_frame': base_frame,
                 'odom_topic_name': odom_topic_name,
-                'odom_tf_arg' : 'false'
             }.items()
         ),
 

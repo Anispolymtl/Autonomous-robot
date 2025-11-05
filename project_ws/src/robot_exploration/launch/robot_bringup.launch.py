@@ -13,7 +13,9 @@ def launch_with_namespace(context, *args, **kwargs):
 
     pkg_robot = get_package_share_directory('robot_exploration')
 
-    slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
+    # slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
+
+    cartographer_file = f'{namespace}_cartographer_2d.lua'
 
     nav2_params = os.path.join(pkg_robot, 'param', f'{namespace}_nav.yaml')
 
@@ -25,13 +27,22 @@ def launch_with_namespace(context, *args, **kwargs):
         launch_arguments={'namespace': namespace}.items(),
     )
 
-    slam_toolbox_launch = IncludeLaunchDescription(
+    # slam_toolbox_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(pkg_robot, 'launch', 'robot_slam.launch.py')
+    #     ),
+    #     launch_arguments={
+    #         'use_sim_time': 'false',
+    #         'slam_params_file': slam_config
+    #     }.items(),
+    # )
+
+    cartographer_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_robot, 'launch', 'robot_slam.launch.py')
+            os.path.join(pkg_robot, 'launch', 'robot_cartographer.launch.py')
         ),
         launch_arguments={
-            'use_sim_time': 'false',
-            'slam_params_file': slam_config
+            'configuration_basename': cartographer_file
         }.items(),
     )
 
@@ -64,7 +75,8 @@ def launch_with_namespace(context, *args, **kwargs):
         limo_launch,
         # id_srv,
         # mission_action,
-        slam_toolbox_launch,
+        # slam_toolbox_launch,
+        cartographer_launch,
         nav2_launch
     ])
 
