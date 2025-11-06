@@ -30,6 +30,7 @@ class ExplorerNode(Node):
         self.robot_position = (0, 0)
         self.timer = None
         self.is_exploring = False
+        self.current_goal_handle = None
 
     # --- ✅ Nouvelle méthode : démarrage contrôlé ---
     def start_exploration(self):
@@ -45,11 +46,32 @@ class ExplorerNode(Node):
         if not self.is_exploring:
             self.get_logger().warning("Exploration not running")
             return
-        self.get_logger().info("Exploration stopped")
+
+        self.get_logger().info("Exploration stopping...")
+
+        # 1️⃣ Arrêter le timer
         if self.timer is not None:
-            self.timer.cancel()
+            try:
+                self.destroy_timer(self.timer)
+                self.get_logger().info("Timer destroyed ✅")
+            except Exception as e:
+                self.get_logger().warning(f"Failed to destroy timer: {e}")
             self.timer = None
+
         self.is_exploring = False
+
+        # 2️⃣ Annuler le goal Nav2 actif
+        if self.current_goal_handle is not None:
+            self.get_logger().info("Canceling active Nav2 goal...")
+            try:
+                cancel_future = self.current_goal_handle.cancel_goal_async()
+                cancel_future.add_done_callback(
+                    lambda _: self.get_logger().info("Nav2 goal canceled ✅"))
+            except Exception as e:
+                self.get_logger().warning(f"Error canceling Nav2 goal: {e}")
+            self.current_goal_handle = None
+
+        self.get_logger().info("Exploration fully stopped 🟢")
 
     # --- Callbacks ROS ---
     def map_callback(self, msg):
@@ -84,6 +106,7 @@ class ExplorerNode(Node):
             self.get_logger().warning("Goal rejected!")
             return
         self.get_logger().info("Goal accepted")
+        self.current_goal_handle = goal_handle
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self.navigation_complete_callback)
 
