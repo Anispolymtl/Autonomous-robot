@@ -22,8 +22,53 @@ from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable,Grou
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command
+# import os, tempfile, random, textwrap, xml.etree.ElementTree as ET
 
 from launch_ros.actions import Node
+
+# # -------------------- RANDOM BOXES GENERATOR --------------------
+# def _random_boxes_sdf(num=5, limit=5.5, size=0.6, min_dist=1.0, robot_start=(0,0)):
+#     boxes = []
+#     parts = []
+
+#     for i in range(num):
+#         while True:
+#             x = random.uniform(-limit, limit)
+#             y = random.uniform(-limit, limit)
+
+#             # Distance from robot start
+#             if ((x - robot_start[0])**2 + (y - robot_start[1])**2)**0.5 < min_dist:
+#                 continue
+
+#             # Distance from existing boxes
+#             ok = True
+#             for (bx, by) in boxes:
+#                 if ((x - bx)**2 + (y - by)**2)**0.5 < min_dist:
+#                     ok = False
+#                     break
+
+#             if ok:
+#                 boxes.append((x, y))
+#                 break
+
+#         parts.append(textwrap.dedent(f"""
+#         <model name="rand_box_{i}">
+#           <static>true</static>
+#           <pose>{x:.3f} {y:.3f} 0 0 0 0</pose>
+#           <link name="link">
+#             <collision name="collision">
+#               <geometry><box><size>{size} {size} {size}</size></box></geometry>
+#             </collision>
+#             <visual name="visual">
+#               <geometry><box><size>{size} {size} {size}</size></box></geometry>
+#               <material><ambient>1 0 0 1</ambient></material>
+#             </visual>
+#           </link>
+#         </model>
+#         """).strip())
+
+#     return "\n".join(parts) + "\n"
 
 
 def generate_launch_description():
@@ -35,8 +80,10 @@ def generate_launch_description():
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    limo2_slam_config = os.path.join(get_package_share_directory("robot_exploration"),
-                                   'config', 'limo2_slam_config.yaml')
+    limo1_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
+                                   'config', 'limo1_slam_sim_config.yaml')
+    limo2_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
+                                   'config', 'limo2_slam_sim_config.yaml')
 
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
@@ -46,16 +93,25 @@ def generate_launch_description():
     sdf_file_limo2 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive2', 'model.sdf')
     with open(sdf_file_limo2, 'r') as infp:
         robot_desc_limo2 = infp.read()
+    
+
 
     # Setup to launch the simulator and Gazebo world
+    # gz_sim = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+    #     launch_arguments={'gz_args': PathJoinSubstitution([
+    #         pkg_project_gazebo,
+    #         'worlds',
+    #         'diff_drive.sdf'
+    #     ])}.items(),
+    # )
+    
+    world_file = Command(["ros2 ", "run ", "simulation_bringup ", "spawn_random.py"])
+
     gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-        launch_arguments={'gz_args': PathJoinSubstitution([
-            pkg_project_gazebo,
-            'worlds',
-            'diff_drive.sdf'
-        ])}.items(),
+        PythonLaunchDescriptionSource(os.path.join(pkg_ros_gz_sim,'launch','gz_sim.launch.py')),
+        launch_arguments={'gz_args': world_file}.items(),
     )
 
     # Takes the description and joint angles as inputs and publishes the 3D poses of the robot links
@@ -146,6 +202,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
+                    "slam_params_file" : limo1_slam_sim_config,
                     "namespace": "limo1",
                 }.items(),
             )
@@ -163,12 +220,47 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": "true",
-                    "slam_params_file" : limo2_slam_config,
+                    "slam_params_file" : limo2_slam_sim_config,
                     "namespace":"limo2"
                 }.items(),
             )
     ])
 
+
+    merge_map_node = Node(
+        package='robot_exploration',
+        executable='map_merge',
+        name='merge_map_node',
+        output='screen',
+        parameters=[{'use_sim_time': True}],
+        remappings=[
+            ("/map1", "/limo1/map"),
+            ("/map2", "/limo2/map"),
+            ("/merge_map", "/merged_map"),   # topic fusionné
+        ],
+    )
+
+    static_tf_limo1 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo1',
+        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo1/map']
+    )
+
+    static_tf_limo2 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo2',
+        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo2/map']
+    )
+
+    static_merge_map_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_merge_map',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map']
+    )
+    
     nav2_1 = GroupAction([
         PushRosNamespace('limo1'),
         IncludeLaunchDescription(
@@ -182,9 +274,9 @@ def generate_launch_description():
             launch_arguments={
                 "use_sim_time": "true",
                 "params_file": os.path.join(
-                    get_package_share_directory("robot_exploration"),
+                    get_package_share_directory("simulation_bringup"),
                     "param",
-                    "limo1_nav.yaml"
+                    "limo1_nav_sim.yaml"
                 ),
                 "namespace": "limo1",
             }.items(),
@@ -204,14 +296,15 @@ def generate_launch_description():
             launch_arguments={
                 "use_sim_time": "true",
                 "params_file": os.path.join(
-                    get_package_share_directory("robot_exploration"),
+                    get_package_share_directory("simulation_bringup"),
                     "param",
-                    "limo2_nav.yaml"
+                    "limo2_nav_sim.yaml"
                 ),
                 "namespace": "limo2",
             }.items(),
         )
     ])
+
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
@@ -233,6 +326,11 @@ def generate_launch_description():
         # Slam toolbox
         slam_1,
         slam_2,
+
+        merge_map_node,
+        static_tf_limo1,
+        static_tf_limo2,
+        static_merge_map_tf,
 
         #navigation2
         nav2_1,

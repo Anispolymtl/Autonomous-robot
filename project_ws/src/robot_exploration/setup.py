@@ -27,6 +27,7 @@ setup(
     'console_scripts': [
         'identify_service = robot_exploration.service.identify_robot_service:main',
         'mission_server = robot_exploration.mission.mission_server:main',
+        'map_merge = robot_exploration.map_merge.map_merge:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
     ],
     },
