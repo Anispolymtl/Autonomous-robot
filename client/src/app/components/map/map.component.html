@@ -1,4 +1,10 @@
 <div class="map-container">
-  MAP COMPONENT
-  <canvas id="mapCanvas"></canvas>
+  <canvas id="mapCanvas" (click)="onCanvasClick($event)"></canvas>
+</div>
+<div class="map-info" *ngIf="selectedPoint">
+  <p>Cell: ({{ selectedPoint.cell.x }}, {{ selectedPoint.cell.y }})</p>
+  <p>World: x={{ selectedPoint.world.x | number:'1.2-2' }} m, y={{ selectedPoint.world.y | number:'1.2-2' }} m</p>
+</div>
+<div class="map-info" *ngIf="originWorld">
+  <p>Origin (world): x={{ originWorld.x | number:'1.2-2' }} m, y={{ originWorld.y | number:'1.2-2' }} m</p>
 </div>
