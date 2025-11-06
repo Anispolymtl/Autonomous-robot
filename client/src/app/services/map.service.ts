@@ -129,6 +129,54 @@ export class MapService {
             world: this.gridToWorld(gridX, gridY),
         };
     }
+    
+    onCanvasClick(event: MouseEvent): void {
+        const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement | null;
+        if (!canvas) return;
+
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const canvasX = (event.clientX - rect.left) * scaleX;
+        const canvasY = (event.clientY - rect.top) * scaleY;
+
+        const coordinate = this.canvasPointToMapCoordinate(canvasX, canvasY);
+        if (coordinate) {
+            this.selectedPoint = coordinate;
+            this.selectedCanvasCoord = { x: canvasX, y: canvasY };
+            this.redrawMapWithMarkers();
+            console.log('Selected map coordinate:', coordinate);
+        }
+    }
+
+    addPoint(): void{
+        if(!this.selectedPoint || !this.selectedCanvasCoord) return;
+        this.pointList.push(this.selectedPoint);
+        this.pointCanvasCoords.push(this.selectedCanvasCoord);
+        this.selectedPoint = undefined;
+        this.selectedCanvasCoord = undefined;
+        this.redrawMapWithMarkers();
+    }
+
+    removePoint(index: number): void {
+        if (index < 0 || index >= this.pointList.length) return;
+        this.pointList.splice(index, 1);
+        this.pointCanvasCoords.splice(index, 1);
+        this.redrawMapWithMarkers();
+    }
+
+    sendCoords(): void {
+        if (!this.pointList.length) {
+        console.log('No coordinates to send.');
+        return;
+        }
+        console.log('Sending coordinates:', this.pointList);
+        this.pointList = [];
+        this.pointCanvasCoords = [];
+        this.redrawMapWithMarkers();
+    }
 
     private drawOriginMarker(ctx: CanvasRenderingContext2D): void {
         if (!this.originCanvasPosition) return;
