@@ -11,17 +11,17 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     ld = LaunchDescription()
     config = os.path.join(
-        get_package_share_directory("explore_lite"), "config", "params.yaml"
+        get_package_share_directory("explore_lite"), "config", "params_costmap.yaml"
     )
     use_sim_time = LaunchConfiguration("use_sim_time")
     namespace = LaunchConfiguration("namespace")
 
     declare_use_sim_time_argument = DeclareLaunchArgument(
-        "use_sim_time", default_value="true", description="Use simulation/Gazebo clock"
+        "use_sim_time", default_value="false", description="Use simulation/Gazebo clock"
     )
     declare_namespace_argument = DeclareLaunchArgument(
         "namespace",
-        default_value="",
+        default_value="limo1",
         description="Namespace for the explore node",
     )
 
@@ -29,7 +29,7 @@ def generate_launch_description():
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
     # https://github.com/ros/geometry2/issues/32
     # https://github.com/ros/robot_state_publisher/pull/30
-    remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
+    remappings = [("tf", "/tf"), ("tf_static", "/tf_static")]
 
     node = Node(
         package="explore_lite",

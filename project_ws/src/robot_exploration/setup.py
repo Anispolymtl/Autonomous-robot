@@ -29,6 +29,7 @@ setup(
         'mission_server = robot_exploration.mission.mission_server:main',
         'map_merge = robot_exploration.map_merge.map_merge:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
+        'cartographer_convert = robot_exploration.autonomous_exploration.cartographer_convert:main',
     ],
     },
 )

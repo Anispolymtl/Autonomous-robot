@@ -14,7 +14,7 @@ class ExplorerNode(Node):
 
         # Subscriber to the map topic
         self.map_sub = self.create_subscription(
-            OccupancyGrid, 'map', self.map_callback, 10)
+            OccupancyGrid, 'cmap', self.map_callback, 10)
 
         # Action client for navigation
         ns = self.get_namespace() or namespace
@@ -72,7 +72,13 @@ class ExplorerNode(Node):
             self.current_goal_handle = None
 
         self.get_logger().info("Exploration fully stopped 🟢")
-
+    
+    def grid_to_world(self, row, col):
+        info = self.map_data.info
+        x = info.origin.position.x + (col + 0.5) * info.resolution
+        y = info.origin.position.y + (info.height - row - 0.5) * info.resolution
+        return x, y
+    
     # --- Callbacks ROS ---
     def map_callback(self, msg):
         self.map_data = msg
@@ -167,8 +173,9 @@ class ExplorerNode(Node):
             self.get_logger().warning("No frontiers to explore")
             return
 
-        goal_x = chosen_frontier[1] * self.map_data.info.resolution + self.map_data.info.origin.position.x
-        goal_y = chosen_frontier[0] * self.map_data.info.resolution + self.map_data.info.origin.position.y
+        goal_x, goal_y = self.grid_to_world(chosen_frontier[0], chosen_frontier[1])
+        # goal_x = chosen_frontier[1] * self.map_data.info.resolution + self.map_data.info.origin.position.x
+        # goal_y = chosen_frontier[0] * self.map_data.info.resolution + self.map_data.info.origin.position.y
         self.navigate_to(goal_x, goal_y)
 
 
