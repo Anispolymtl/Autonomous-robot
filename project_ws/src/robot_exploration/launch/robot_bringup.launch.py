@@ -1,8 +1,8 @@
 import os
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.actions import PushRosNamespace
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction, LogInfo
+from launch_ros.actions import PushRosNamespace, Node
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -63,18 +63,18 @@ def launch_with_namespace(context, *args, **kwargs):
     #     name='identify_robot_service',
     #     output='screen'
     # )
-    # mission_action = Node(
-    #     package='robot_exploration',
-    #     executable='mission_server',
-    #     name='mission_server',
-    #     output='screen'
-    # )
+    mission_action = Node(
+        package='robot_exploration',
+        executable='mission_server',
+        name='mission_server',
+        output='screen'
+    )
 
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
         limo_launch,
         # id_srv,
-        # mission_action,
+        mission_action,
         # slam_toolbox_launch,
         cartographer_launch,
         nav2_launch
