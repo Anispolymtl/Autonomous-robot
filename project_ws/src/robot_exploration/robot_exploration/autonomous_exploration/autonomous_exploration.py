@@ -63,7 +63,7 @@ class ExplorerNode(Node):
     def navigate_to(self, x, y):
         ns = self.get_namespace()
         goal_msg = PoseStamped()
-        goal_msg.header.frame_id = f'{ns}/map' if ns else 'map'
+        goal_msg.header.frame_id = 'map'
         goal_msg.header.stamp = self.get_clock().now().to_msg()
         goal_msg.pose.position.x = x
         goal_msg.pose.position.y = y
