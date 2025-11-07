@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MissionListComponent } from '@app/components/mission-list/mission-list.component';
+import { ActivatedRoute } from '@angular/router';
 
 interface LiveData {
   robot: string;
@@ -20,9 +21,10 @@ interface LiveData {
   templateUrl: './logs-page.component.html',
   styleUrls: ['./logs-page.component.scss'],
 })
-export class LogsPageComponent {
+export class LogsPageComponent implements OnInit {
   activeTab: 'live' | 'history' | 'analytics' = 'live';
   expandedRobot: number | null = null;
+  missionId: string | null = null;
 
   liveData: LiveData[] = [
     { 
@@ -55,6 +57,14 @@ export class LogsPageComponent {
   ];
 
   robots = [1, 2, 3];
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      this.missionId = params.get('missionId');
+    });
+  }
 
   switchTab(tab: 'live' | 'history' | 'analytics') {
     this.activeTab = tab;

@@ -1,0 +1,54 @@
+<div class="logs-dialog">
+    <header class="dialog-header">
+        <div>
+            <p class="eyebrow">Mission</p>
+            <h2>{{ data.mission.missionName }}</h2>
+            <p class="meta">
+                Robot {{ data.mission.robotName }} • Mode {{ data.mission.mode }} •
+                {{ data.mission.createdAt ? (data.mission.createdAt | date : 'medium') : 'Date inconnue' }}
+            </p>
+        </div>
+        <button type="button" class="close-btn" (click)="close()">✕</button>
+    </header>
+
+    <section class="mission-summary">
+        <div class="summary-card">
+            <span class="label">Distance</span>
+            <span class="value">
+                {{ data.mission.distance >= 1000 ? (data.mission.distance / 1000 | number : '1.0-2') + ' km' : data.mission.distance + ' m' }}
+            </span>
+        </div>
+        <div class="summary-card">
+            <span class="label">Durée</span>
+            <span class="value">{{ (data.mission.durationSec / 60) | number:'1.0-1' }} min</span>
+        </div>
+        <div class="summary-card">
+            <span class="label">Mode</span>
+            <span class="value">{{ data.mission.mode }}</span>
+        </div>
+    </section>
+
+    <section class="logs-section">
+        <div class="logs-header">
+            <h3>Logs ({{ data.logs.length }})</h3>
+        </div>
+
+        <div *ngIf="data.logs.length === 0" class="empty-state">
+            Aucun log disponible pour cette mission.
+        </div>
+
+        <div *ngFor="let log of data.logs" class="log-entry">
+            <div class="log-time">
+                <span class="timestamp">{{ log.timestamp | date:'shortTime' }}</span>
+                <span class="phase">{{ log.phase }}</span>
+            </div>
+            <div class="log-content">
+                <span class="level" [class.info]="log.level === 'INFO'" [class.warn]="log.level === 'WARN'" [class.error]="log.level === 'ERROR'">
+                    {{ log.level }}
+                </span>
+                <div class="message">{{ log.message }}</div>
+                <div *ngIf="log.details" class="details">{{ log.details }}</div>
+            </div>
+        </div>
+    </section>
+</div>

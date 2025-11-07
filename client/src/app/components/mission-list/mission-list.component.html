@@ -1,9 +1,11 @@
 <div class="mission-list-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0;">Liste des missions</h2>
-        <button (click)="populateDatabase()" class="populate-btn" [disabled]="loading">
-            {{ loading ? 'Chargement...' : '📦 Peupler la BD' }}
-        </button>
+    <div class="mission-list-header">
+        <h2>Liste des missions</h2>
+        <div class="header-actions">
+            <button (click)="populateDatabase()" class="populate-btn" [disabled]="loading">
+                {{ loading ? 'Chargement...' : '📦 Peupler la BD' }}
+            </button>
+        </div>
     </div>
 
     <!-- Statistiques -->
@@ -97,6 +99,9 @@
                     </div>
                 </div>
                 <div class="mission-actions">
+                    <button (click)="openLogsDialog(mission)" class="logs-btn">
+                        📄 Show Logs
+                    </button>
                     <button (click)="deleteMission(mission._id!)" class="delete-btn">
                         Supprimer
                     </button>
@@ -105,4 +110,3 @@
         </div>
     </div>
 </div>
-

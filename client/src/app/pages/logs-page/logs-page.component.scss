@@ -135,6 +135,20 @@ $info: #3b82f6;
   }
 }
 
+.mission-context {
+  padding: 0.75rem 2rem;
+  background: $bg-gray-50;
+  border-bottom: 1px solid $border-gray;
+  color: $text-dark;
+  font-weight: 500;
+  font-size: 0.95rem;
+
+  span {
+    color: $primary-color;
+    font-family: 'Roboto Mono', monospace;
+  }
+}
+
 /* LAYOUT */
 .main-container {
   display: flex;
