@@ -6,13 +6,18 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SocketService } from '@app/services/socket/socket.service';
+import { RosService } from '@app/services/ros.service';
+
+type RobotId = 'limo1' | 'limo2';
+type Point2D = { x: number; y: number };
 
 @WebSocketGateway({ namespace: '/client' })
-export class TelemetryGateway {
+export class ClientGateway {
     @WebSocketServer() server: Server;
 
     constructor(
-        private socketService: SocketService
+        private socketService: SocketService,
+        private rosService: RosService
     ) {}
 
     handleConnection(socket: Socket) {
@@ -24,5 +29,12 @@ export class TelemetryGateway {
         console.log(`Déconnexion de l'utilisateur avec id : ${socket.id}`);
         this.socketService.removeSocket(socket);
     }
+
+    @SubscribeMessage('pointlist')
+    onPointListGet(socket: Socket, payload: {robot: RobotId , points: Point2D[]}) {
+        console.log('hola');
+        this.rosService.handlePoints(payload);
+    }
+
 
 }

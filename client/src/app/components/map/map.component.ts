@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MapCoordinate, MapService } from '@app/services/map.service';
+import { MapService } from '@app/services/map.service';
 
 @Component({
   selector: 'app-map',
@@ -11,14 +11,9 @@ import { MapCoordinate, MapService } from '@app/services/map.service';
 })
 
 export class MapComponent implements OnInit, OnDestroy {
-
-  map = this.mapService.map;
-  selectedPoint: MapCoordinate | undefined;
-
   constructor(
     private mapService: MapService
   ) {
-    this.map = this.mapService.map;
   }
 
   ngOnInit() {
@@ -36,25 +31,30 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   onCanvasClick(event: MouseEvent): void {
-    const canvas = event.target as HTMLCanvasElement | null;
-    if (!canvas) return;
+    this.mapService.onCanvasClick(event);
+  }
 
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+  addPoint(): void{
+    this.mapService.addPoint();
+  }
 
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const canvasX = (event.clientX - rect.left) * scaleX;
-    const canvasY = (event.clientY - rect.top) * scaleY;
+  removePoint(index: number): void {
+    this.mapService.removePoint(index);
+  }
 
-    const coordinate = this.mapService.canvasPointToMapCoordinate(canvasX, canvasY);
-    if (coordinate) {
-      this.selectedPoint = coordinate;
-      console.log('Selected map coordinate:', coordinate);
-    }
+  sendCoords(): void {
+    this.mapService.sendCoords();
   }
 
   get originWorld() {
     return this.mapService.getOriginInWorld();
+  }
+
+  get selectedPoint() {
+    return this.mapService.selectedPoint;
+  }
+
+  get pointList() {
+    return this.mapService.pointList;
   }
 }
