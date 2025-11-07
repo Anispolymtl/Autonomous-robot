@@ -1,16 +1,17 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
-from rclpy.action.server import ServerGoalHandle
 from rclpy.executors import MultiThreadedExecutor
 from limo_interfaces.action import DoMission
-from geometry_msgs.msg import Twist
+import asyncio
 import time
+from robot_exploration.autonomous_exploration.autonomous_exploration import ExplorerNode
 
 
 class MissionServer(Node):
     def __init__(self):
         super().__init__("mission_server")
+
         self._action_server = ActionServer(
             self,
             DoMission,
@@ -19,77 +20,65 @@ class MissionServer(Node):
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback,
         )
-        self.publisher = self.create_publisher(Twist, "cmd_vel", 10)
-        self.get_logger().info("Mission Server is running.")
+
+        ns = self.get_namespace().strip("/")
+        self.explorer = ExplorerNode(namespace=ns)
+
+        self.get_logger().info(f"Mission Server up (ns='{ns}')")
 
     def goal_callback(self, goal_request):
-        self.get_logger().info("Received goal request")
+        self.get_logger().info("Received goal request → starting indefinite exploration")
         return GoalResponse.ACCEPT
 
-    def cancel_callback(self, goal_handle: ServerGoalHandle):
-        self.get_logger().info("Received cancel request")
+    def cancel_callback(self, goal_handle):
+        self.get_logger().info("DoMission cancel reçu → stopping exploration")
+        self.explorer.stop_exploration()
         return CancelResponse.ACCEPT
 
-    async def execute_callback(self, goal_handle: ServerGoalHandle):
-        mission_length = goal_handle.request.mission_length
-        feedback_msg = DoMission.Feedback()
-        feedback_msg.time_elapsed = 0
-        feedback_msg.percent_complete = 0.0
-        goal_handle.publish_feedback(feedback_msg)
-        self.get_logger().info("Executing goal...")
+    async def execute_callback(self, goal_handle):
+        self.get_logger().info("Mission START (indefinite mode)")
+        self.explorer.start_exploration()
+        t0 = time.time()
 
         try:
-            while mission_length == 0 or feedback_msg.time_elapsed < mission_length:
+            while rclpy.ok():
                 if goal_handle.is_cancel_requested:
-                    goal_handle.canceled()
-                    self.get_logger().info("Goal canceled")
-
-                    self.publisher.publish(Twist())
+                    self.get_logger().info("Mission canceled by user")
+                    self.explorer.stop_exploration()
 
                     result = DoMission.Result()
                     result.result_code = 1
-                    result.result_message = "Mission was canceled"
+                    result.result_message = "Mission canceled by user"
+
+                    goal_handle.canceled()  # ✅ ici la vraie notification d’annulation
                     return result
 
-                self.get_logger().info(
-                    f"Mission step {feedback_msg.time_elapsed+1}/{mission_length}"
-                )
-
-                twist = Twist()
-                twist.linear.x = 1.0
-                twist.angular.z = 5.0
-                self.publisher.publish(twist)
-
-                feedback_msg.time_elapsed += 1
-                feedback_msg.percent_complete = (
-                    (feedback_msg.time_elapsed / mission_length) * 100
-                    if mission_length > 0
-                    else 0.0
-                )
-                goal_handle.publish_feedback(feedback_msg)
-
-                time.sleep(0.1)
-
+                fb = DoMission.Feedback()
+                fb.time_elapsed = int(time.time() - t0)
+                fb.percent_complete = 0.0
+                goal_handle.publish_feedback(fb)
+                time.sleep(1.0)
         except Exception as e:
-            self.get_logger().error(f"Erreur dans execute_callback: {e}")
+            self.get_logger().error(f"Erreur pendant la mission: {e}")
 
-        finally:
-            self.publisher.publish(Twist())
-
-        goal_handle.succeed()
-        self.get_logger().info("Goal succeeded")
-
+        # Mission terminée normalement
+        self.explorer.stop_exploration()
         result = DoMission.Result()
         result.result_code = 0
         result.result_message = "Mission completed successfully"
+        self.get_logger().info("Mission SUCCESS")
+        goal_handle.succeed()  # ✅ informe ROS2 que c’est fini normalement
         return result
-
 
 def main(args=None):
     rclpy.init(args=args)
-    mission_server = MissionServer()
+    node = MissionServer()
     executor = MultiThreadedExecutor()
-    rclpy.spin(mission_server, executor=executor)
+    executor.add_node(node)
+    executor.add_node(node.explorer)
+    rclpy.spin(node, executor=executor)
+    node.explorer.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
 
 

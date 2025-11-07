@@ -53,7 +53,24 @@ def generate_launch_description():
         }],
         remappings=[
             ("/cmd_vel", "cmd_vel"),
-            ("/odom", "odom")
+            ("/odom", "odom"),
+            ("/imu", "imu")
+        ]
+    )
+
+    imu_remapper_node = launch_ros.actions.Node(
+        package='robot_exploration',                   # ton package Python avec imu_frame_remapper.py
+        executable='imu_frame_remapper',        # ton exécutable défini dans setup.py
+        name='imu_frame_remapper',
+        output='screen',
+
+        # Important : il héritera du namespace parent (ex: /limo1)
+        # donc inutile de le hardcoder
+        parameters=[
+            # Tu peux laisser vide car ton nœud détecte automatiquement le namespace
+            # {'input_topic': '/imu'},  # optionnel : override manuel
+            # {'output_topic': '/imu_fixed'},
+            # {'new_frame': 'imu_link'}
         ]
     )
 
@@ -68,5 +85,6 @@ def generate_launch_description():
         # is_omni_wheel_arg,
         # simulated_robot_arg,
         sim_control_rate_arg,
-        limo_base_node
+        limo_base_node,
+        imu_remapper_node
     ])
