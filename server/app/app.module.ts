@@ -4,13 +4,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Mission, missionSchema } from '@app/model/database/mission';
 import { MissionDatabaseController } from '@app/controllers/mission-database/mission-database.controller';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
-import { DateController } from '@app/controllers/date/date.controller';
-import { DateService } from '@app/services/date/date.service';
-import { ExampleService } from '@app/services/example/example.service';
+
 import { RosService } from '@app/services/ros.service';
 import { RosController } from '@app/controllers/ros.controller';
 import { MissionController } from './controllers/mission/mission.controller';
 import { MissionService } from './services/misson/mission.service';
+import { SocketService } from './services/socket/socket.service';
+import { ClientGateway } from './gateways/client/client.gateway';
 // import { MapController } from '@app/controllers/map/map.controller';
 // import { MapService } from '@app/services/map/map.service';
 
@@ -33,7 +33,7 @@ import { MissionService } from './services/misson/mission.service';
         }),
         MongooseModule.forFeature([{ name: Mission.name, schema: missionSchema }], 'robot_ops'),
     ],
-    controllers: [DateController, RosController, MissionController, MissionDatabaseController],
-    providers: [DateService, ExampleService, Logger, RosService, MissionService, MissionDatabaseService],
+    controllers: [ RosController, MissionController, MissionDatabaseController],
+    providers: [Logger, RosService, MissionService, MissionDatabaseService, SocketService, ClientGateway],
 })
 export class AppModule {}
