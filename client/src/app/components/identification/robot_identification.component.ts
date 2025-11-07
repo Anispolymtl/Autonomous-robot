@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IdentifyService } from '../../services/identify/identify.service';
+import { IdentifyService } from '../../services/identify.service';
 
 @Component({
     selector: 'app-robot',

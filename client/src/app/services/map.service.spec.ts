@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RobotKeyService } from './robot-key.service';
+import { MapService } from '../map.service';
 
-describe('RobotKeyService', () => {
-  let service: RobotKeyService;
+describe('MapService', () => {
+  let service: MapService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RobotKeyService);
+    service = TestBed.inject(MapService);
   });
 
   it('should be created', () => {
