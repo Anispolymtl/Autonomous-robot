@@ -42,42 +42,11 @@
   </div>
 </header>
 
+<div class="mission-context" *ngIf="missionId">
+  Logs affichés pour la mission <span>{{ missionId }}</span>
+</div>
+
 <div class="main-container">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Chercher une mission..." 
-        [(ngModel)]="searchQuery"
-      />
-    </div>
-
-    <div class="sidebar-section">
-      <h3>Missions Récentes</h3>
-      <div class="mission-list">
-        <div
-          *ngFor="let mission of filteredMissions"
-          class="mission-card"
-          [class.active]="selectedMission?.id === mission.id"
-          (click)="selectMission(mission)"
-        >
-          <div class="mission-header">
-            <p class="mission-name">{{ mission.name }}</p>
-            <span class="mission-status">✓</span>
-          </div>
-          <div class="mission-details">
-            <p>📅 {{ mission.date }}</p>
-            <p>⏱️ {{ mission.duration }} • 🤖 {{ mission.robots }} robots</p>
-            <p class="mission-size">💾 {{ mission.size }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </aside>
-
   <!-- MAIN CONTENT -->
   <main class="content">
     <!-- LIVE TAB -->
@@ -129,77 +98,7 @@
 
     <!-- HISTORY TAB -->
     <div *ngIf="activeTab === 'history'" class="tab-content">
-      <div class="content-header">
-        <h2 class="content-title">
-          {{ selectedMission ? 'Logs: ' + selectedMission.name : 'Sélectionner une mission' }}
-        </h2>
-        <button 
-          *ngIf="selectedMission" 
-          class="download-btn"
-          (click)="downloadLogs()"
-        >
-          <span>⬇️</span> Télécharger Logs
-        </button>
-      </div>
-
-      <div *ngIf="selectedMission">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <p class="stat-label">Durée</p>
-            <p class="stat-value">{{ selectedMission.duration }}</p>
-          </div>
-          <div class="stat-card">
-            <p class="stat-label">Robots</p>
-            <p class="stat-value">{{ selectedMission.robots }}</p>
-          </div>
-          <div class="stat-card">
-            <p class="stat-label">Taille des logs</p>
-            <p class="stat-value">{{ selectedMission.size }}</p>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <div style="padding: 1.5rem;">
-            <h3 class="chart-title">Robots & Données</h3>
-            <div class="robot-list">
-              <div 
-                *ngFor="let r of robots" 
-                class="robot-card" 
-                (click)="toggleRobot(r)"
-              >
-                <div class="robot-card-header">
-                  <div class="robot-info">
-                    <div class="robot-avatar">R{{ r }}</div>
-                    <div>
-                      <p class="robot-name-detail">Robot-0{{ r }}</p>
-                      <p class="robot-stats">1847 entrées • 12.3s</p>
-                    </div>
-                  </div>
-                  <span 
-                    class="chevron" 
-                    [class.rotated]="expandedRobot === r"
-                  >
-                    ▼
-                  </span>
-                </div>
-                <div class="robot-details" *ngIf="expandedRobot === r">
-                  <p>📊 Lectures capteurs: <span class="value value-blue">1847</span></p>
-                  <p>📋 Commandes envoyées: <span class="value value-green">342</span></p>
-                  <p>⚠️ Anomalies détectées: <span class="value value-yellow">2</span></p>
-                  <button class="view-detail-btn">
-                    <span>👁️</span>
-                    Voir détail complet
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!selectedMission" style="padding: 2rem; text-align: center; color: #64748b;">
-        <p>👈 Sélectionnez une mission dans la liste pour voir les détails</p>
-      </div>
+      <app-mission-list></app-mission-list>
     </div>
 
     <!-- ANALYTICS TAB -->
