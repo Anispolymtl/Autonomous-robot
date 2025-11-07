@@ -25,7 +25,7 @@ export class SocketService{
     sendPoseToAllSockets(robot: RobotId, poseData: any) {
         console.log(`Sending pose data for ${robot} to all sockets`);
         this.sockets.forEach((socket) => {
-            socket.emit('poseUpdate', { robot, pose: poseData });
+            socket.emit('poseUpdate', { robot, poseData });
         });
     }
 }

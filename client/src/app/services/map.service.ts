@@ -32,7 +32,6 @@ interface PoseData {
     providedIn: 'root',
 })
 export class MapService {
-
     map: OccupancyGrid | undefined;
     originCanvasPosition: { x: number; y: number } | undefined;
     private yaw = 0;
@@ -45,12 +44,12 @@ export class MapService {
     private robotPoses: Record<string, PoseData | undefined> = {};
 
     constructor(private readonly socketService: SocketService) {}
-    
+
     get isSocketAlive(): boolean {
         return this.socketService.isSocketAlive();
     }
 
-    connectToSocket() {
+     connectToSocket() {
         if (!this.socketService.isSocketAlive()) {
             this.socketService.connect('client');
             this.configureMapSocketFeatures();
@@ -369,8 +368,8 @@ export class MapService {
         const right = { x: rearCenter.x - perpX * halfBase, y: rearCenter.y - perpY * halfBase };
 
         ctx.save();
-        ctx.fillStyle = '#ffeb3b';
-        ctx.strokeStyle = '#fdd835';
+        ctx.fillStyle = '#00FF00';
+        ctx.strokeStyle = '#006600';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(tip.x, tip.y);
