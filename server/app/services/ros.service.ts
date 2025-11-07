@@ -13,10 +13,8 @@ export class RosService implements OnModuleInit {
   private limoList: LimoObject[];
   private mappingNode: rclnodejs.Node | undefined;
   private mappingSubscription: rclnodejs.Subscription | undefined;
-  private poseNodeLimo1: rclnodejs.Node | undefined;
-  private poseNodeLimo2: rclnodejs.Node | undefined;
-  private poseSubscriptionLimo1: rclnodejs.Subscription | undefined;
-  private poseSubscriptionLimo2: rclnodejs.Subscription | undefined;
+  private poseNode: rclnodejs.Node | undefined;
+  private poseSubscriptions: Partial<Record<RobotId, rclnodejs.Subscription>> = {};
   private points: Record<RobotId, Point2D[]> = { limo1: [], limo2: [] };
   private isActing: Record<RobotId, boolean> = { limo1: false, limo2: false };
   private navClient1: any;
@@ -50,7 +48,6 @@ export class RosService implements OnModuleInit {
       'nav_msgs/msg/OccupancyGrid',
       '/limo1/map',
       (msg) => {
-        console.log('Received map data:', msg);
         this.socketService.sendMapToAllSockets(msg);
       }
     );
@@ -59,28 +56,26 @@ export class RosService implements OnModuleInit {
   }
 
   private setupPoseListners() {
-    this.poseNodeLimo1 = new rclnodejs.Node('pose_listener_limo1_backend');
-    this.poseSubscriptionLimo1 = this.poseNodeLimo1.createSubscription(
-      'geometry_msgs/msg/PoseStamped',
+    this.poseNode = new rclnodejs.Node('pose_listener_backend');
+    this.poseSubscriptions.limo1 = this.poseNode.createSubscription(
+      'geometry_msgs/msg/PoseWithCovarianceStamped',
       '/limo1/pose',
       (msg) => {
-        console.log('Received pose data for limo1:', msg);
-        this.socketService.sendPoseToAllSockets('limo1', msg.pose);
-        console.log(msg.pose);
+        const payload = this.extractPosePayload(msg);
+        console.log('Received pose data for limo1:', payload);
+        this.socketService.sendPoseToAllSockets('limo1', payload);
       }
     );
-    this.poseNodeLimo1.spin();
-
-    this.poseNodeLimo2 = new rclnodejs.Node('pose_listener_limo2_backend');
-    this.poseSubscriptionLimo2 = this.poseNodeLimo2.createSubscription(
-      'geometry_msgs/msg/PoseStamped',
+    this.poseSubscriptions.limo2 = this.poseNode.createSubscription(
+      'geometry_msgs/msg/PoseWithCovarianceStamped',
       '/limo2/pose',
       (msg) => {
-        console.log('Received pose data for limo2:', msg);
-        this.socketService.sendPoseToAllSockets('limo2', msg);
+        const payload = this.extractPosePayload(msg);
+        console.log('Received pose data for limo2:', payload);
+        this.socketService.sendPoseToAllSockets('limo2', payload);
       }
     );
-    this.poseNodeLimo2.spin();
+    this.poseNode.spin();
 
     console.log('ROS2 pose subscribers started');
   }
@@ -102,7 +97,6 @@ export class RosService implements OnModuleInit {
   }
 
   async handlePoints(payload: { robot: RobotId; points: Point2D[] }) {
-    console.log(payload.points);
     if (!payload.points?.length) return;
     this.points[payload.robot].push(...payload.points);
     if (!this.isActing[payload.robot]) {
@@ -167,5 +161,15 @@ export class RosService implements OnModuleInit {
       sec: Math.floor(now / 1000),
       nanosec: (now % 1000) * 1e6,
     };
+  }
+
+  private extractPosePayload(msg: any) {
+    if (msg?.pose?.pose) {
+      return {
+        header: msg.header,
+        pose: msg.pose.pose,
+      };
+    }
+    return msg;
   }
 }
