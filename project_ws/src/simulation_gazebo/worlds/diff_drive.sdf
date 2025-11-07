@@ -32,6 +32,14 @@
       <static>true</static>
       <link name="link">
         <collision name="collision">
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+            </friction>
+          </surface>
           <geometry>
             <plane>
               <normal>0 0 1</normal>
@@ -66,10 +74,183 @@
     <!-- Robot 2 -->
     <model name="limo2">
       <self_collide>true</self_collide>
-      <pose>2 0 0.35 0 0 0</pose> <!-- décalé de 2m -->
+      <pose>4 2 0.35 0 0 0</pose> <!-- décalé de 2m -->
       <include merge="true">
         <uri>package://simulation_description/models/limo_diff_drive2</uri>
       </include>
     </model>
+    <!-- <model name="box_obstacle_1">
+      <pose>4 2 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+          </material>
+        </visual>
+      </link>
+   </model>
+   <model name="box_obstacle_2">
+      <pose>2 4 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+          </material>
+        </visual>
+      </link>
+   </model>
+   <model name="box_obstacle_3">
+      <pose>-2 -2 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+          </material>
+        </visual>
+      </link>
+   </model> -->
+
+  <!-- North wall -->
+  <model name="wall_north">
+    <static>true</static>
+    <pose>0 7 0 0 0 0</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- South wall -->
+  <model name="wall_south">
+    <static>true</static>
+    <pose>0 -7 0 0 0 0</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- East wall -->
+  <model name="wall_east">
+    <static>true</static>
+    <pose>7 0 0 0 0 1.57</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+  <!-- West wall -->
+  <model name="wall_west">
+    <static>true</static>
+    <pose>-7 0 0 0 0 1.57</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>14 0.2 1</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+    <!-- Inner Walls (smaller obstacles) -->
+
+  <!-- <model name="inner_wall_1">
+    <static>true</static>
+    <pose>0 2 0.5 0 0 0</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+        <material><ambient>0.6 0.6 0.6 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="inner_wall_2">
+    <static>true</static>
+    <pose>-3 -2 0.5 0 0 1.57</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+        <material><ambient>0.6 0.6 0.6 1</ambient></material>
+      </visual>
+    </link>
+  </model>
+
+  <model name="inner_wall_3">
+    <static>true</static>
+    <pose>3 -2 0.5 0 0 0.78</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>2 0.2 1</size></box></geometry>
+        <material><ambient>0.6 0.6 0.6 1</ambient></material>
+      </visual>
+    </link>
+  </model> -->
   </world>
 </sdf>

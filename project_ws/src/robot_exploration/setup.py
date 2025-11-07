@@ -14,6 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*')),
+        (os.path.join('share', package_name, 'param'), glob('param/*')),
     ],
     install_requires=['setuptools', 'limo_interfaces'],
     zip_safe=True,
@@ -24,10 +25,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
     'console_scripts': [
-        'client_service = robot_exploration.service.client_service_test_node:main',
         'identify_service = robot_exploration.service.identify_robot_service:main',
         'mission_server = robot_exploration.mission.mission_server:main',
-        #'test_node = robot_exploration.test_node:main',
+        'map_merge = robot_exploration.map_merge.map_merge:main',
+        'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
+        'cartographer_convert = robot_exploration.autonomous_exploration.cartographer_convert:main',
     ],
     },
 )
