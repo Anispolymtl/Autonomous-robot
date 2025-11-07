@@ -1,3 +1,16 @@
+export type MissionLogEntry = MissionLogObject | MissionLogPrimitive;
+
+export type MissionLogPrimitive = string | number | boolean | null | undefined;
+
+export interface MissionLogObject {
+    timestamp?: Date | string | number;
+    level?: string;
+    phase?: string;
+    message?: string;
+    details?: string;
+    [key: string]: unknown;
+}
+
 export interface Mission {
     _id?: string;
     createdAt?: Date | string;
@@ -6,6 +19,7 @@ export interface Mission {
     mode: 'SIMULATION' | 'REAL';
     distance: number;
     missionName: string;
+    logs?: MissionLogEntry[];
 }
 
 export interface CreateMissionDto {
@@ -32,4 +46,3 @@ export interface MissionStats {
     totalDistance: number;
     averageDuration: number;
 }
-

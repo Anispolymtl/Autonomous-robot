@@ -30,25 +30,42 @@
 
     <section class="logs-section">
         <div class="logs-header">
-            <h3>Logs ({{ data.logs.length }})</h3>
+            <h3>Logs ({{ data.logs?.length || 0 }})</h3>
         </div>
 
-        <div *ngIf="data.logs.length === 0" class="empty-state">
+        <div *ngIf="!data.logs || data.logs.length === 0" class="empty-state">
             Aucun log disponible pour cette mission.
         </div>
 
-        <div *ngFor="let log of data.logs" class="log-entry">
-            <div class="log-time">
-                <span class="timestamp">{{ log.timestamp | date:'shortTime' }}</span>
-                <span class="phase">{{ log.phase }}</span>
+        <ng-container *ngFor="let log of data.logs ?? []; let i = index">
+            <div class="log-entry">
+                <div class="log-time">
+                    <span class="timestamp">{{ getTimestampLabel(log, i) }}</span>
+                    <span class="phase" *ngIf="getPhaseLabel(log) as phase">{{ phase }}</span>
+                </div>
+                <div class="log-content">
+                    <span 
+                        class="level"
+                        *ngIf="getLevelLabel(log) as levelLabel"
+                        [ngClass]="getLevelClass(levelLabel)"
+                    >
+                        {{ levelLabel }}
+                    </span>
+                    <div class="message">
+                        {{ getPrimaryMessage(log, i) }}
+                    </div>
+                    <div *ngIf="getDetails(log) as details" class="details">
+                        {{ details }}
+                    </div>
+
+                    <div class="attributes" *ngIf="getAttributeEntries(log) as attributes">
+                        <div class="attribute" *ngFor="let attr of attributes">
+                            <span class="attr-key">{{ attr.key }}</span>
+                            <span class="attr-value">{{ formatValue(attr.value) }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="log-content">
-                <span class="level" [class.info]="log.level === 'INFO'" [class.warn]="log.level === 'WARN'" [class.error]="log.level === 'ERROR'">
-                    {{ log.level }}
-                </span>
-                <div class="message">{{ log.message }}</div>
-                <div *ngIf="log.details" class="details">{{ log.details }}</div>
-            </div>
-        </div>
+        </ng-container>
     </section>
 </div>

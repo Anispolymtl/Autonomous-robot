@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Mission, MissionStats } from '@app/interfaces/mission';
+import { Mission, MissionLogEntry, MissionStats } from '@app/interfaces/mission';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MissionLogsDialogComponent, MissionLogEntry } from '@app/components/mission-logs-dialog/mission-logs-dialog.component';
+import { MissionLogsDialogComponent } from '@app/components/mission-logs-dialog/mission-logs-dialog.component';
 
 @Component({
     selector: 'app-mission-list',
@@ -165,7 +165,7 @@ export class MissionListComponent implements OnInit {
     }
 
     openLogsDialog(mission: Mission): void {
-        const logs = this.buildMockLogs(mission);
+        const logs = this.extractLogsFromMission(mission);
         this.dialog.open(MissionLogsDialogComponent, {
             width: '760px',
             panelClass: 'mission-logs-dialog-panel',
@@ -173,45 +173,21 @@ export class MissionListComponent implements OnInit {
         });
     }
 
-    private buildMockLogs(mission: Mission): MissionLogEntry[] {
-        const createdAt = mission.createdAt ? new Date(mission.createdAt) : new Date();
-        const phases = ['INIT', 'NAVIGATION', 'ACTION', 'FINALIZE'];
-        return [
-            {
-                timestamp: new Date(createdAt.getTime()),
-                level: 'INFO',
-                phase: phases[0],
-                message: `Mission "${mission.missionName}" initialisée`,
-                details: `Robot ${mission.robotName} prêt en mode ${mission.mode}`
-            },
-            {
-                timestamp: new Date(createdAt.getTime() + 1000 * 60),
-                level: 'INFO',
-                phase: phases[1],
-                message: 'Navigation vers le point de départ',
-                details: `Distance restante ${(mission.distance / 2).toFixed(1)} m`
-            },
-            {
-                timestamp: new Date(createdAt.getTime() + 1000 * 120),
-                level: 'WARN',
-                phase: phases[1],
-                message: 'Obstacle détecté',
-                details: 'Déviation de trajectoire appliquée'
-            },
-            {
-                timestamp: new Date(createdAt.getTime() + 1000 * 180),
-                level: 'INFO',
-                phase: phases[2],
-                message: 'Objectif atteint',
-                details: 'Collecte de données en cours'
-            },
-            {
-                timestamp: new Date(createdAt.getTime() + mission.durationSec * 1000),
-                level: 'INFO',
-                phase: phases[3],
-                message: 'Mission terminée',
-                details: `Distance parcourue ${mission.distance} m`
+    private extractLogsFromMission(mission: Mission): MissionLogEntry[] {
+        const candidateKeys = ['logs', 'logEntries', 'events', 'history', 'log', 'logHistory', 'telemetry', 'missionLogs'];
+        const missionAsRecord = mission as unknown as Record<string, unknown>;
+
+        for (const key of candidateKeys) {
+            const value = missionAsRecord[key];
+            if (Array.isArray(value)) {
+                return value as MissionLogEntry[];
             }
-        ];
+        }
+
+        if (Array.isArray(mission.logs)) {
+            return mission.logs;
+        }
+
+        return [];
     }
 }
