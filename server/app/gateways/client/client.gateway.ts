@@ -50,7 +50,6 @@ export class ClientGateway {
     handleDisconnect(socket: Socket) {
         console.log(`Déconnexion de l'utilisateur avec id : ${socket.id}`);
         this.socketService.removeSocket(socket);
-        this.missionRuntimeService.clearMissionsForSocket(socket.id);
     }
 
     @SubscribeMessage('pointlist')
@@ -72,7 +71,7 @@ export class ClientGateway {
     @SubscribeMessage('mission:update')
     handleMissionUpdate(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionUpdatePayload) {
         try {
-            const mission = this.missionRuntimeService.updateMission(socket.id, payload.missionId, payload.data ?? {});
+            const mission = this.missionRuntimeService.updateMission(payload.missionId, payload.data ?? {});
             socket.emit('mission:updated', { missionId: mission.missionId, mission });
         } catch (error) {
             socket.emit('mission:error', { message: (error as Error).message, missionId: payload?.missionId });
@@ -82,7 +81,7 @@ export class ClientGateway {
     @SubscribeMessage('mission:add-log')
     handleMissionLog(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionLogPayload) {
         try {
-            const mission = this.missionRuntimeService.appendLog(socket.id, payload.missionId, payload.log);
+            const mission = this.missionRuntimeService.appendLog(payload.missionId, payload.log);
             socket.emit('mission:updated', { missionId: mission.missionId, mission });
         } catch (error) {
             socket.emit('mission:error', { message: (error as Error).message, missionId: payload?.missionId });
@@ -92,7 +91,7 @@ export class ClientGateway {
     @SubscribeMessage('mission:complete')
     handleMissionComplete(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionCompletePayload) {
         try {
-            const mission = this.missionRuntimeService.completeMission(socket.id, payload.missionId);
+            const mission = this.missionRuntimeService.completeMission(payload.missionId);
             socket.emit('mission:finalized', { missionId: mission.missionId, mission });
         } catch (error) {
             socket.emit('mission:error', { message: (error as Error).message, missionId: payload?.missionId });

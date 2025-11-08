@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MissionService } from '@app/services/mission.service';
@@ -19,7 +19,7 @@ import { MissionDatabaseService } from '@app/services/mission-database/mission-d
   templateUrl: './simulation-mode-page.component.html',
   styleUrls: ['./simulation-mode-page.component.scss'],
 })
-export class SimulationPageComponent {
+export class SimulationPageComponent implements OnInit {
   message: string | null = null;
   constructor(
     private router: Router,
@@ -27,6 +27,10 @@ export class SimulationPageComponent {
     private missionSessionService: MissionSessionService,
     private missionDatabaseService: MissionDatabaseService
   ) { }
+
+  ngOnInit(): void {
+    this.missionSessionService.rehydrateActiveMission();
+  }
 
   startMission(): void {
     this.message = 'Mission demandée.';
@@ -60,7 +64,11 @@ export class SimulationPageComponent {
   private finalizeMission(): void {
     this.missionSessionService.completeMission()
       .then((mission) => {
-        if (!mission) return;
+        if (!mission) {
+          this.router.navigate(['/home']);
+          return;
+        }
+
         this.missionDatabaseService.createMission({
           missionName: mission.missionName,
           robots: mission.robots,
@@ -70,11 +78,20 @@ export class SimulationPageComponent {
           status: mission.status,
           logs: mission.logs ?? []
         }).subscribe({
-          next: () => console.log('Mission persistée en base de données'),
-          error: (err) => console.error('Erreur lors de la sauvegarde de la mission:', err)
+          next: () => {
+            console.log('Mission persistée en base de données');
+            this.router.navigate(['/home']);
+          },
+          error: (err) => {
+            console.error('Erreur lors de la sauvegarde de la mission:', err);
+            this.router.navigate(['/home']);
+          }
         });
       })
-      .catch((error) => console.error('Erreur lors de la finalisation de la mission:', error));
+      .catch((error) => {
+        console.error('Erreur lors de la finalisation de la mission:', error);
+        this.router.navigate(['/home']);
+      });
   }
 
   back(): void {

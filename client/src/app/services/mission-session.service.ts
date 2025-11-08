@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { Mission, MissionLogEntry, MissionLogObject } from '@app/interfaces/mission';
 import { SocketService } from '@app/services/socket.service';
-
-type MissionMode = 'REAL' | 'SIMULATION';
+import { MissionMode, MissionModeService, ActiveMissionResponse } from '@app/services/mission-mode.service';
 
 interface MissionCreatedPayload {
     missionId: string;
@@ -35,7 +35,10 @@ export class MissionSessionService {
         }
     };
 
-    constructor(private readonly socketService: SocketService) {}
+    constructor(
+        private readonly socketService: SocketService,
+        private readonly missionModeService: MissionModeService
+    ) {}
 
     get currentMission(): Mission | null {
         return this.missionSnapshot;
@@ -55,6 +58,7 @@ export class MissionSessionService {
                 cleanup();
                 this.missionId = payload.missionId;
                 this.missionSnapshot = payload.mission;
+                this.missionModeService.setMode(payload.mission?.mode ?? null);
                 resolve(payload);
             };
 
@@ -75,7 +79,7 @@ export class MissionSessionService {
             const payload: Mission = {
                 missionName,
                 robots: this.defaultRobots,
-                mode,
+                mode: mode ?? 'SIMULATION',
                 distance: 0,
                 durationSec: 0,
                 logs: [],
@@ -103,6 +107,18 @@ export class MissionSessionService {
             missionId: this.missionId,
             data,
         });
+    }
+
+    async rehydrateActiveMission(): Promise<void> {
+        if (this.missionId) return;
+        const mission: ActiveMissionResponse | null = await firstValueFrom(this.missionModeService.fetchActiveMission());
+        if (!mission) return;
+        this.missionId = mission.missionId;
+        this.missionSnapshot = mission;
+        if (mission.durationSec) {
+            this.missionStartTimestamp = Date.now() - mission.durationSec * 1000;
+        }
+        this.missionModeService.setMode(mission.mode ?? null);
     }
 
     appendLog(entry: MissionLogEntry): void {
@@ -210,6 +226,7 @@ export class MissionSessionService {
             this.listenersRegistered = false;
         }
         this.disconnectSocket();
+        this.missionModeService.setMode(null);
     }
 
     private normalizeLogEntry(entry: MissionLogEntry | undefined): MissionLogObject {
