@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsEnum, IsNumber, IsString, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateMissionDto {
     @ApiProperty()
@@ -26,4 +26,13 @@ export class CreateMissionDto {
     @ApiProperty()
     @IsString()
     missionName: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    status?: string;
+
+    @ApiProperty({ required: false, type: [Object] })
+    @IsOptional()
+    logs?: Record<string, unknown>[];
 }

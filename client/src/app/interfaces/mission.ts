@@ -20,6 +20,7 @@ export interface Mission {
     distance: number;
     missionName: string;
     logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface CreateMissionDto {
@@ -28,6 +29,8 @@ export interface CreateMissionDto {
     mode: 'SIMULATION' | 'REAL';
     distance: number;
     missionName: string;
+    logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface UpdateMissionDto {
@@ -37,6 +40,8 @@ export interface UpdateMissionDto {
     mode?: 'SIMULATION' | 'REAL';
     distance?: number;
     missionName?: string;
+    logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface MissionStats {

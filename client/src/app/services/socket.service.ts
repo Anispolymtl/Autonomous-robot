@@ -17,17 +17,27 @@ export class SocketService {
     }
 
     connect(namespace: string) {
+        if (this.isSocketAlive()) return;
         const socketUrl = environment.serverUrl;
-        //console.log(`connection to ${socketUrl}/${namespace}`)
         this.socket = io(`${socketUrl}/${namespace}`, { transports: ['websocket'], upgrade: false });
     }
 
     disconnect() {
-        this.socket.disconnect();
+        if (this.socket) {
+            this.socket.disconnect();
+        }
     }
 
-    on<T>(event: string, action: (data: T) => void): void {
+    on(event: string, action: (...args: unknown[]) => void): void {
         if (this.socket) this.socket.on(event, action);
+    }
+
+    once(event: string, action: (...args: unknown[]) => void): void {
+        if (this.socket) this.socket.once(event, action);
+    }
+
+    off(event: string, action: (...args: unknown[]) => void): void {
+        if (this.socket) this.socket.off(event, action);
     }
 
     send<T, R>(event: string, data?: T, callback?: (response: R) => void): void {

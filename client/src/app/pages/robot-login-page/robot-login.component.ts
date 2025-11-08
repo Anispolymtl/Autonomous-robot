@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MissionSessionService } from '@app/services/mission-session.service';
 
 type ModeType = 'simulation' | 'real';
 
@@ -16,8 +17,12 @@ export class RobotLoginComponent {
   selectedMode: ModeType | null = null;
   missionName = '';
   missionNameTouched = false;
+  error: string | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private missionSessionService: MissionSessionService
+  ) {}
 
   selectMode(mode: ModeType): void {
     this.selectedMode = mode;
@@ -31,13 +36,20 @@ export class RobotLoginComponent {
     this.missionNameTouched = true;
   }
 
-  onModeSubmit(): void {
+  async onModeSubmit(): Promise<void> {
     this.missionNameTouched = true;
+    this.error = null;
     if (!this.selectedMode || !this.isMissionNameValid) return;
 
-    const targetRoute = this.selectedMode === 'simulation' ? '/simulation-mode' : '/real-mode';
-    this.router.navigate([targetRoute], {
-      state: { missionName: this.missionName.trim(), mode: this.selectedMode }
-    });
+    try {
+      await this.missionSessionService.initializeMission(
+        this.missionName.trim(),
+        this.selectedMode === 'real' ? 'REAL' : 'SIMULATION'
+      );
+      const targetRoute = this.selectedMode === 'simulation' ? '/simulation-mode' : '/real-mode';
+      this.router.navigate([targetRoute]);
+    } catch (err) {
+      this.error = (err as Error)?.message ?? 'Impossible de créer la mission.';
+    }
   }
 }

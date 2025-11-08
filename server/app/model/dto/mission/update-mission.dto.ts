@@ -35,4 +35,13 @@ export class UpdateMissionDto {
     @IsOptional()
     @IsString()
     missionName?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    status?: string;
+
+    @ApiProperty({ required: false, type: [Object] })
+    @IsOptional()
+    logs?: Record<string, unknown>[];
 }

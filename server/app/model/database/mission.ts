@@ -32,6 +32,14 @@ export class Mission {
     @ApiProperty()
     @Prop({ required: false })
     missionName?: string;
+
+    @ApiProperty({ required: false })
+    @Prop({ required: false })
+    status?: string;
+
+    @ApiProperty({ required: false, type: [Object] })
+    @Prop({ type: Array, default: [] })
+    logs?: Record<string, unknown>[];
 }
 
 export const missionSchema = SchemaFactory.createForClass(Mission);
