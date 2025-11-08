@@ -10,9 +10,6 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     ld = LaunchDescription()
-    config = os.path.join(
-        get_package_share_directory("explore_lite"), "config", "params_costmap.yaml"
-    )
     use_sim_time = LaunchConfiguration("use_sim_time")
     namespace = LaunchConfiguration("namespace")
 
@@ -23,6 +20,9 @@ def generate_launch_description():
         "namespace",
         default_value="limo1",
         description="Namespace for the explore node",
+    )
+    config = os.path.join(
+        get_package_share_directory("explore_lite"), "config", f"{namespace}_params.yaml"
     )
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.

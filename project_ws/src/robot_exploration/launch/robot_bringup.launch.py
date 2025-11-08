@@ -46,13 +46,6 @@ def launch_with_namespace(context, *args, **kwargs):
         }.items(),
     )
 
-    cartographer_convert = Node(
-        package='robot_exploration',
-        executable='cartographer_convert',
-        name='cartographer_convert',
-        output='screen',
-    )
-
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot, 'launch', 'robot_navigation.launch.py')
@@ -72,8 +65,8 @@ def launch_with_namespace(context, *args, **kwargs):
     # )
     mission_action = Node(
         package='robot_exploration',
-        executable='mission_server',
-        name='mission_server',
+        executable='mission_real',
+        name='mission_real',
         output='screen',
         parameters=[{'use_sim_time': False}],
     )
@@ -85,7 +78,6 @@ def launch_with_namespace(context, *args, **kwargs):
         mission_action,
         # slam_toolbox_launch,
         cartographer_launch,
-        cartographer_convert,
         nav2_launch
     ])
 
