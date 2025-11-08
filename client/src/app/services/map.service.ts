@@ -43,7 +43,6 @@ export class MapService {
     pointList: MapCoordinate[] = [];
     private pointCanvasCoords: { x: number; y: number }[] = [];
     private robotPoses: Record<string, PoseData | undefined> = {};
-    private featuresConfigured = false;
 
     constructor(private readonly socketService: SocketService) {}
     
@@ -54,12 +53,11 @@ export class MapService {
     connectToSocket() {
         if (!this.socketService.isSocketAlive()) {
             this.socketService.connect('client');
+            this.configureMapSocketFeatures();
         }
-        this.configureMapSocketFeatures();
     }
 
     configureMapSocketFeatures() {
-        if (this.featuresConfigured) return;
         this.socketService.on(MapEvent.RecoverMap, (recoveredMap: any) => {
             this.map = {
                 data: this.normaliseMapData(recoveredMap?.data),
@@ -74,13 +72,11 @@ export class MapService {
             this.updateOrientationCache();
             this.renderMap();
         });
-        this.socketService.on(MapEvent.PoseUpdate, (...args: unknown[]) => {
-            const payload = args[0] as { robot: string; poseData: PoseData };
+        this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
             if (!payload?.robot || !payload.poseData || payload.robot == 'limo2') return; //A enlever le check pour si limo2
             this.robotPoses[payload.robot] = payload.poseData;
             this.renderMap();
         });
-        this.featuresConfigured = true;
     }
 
     resetMap() {

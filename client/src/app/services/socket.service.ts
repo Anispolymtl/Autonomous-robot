@@ -28,7 +28,7 @@ export class SocketService {
         }
     }
 
-    on(event: string, action: (...args: unknown[]) => void): void {
+        on<T>(event: string, action: (data: T) => void): void {
         if (this.socket) this.socket.on(event, action);
     }
 
