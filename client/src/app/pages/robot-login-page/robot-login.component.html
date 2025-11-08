@@ -3,6 +3,17 @@
     <h2 class="title">Connexion au robot</h2>
 
     <div class="mode-selection">
+      <label>Nom de la mission</label>
+      <input
+        type="text"
+        placeholder="Enter a mission name"
+        [(ngModel)]="missionName"
+        (blur)="onMissionNameBlur()"
+      />
+      <p class="error" *ngIf="missionNameTouched && !isMissionNameValid">
+        Veuillez entrer un nom de mission.
+      </p>
+
       <label>Choisir le mode :</label>
 
       <div class="button-group">
@@ -33,7 +44,7 @@
       <button 
         class="btn-continue" 
         (click)="onModeSubmit()" 
-        [disabled]="!selectedMode"
+        [disabled]="!selectedMode || !isMissionNameValid"
       >
         Continuer
       </button>
