@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsString, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsEnum, IsNumber, IsString, Min } from 'class-validator';
 
 export class CreateMissionDto {
     @ApiProperty()
@@ -7,9 +7,12 @@ export class CreateMissionDto {
     @Min(0)
     durationSec: number;
 
-    @ApiProperty()
-    @IsString()
-    robotName: string;
+    @ApiProperty({ type: [String], description: 'Liste des deux robots impliqués' })
+    @IsArray()
+    @ArrayMinSize(2)
+    @ArrayMaxSize(2)
+    @IsString({ each: true })
+    robots: string[];
 
     @ApiProperty({ enum: ['SIMULATION', 'REAL'] })
     @IsEnum(['SIMULATION', 'REAL'])
@@ -24,4 +27,3 @@ export class CreateMissionDto {
     @IsString()
     missionName: string;
 }
-

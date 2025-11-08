@@ -4,7 +4,7 @@
             <p class="eyebrow">Mission</p>
             <h2>{{ data.mission.missionName }}</h2>
             <p class="meta">
-                Robot {{ data.mission.robotName }} • Mode {{ data.mission.mode }} •
+                Robots {{ data.mission.robots.length ? (data.mission.robots.join(' & ')) : 'N/A' }} • Mode {{ data.mission.mode }} •
                 {{ data.mission.createdAt ? (data.mission.createdAt | date : 'medium') : 'Date inconnue' }}
             </p>
         </div>
