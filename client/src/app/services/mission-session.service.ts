@@ -41,6 +41,10 @@ export class MissionSessionService {
         return this.missionSnapshot;
     }
 
+    get hasActiveMission(): boolean {
+        return Boolean(this.missionId);
+    }
+
     async initializeMission(missionName: string, mode: MissionMode): Promise<MissionCreatedPayload> {
         await this.ensureSocketConnected();
         this.registerMissionListeners();

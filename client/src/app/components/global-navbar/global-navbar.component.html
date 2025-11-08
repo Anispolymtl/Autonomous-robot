@@ -18,7 +18,7 @@
       </a>
 
       <a
-        *ngIf="!isHomePage"
+        *ngIf="canAccessMissionModes"
         class="navbar__link"
         routerLink="/simulation-mode"
         routerLinkActive="navbar__link--active"
@@ -29,7 +29,7 @@
       </a>
 
       <a
-        *ngIf="!isHomePage"
+        *ngIf="canAccessMissionModes"
         class="navbar__link"
         routerLink="/real-mode"
         routerLinkActive="navbar__link--active"

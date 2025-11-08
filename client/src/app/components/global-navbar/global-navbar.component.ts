@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { Router, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { NgIf } from '@angular/common';
+import { MissionSessionService } from '@app/services/mission-session.service';
 
 @Component({
   selector: 'app-global-navbar',
@@ -14,7 +15,7 @@ export class GlobalNavbarComponent implements OnInit {
   isScrolled = false;
   isHomePage = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private missionSessionService: MissionSessionService) {}
 
   ngOnInit(): void {
     this.checkScroll();
@@ -33,5 +34,9 @@ export class GlobalNavbarComponent implements OnInit {
 
   private checkScroll(): void {
     this.isScrolled = window.scrollY > 20;
+  }
+
+  get canAccessMissionModes(): boolean {
+    return !this.isHomePage && this.missionSessionService.hasActiveMission;
   }
 }
