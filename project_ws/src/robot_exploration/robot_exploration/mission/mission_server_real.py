@@ -132,13 +132,16 @@ def main(args=None):
     executor.add_node(node)
 
     try:
-        rclpy.spin(node, executor=executor)
+        node.get_logger().info("Mission Server en cours d'exécution (Ctrl+C pour arrêter)")
+        executor.spin()  # <-- à la place de rclpy.spin()
     except KeyboardInterrupt:
-        node.get_logger().info("Arrêt demandé par l'utilisateur")
+        node.get_logger().info("Arrêt demandé par l'utilisateur (Ctrl+C)")
     finally:
         node.stop_explore_lite()
+        executor.shutdown()
         node.destroy_node()
         rclpy.shutdown()
+
 
 
 if __name__ == "__main__":

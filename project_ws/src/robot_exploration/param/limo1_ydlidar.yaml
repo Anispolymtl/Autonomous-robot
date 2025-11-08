@@ -6,7 +6,7 @@ limo1/ydlidar_ros2_driver_node:
     baudrate: 115200
     lidar_type: 1
     device_type: 0
-    sample_rate: 3
+    sample_rate: 8
     abnormal_check_count: 4
     fixed_resolution: true
     reversion: true
