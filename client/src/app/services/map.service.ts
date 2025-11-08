@@ -69,6 +69,12 @@ export class MapService {
                 },
             };
             this.updateOrientationCache();
+            if (!this.robotPoses['limo1']) {
+                this.robotPoses['limo1'] = {
+                    header: { frame_id: 'limo1/map' },
+                    pose: { position: { x: 0, y: 0, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
+                };
+            }
             this.renderMap();
         });
         this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
