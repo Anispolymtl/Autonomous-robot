@@ -57,45 +57,59 @@
       <h2 class="content-title">Flux en temps réel</h2>
 
       <div class="table-container">
-        <table>
+        <table class="logs-table">
           <thead>
             <tr>
-              <th>Heure</th>
-              <th>Robot</th>
-              <th>Catégorie</th>
-              <th>Action</th>
-              <th>Détails</th>
+              <th class="col-time">Heure</th>
+              <th class="col-robot">Robot</th>
+              <th class="col-category">Catégorie</th>
+              <th class="col-action">Action</th>
+              <th class="col-details">Détails</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let log of liveData">
-              <td class="timestamp">{{ log.timestamp }}</td>
-              <td class="robot-name">{{ log.robot }}</td>
-              <td>
-                <span class="command-badge">{{ log.category }}</span>
+            <tr *ngFor="let log of liveData" class="log-row">
+              <td class="col-time">
+                <span class="time-badge">{{ log.timestamp }}</span>
               </td>
-              <td>{{ log.action }}</td>
-              <td class="details">
-                <table>
-                  <tr *ngFor="let key of objectKeys(log.details)">
-                    <td style="padding-right: 1rem; color: #6b7280;">
-                      {{ key }}
-                    </td>
-                    <td
-                      style="
-                        font-family: 'Courier New', monospace;
-                        color: #1f2937;
-                      "
-                    >
-                      {{ log.details[key] }}
-                    </td>
-                  </tr>
-                </table>
+              <td class="col-robot">
+                <div class="robot-cell">
+                  <span class="robot-icon">🚗</span>
+                  <span class="robot-name-log">{{ log.robot }}</span>
+                </div>
+              </td>
+              <td class="col-category">
+                <span 
+                  class="category-badge-log" 
+                  [class.command]="log.category === 'Command'" 
+                  [class.sensor]="log.category === 'Sensor'"
+                >
+                  {{ log.category }}
+                </span>
+              </td>
+              <td class="col-action">
+                <span class="action-text">{{ log.action }}</span>
+              </td>
+              <td class="col-details">
+                <div class="details-container">
+                  <span class="detail-tag" *ngFor="let key of objectKeys(log.details)">
+                    <span class="detail-key">{{ key }}</span>
+                    <span class="detail-value">{{ log.details[key] }}</span>
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- ÉTAT VIDE -->
+        <div class="empty-state" *ngIf="liveData.length === 0">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Aucun log disponible</div>
+          <div class="empty-text">Les événements apparaîtront ici en temps réel</div>
+        </div>
       </div>
+
     </div>
 
     <!-- HISTORY TAB -->
