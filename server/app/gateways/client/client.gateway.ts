@@ -7,6 +7,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { SocketService } from '@app/services/socket/socket.service';
 import { RosService } from '@app/services/ros.service';
+import { NavService } from '@app/services/nav/nav.service';
 
 type RobotId = 'limo1' | 'limo2';
 type Point2D = { x: number; y: number };
@@ -17,7 +18,8 @@ export class ClientGateway {
 
     constructor(
         private socketService: SocketService,
-        private rosService: RosService
+        private rosService: RosService,
+        private navService: NavService
     ) {}
 
     handleConnection(socket: Socket) {
@@ -30,11 +32,15 @@ export class ClientGateway {
         this.socketService.removeSocket(socket);
     }
 
-    @SubscribeMessage('pointlist')
-    onPointListGet(socket: Socket, payload: {robot: RobotId , points: Point2D[]}) {
-        console.log('hola');
-        this.rosService.handlePoints(payload);
+    @SubscribeMessage('point')
+    onPointListGet(socket: Socket, payload: {robot: RobotId , point: Point2D}) {
+        const points = this.navService.addPoint(payload);
+        this.server.emit('newPoints', {robot: payload.robot, points});
     }
 
+    @SubscribeMessage('startNavGoal')
+    onGoalGet(socket: Socket, payload: {robot: RobotId}) {
+        this.navService.startGoal(payload.robot);
+    }
 
 }
