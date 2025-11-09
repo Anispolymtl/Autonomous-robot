@@ -1,0 +1,112 @@
+<div class="mission-list-container">
+    <div class="mission-list-header">
+        <h2>Liste des missions</h2>
+        <div class="header-actions">
+            <button (click)="populateDatabase()" class="populate-btn" [disabled]="loading">
+                {{ loading ? 'Chargement...' : '📦 Peupler la BD' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div *ngIf="stats" class="stats-container">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">Total missions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ formatDistance(stats.totalDistance) }}</div>
+            <div class="stat-label">Distance totale</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ formatDuration(stats.averageDuration) }}</div>
+            <div class="stat-label">Durée moyenne</div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-container">
+        <div class="filter-group">
+            <label>Filtrer par robot:</label>
+            <select [(ngModel)]="selectedRobot" (change)="filterByRobot(selectedRobot)">
+                <option [ngValue]="null">Tous</option>
+                <option *ngFor="let robot of getUniqueRobots()" [ngValue]="robot">{{ robot }}</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Filtrer par mode:</label>
+            <select [(ngModel)]="selectedMode" (change)="filterByMode(selectedMode)">
+                <option [ngValue]="null">Tous</option>
+                <option value="REAL">REAL</option>
+                <option value="SIMULATION">SIMULATION</option>
+            </select>
+        </div>
+        <button *ngIf="selectedRobot || selectedMode" (click)="clearFilters()" class="clear-btn">
+            Effacer les filtres
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading">
+        Chargement en cours...
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="error">
+        {{ error }}
+        <button (click)="loadMissions()">Réessayer</button>
+    </div>
+
+    <!-- Missions -->
+    <div *ngIf="!loading && !error">
+        <div *ngIf="missions.length === 0" class="no-missions">
+            <p>Aucune mission trouvée dans la base de données.</p>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                Vérifiez que :
+            </p>
+            <ul style="font-size: 0.9em; color: #666; text-align: left; display: inline-block;">
+                <li>La connexion MongoDB est active</li>
+                <li>La base de données "robot_ops" contient la collection "missions"</li>
+                <li>Il y a des documents dans la collection</li>
+            </ul>
+        </div>
+
+        <div *ngIf="missions.length > 0" class="missions-grid">
+            <div *ngFor="let mission of missions" class="mission-card">
+                <div class="mission-header">
+                    <h3>{{ mission.missionName }}</h3>
+                    <span class="mode-badge" [class.real]="mission.mode === 'REAL'" 
+                          [class.simulation]="mission.mode === 'SIMULATION'">
+                        {{ mission.mode }}
+                    </span>
+                </div>
+                <div class="mission-details">
+                    <div class="detail-item">
+                        <span class="label">Robots:</span>
+                        <span class="value">{{ formatRobots(mission.robots) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Distance:</span>
+                        <span class="value">{{ formatDistance(mission.distance) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Durée:</span>
+                        <span class="value">{{ formatDuration(mission.durationSec) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Date:</span>
+                        <span class="value">{{ formatDate(mission.createdAt) }}</span>
+                    </div>
+                </div>
+                <div class="mission-actions">
+                    <button (click)="openLogsDialog(mission)" class="logs-btn">
+                        📄 Show Logs
+                    </button>
+                    <button (click)="deleteMission(mission._id!)" class="delete-btn">
+                        Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

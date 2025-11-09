@@ -2,6 +2,7 @@
 import os
 import random
 import tempfile
+import math
 import xml.etree.ElementTree as ET
 from ament_index_python.packages import get_package_share_directory
 
@@ -13,14 +14,44 @@ BOX_SIZE = 0.7
 WALL_THICKNESS = 0.20
 MIN_WALL_LEN = 1.5
 MAX_WALL_LEN = 3.5
+ROBOT_POSITIONS = [
+    (0.0, 0.0),  # Limo1
+    (4.0, 2.0)   # Limo2
+]
+MIN_DIST_BETWEEN = 1.0
+MIN_DIST_FROM_ROBOT = 2.0
 
-def _random_boxes_sdf(num, limit, size):
+def is_far_enough(x, y, positions, min_dist):
+    for (ex, ey) in positions:
+        if math.hypot(x - ex, y - ey) < min_dist:
+            return False
+    return True
+
+def is_far_from_robots(x, y, robots, min_dist):
+    for (rx, ry) in robots:
+        if math.hypot(x - rx, y - ry) < min_dist:
+            return False
+    return True
+
+def _random_boxes_sdf(num, limit, size, positions):
     parts = []
-    for i in range(num):
+    placed = 0
+    attempts = 0
+    MAX_ATTEMPTS = num * 20  # avoid infinite loop
+
+    while placed < num and attempts < MAX_ATTEMPTS:
+        attempts += 1
         x = random.uniform(-limit, limit)
         y = random.uniform(-limit, limit)
+
+        if not is_far_from_robots(x, y, ROBOT_POSITIONS, MIN_DIST_FROM_ROBOT):
+            continue
+        if not is_far_enough(x, y, positions, MIN_DIST_BETWEEN):
+            continue
+
+        positions.append((x, y))
         parts.append(f"""
-        <model name="rand_box_{i}">
+        <model name="rand_box_{placed}">
           <static>true</static>
           <pose>{x:.3f} {y:.3f} 0 0 0 0</pose>
           <link name="link">
@@ -34,18 +65,36 @@ def _random_boxes_sdf(num, limit, size):
           </link>
         </model>
         """)
+        placed += 1
+
+    if placed < num:
+        print(f"⚠️ Only placed {placed}/{num} boxes after {attempts} attempts")
+
     return "\n".join(parts)
 
-def _random_walls_sdf(num, limit):
+
+def _random_walls_sdf(num, limit, positions):
     parts = []
-    for i in range(num):
+    placed = 0
+    attempts = 0
+    MAX_ATTEMPTS = num * 20  # avoid infinite loop
+
+    while placed < num and attempts < MAX_ATTEMPTS:
+        attempts += 1
         x = random.uniform(-limit, limit)
         y = random.uniform(-limit, limit)
+
+        if not is_far_from_robots(x, y, ROBOT_POSITIONS, MIN_DIST_FROM_ROBOT):
+            continue
+        if not is_far_enough(x, y, positions, MIN_DIST_BETWEEN):
+            continue
+
+        positions.append((x, y))
         length = random.uniform(MIN_WALL_LEN, MAX_WALL_LEN)
         yaw = random.choice([0, 1.57])  # horizontal or vertical
 
         parts.append(f"""
-        <model name="rand_wall_{i}">
+        <model name="rand_wall_{placed}">
           <static>true</static>
           <pose>{x:.3f} {y:.3f} 0 0 0 {yaw}</pose>
           <link name="link">
@@ -59,6 +108,11 @@ def _random_walls_sdf(num, limit):
           </link>
         </model>
         """)
+        placed += 1
+
+    if placed < num:
+        print(f"⚠️ Only placed {placed}/{num} walls after {attempts} attempts")
+
     return "\n".join(parts)
 
 def main():
@@ -72,10 +126,11 @@ def main():
     if insert_at == -1:
         raise RuntimeError("Cannot find </world> tag in diff_drive.sdf")
 
+    positions = []
     world_mod = (
         world_xml[:insert_at]
-        + _random_boxes_sdf(NUM_BOXES, LIMIT, BOX_SIZE)
-        + _random_walls_sdf(NUM_WALLS, LIMIT)
+        + _random_boxes_sdf(NUM_BOXES, LIMIT, BOX_SIZE, positions)
+        + _random_walls_sdf(NUM_WALLS, LIMIT, positions)
         + world_xml[insert_at:]
     )
 

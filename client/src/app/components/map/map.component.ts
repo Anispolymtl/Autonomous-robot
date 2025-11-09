@@ -1,6 +1,6 @@
-import { Component,ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MapService } from '@app/services/map/map.service';
+import { MapService } from '@app/services/map.service';
 
 @Component({
   selector: 'app-map',
@@ -10,21 +10,51 @@ import { MapService } from '@app/services/map/map.service';
   styleUrls: ['./map.component.scss'],
 })
 
-export class MapComponent implements OnInit {
-  @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
-
-  constructor(private mapService: MapService) {}
+export class MapComponent implements OnInit, OnDestroy {
+  constructor(
+    private mapService: MapService
+  ) {
+  }
 
   ngOnInit() {
-    this.mapService.getGMap().subscribe({
-      next: ({ imageData }) => {
-        const canvas = this.canvasRef.nativeElement;
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) ctx.putImageData(imageData, 0, 0);
-      },
-      error: (err) => console.error('Error loading map:', err),
-    });
+    this.mapService.connectToSocket();
+    if (this.mapService.isSocketAlive){
+      this.mapService.resetMap();
+      this.mapService.configureMapSocketFeatures();
+    }
+  }
+
+  ngOnDestroy(): void {
+      if (!this.mapService.isSocketAlive) {
+          this.mapService.resetMap();
+      }
+  }
+
+  onCanvasClick(event: MouseEvent): void {
+    this.mapService.onCanvasClick(event);
+  }
+
+  addPoint(): void{
+    this.mapService.addPoint();
+  }
+
+  removePoint(index: number): void {
+    this.mapService.removePoint(index);
+  }
+
+  sendCoords(): void {
+    this.mapService.sendCoords();
+  }
+
+  get originWorld() {
+    return this.mapService.getOriginInWorld();
+  }
+
+  get selectedPoint() {
+    return this.mapService.selectedPoint;
+  }
+
+  get pointList() {
+    return this.mapService.pointList;
   }
 }

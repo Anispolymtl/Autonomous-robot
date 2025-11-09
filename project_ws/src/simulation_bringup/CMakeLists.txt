@@ -29,8 +29,8 @@ install(
 
 # Install project script files
 install(
-  DIRECTORY
-    script/
+  PROGRAMS
+    script/spawn_random.py
   DESTINATION lib/${PROJECT_NAME}/script
 )
 
