@@ -22,7 +22,7 @@ interface LiveData {
   styleUrls: ['./logs-page.component.scss'],
 })
 export class LogsPageComponent implements OnInit {
-  activeTab: 'live' | 'history' | 'analytics' = 'live';
+  activeTab: 'live' | 'history' = 'live';
   expandedRobot: number | null = null;
   missionId: string | null = null;
 
@@ -66,7 +66,7 @@ export class LogsPageComponent implements OnInit {
     });
   }
 
-  switchTab(tab: 'live' | 'history' | 'analytics') {
+  switchTab(tab: 'live' | 'history') {
     this.activeTab = tab;
   }
 

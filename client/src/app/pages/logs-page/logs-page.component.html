@@ -32,13 +32,6 @@
     >
       📂 Mission History
     </button>
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'analytics'" 
-      (click)="switchTab('analytics')"
-    >
-      📊 Analytics
-    </button>
   </div>
 </header>
 
@@ -101,25 +94,5 @@
       <app-mission-list></app-mission-list>
     </div>
 
-    <!-- ANALYTICS TAB -->
-    <div *ngIf="activeTab === 'analytics'" class="tab-content">
-      <h2 class="content-title">Analyse & Diagnostics</h2>
-      <div class="analytics-grid">
-        <div class="analytics-card">
-          <div class="analytics-header">
-            <span class="icon-green">✓</span> Missions Réussies
-          </div>
-          <p class="analytics-value value-green-big">12/14</p>
-          <p class="analytics-subtitle">Taux de succès: 85.7%</p>
-        </div>
-        <div class="analytics-card">
-          <div class="analytics-header">
-            <span class="icon-orange">⚠️</span> Anomalies Détectées
-          </div>
-          <p class="analytics-value value-orange-big">7</p>
-          <p class="analytics-subtitle">Dernière: 2h 15min ago</p>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
