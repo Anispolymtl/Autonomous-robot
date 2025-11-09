@@ -75,6 +75,7 @@ export class MapService {
         this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
             if (!payload?.robot || !payload.poseData || payload.robot == 'limo2') return; //A enlever le check pour si limo2
             this.robotPoses[payload.robot] = payload.poseData;
+            console.log(this.robotPoses);
             this.renderMap();
         });
     }
