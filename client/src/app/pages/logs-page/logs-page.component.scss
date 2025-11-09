@@ -298,37 +298,6 @@ td {
   border-color: $border-gray;
 }
 
-/* CHART */
-.chart-container {
-  background: $bg-white;
-  border: 1px solid $border-gray;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-}
-
-.chart-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: $text-dark;
-  margin-bottom: 1rem;
-}
-
-.chart-placeholder {
-  width: 100%;
-  height: 300px;
-  background: linear-gradient(135deg, $bg-gray-50 0%, $bg-gray-100 100%);
-  border: 2px dashed $border-gray;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $text-muted;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
 /* STATS GRID */
 .stats-grid {
   display: grid;
