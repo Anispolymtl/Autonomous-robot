@@ -18,7 +18,7 @@ export class SocketService{
     sendStateToAllSockets(robot: RobotId, state: any) {
         console.log('Mission state to all sockets');
         this.sockets.forEach((socket) => {
-            socket.emit('stateUpdate', state);
+            socket.emit('stateUpdate', {robot, state});
         });
     }
 

@@ -21,7 +21,7 @@ export class StateService {
             '/limo1/mission_state',
             (msg) => {
                 console.log(`[ROS2] [limo1] mission_state = ${msg.data}`);
-                this.socketService.sendStateToAllSockets('limo1', msg);
+                this.socketService.sendStateToAllSockets('limo1', msg.data);
             }
         );
         this.stateListner1.spin();
@@ -32,7 +32,7 @@ export class StateService {
           '/limo2/mission_state',
           (msg) => {
             console.log(`[ROS2] [limo2] mission_state = ${msg.data}`);
-            this.socketService.sendStateToAllSockets('limo2', msg);
+            this.socketService.sendStateToAllSockets('limo2', msg.data);
           }
         );
         this.stateListner2.spin()
