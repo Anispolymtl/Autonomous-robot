@@ -140,7 +140,20 @@ export class MissionListComponent implements OnInit {
     }
 
     getUniqueRobots(): string[] {
-        return [...new Set(this.missions.map(m => m.robotName))];
+        const robots = this.missions.reduce<string[]>((acc, mission: Mission) => {
+            if (Array.isArray(mission.robots)) {
+                acc.push(...mission.robots);
+            }
+            return acc;
+        }, []);
+        return [...new Set(robots)];
+    }
+
+    formatRobots(robots: string[] | undefined): string {
+        if (!robots || robots.length === 0) {
+            return 'N/A';
+        }
+        return robots.join(' & ');
     }
 
     populateDatabase(): void {

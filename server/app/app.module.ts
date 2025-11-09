@@ -11,6 +11,7 @@ import { MissionController } from './controllers/mission/mission.controller';
 import { MissionService } from './services/misson/mission.service';
 import { SocketService } from './services/socket/socket.service';
 import { ClientGateway } from './gateways/client/client.gateway';
+import { MissionRuntimeService } from './services/mission-runtime/mission-runtime.service';
 // import { MapController } from '@app/controllers/map/map.controller';
 // import { MapService } from '@app/services/map/map.service';
 
@@ -34,6 +35,6 @@ import { ClientGateway } from './gateways/client/client.gateway';
         MongooseModule.forFeature([{ name: Mission.name, schema: missionSchema }], 'robot_ops'),
     ],
     controllers: [ RosController, MissionController, MissionDatabaseController],
-    providers: [Logger, RosService, MissionService, MissionDatabaseService, SocketService, ClientGateway],
+    providers: [Logger, RosService, MissionService, MissionDatabaseService, SocketService, ClientGateway, MissionRuntimeService],
 })
 export class AppModule {}

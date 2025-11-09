@@ -7,6 +7,7 @@
 
     <nav class="navbar__nav" role="navigation" aria-label="Navigation principale">
       <a
+        *ngIf="showHomeLink"
         class="navbar__link"
         routerLink="/home"
         routerLinkActive="navbar__link--active"
@@ -18,7 +19,7 @@
       </a>
 
       <a
-        *ngIf="!isHomePage"
+        *ngIf="showSimulationLink"
         class="navbar__link"
         routerLink="/simulation-mode"
         routerLinkActive="navbar__link--active"
@@ -29,7 +30,7 @@
       </a>
 
       <a
-        *ngIf="!isHomePage"
+        *ngIf="showRealModeLink"
         class="navbar__link"
         routerLink="/real-mode"
         routerLinkActive="navbar__link--active"

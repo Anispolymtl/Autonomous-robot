@@ -10,6 +10,8 @@ import { RobotLoginComponent } from '@app/pages/robot-login-page/robot-login.com
 import { SimulationPageComponent } from '@app/pages/simulation-mode-page/simulation-mode-page.component';
 import { RealPageComponent } from '@app/pages/real-mode-page/real-mode-page.component';
 import { LogsPageComponent } from '@app/pages/logs-page/logs-page.component';
+import { missionModeGuard } from '@app/guards/mission-mode.guard';
+import { missionHomeGuard } from '@app/guards/mission-home.guard';
 
 if (environment.production) {
     enableProdMode();
@@ -18,10 +20,10 @@ if (environment.production) {
 
 export const routes: Routes = [
     { path: '', redirectTo: '/home', pathMatch: 'full' },
-    { path: 'home', component: MainPageComponent },
+    { path: 'home', component: MainPageComponent, canActivate: [missionHomeGuard] },
     { path: 'robot-login', component: RobotLoginComponent },
-    { path: 'simulation-mode', component: SimulationPageComponent },
-    { path: 'real-mode', component: RealPageComponent },
+    { path: 'simulation-mode', component: SimulationPageComponent, canActivate: [missionModeGuard('SIMULATION')] },
+    { path: 'real-mode', component: RealPageComponent, canActivate: [missionModeGuard('REAL')] },
     { path: 'logs', component: LogsPageComponent },
     { path: '**', redirectTo: '/home' },
 ];
