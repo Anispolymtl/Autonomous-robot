@@ -1,0 +1,71 @@
+<div class="logs-dialog">
+    <header class="dialog-header">
+        <div>
+            <p class="eyebrow">Mission</p>
+            <h2>{{ data.mission.missionName }}</h2>
+            <p class="meta">
+                Robot {{ data.mission.robotName }} • Mode {{ data.mission.mode }} •
+                {{ data.mission.createdAt ? (data.mission.createdAt | date : 'medium') : 'Date inconnue' }}
+            </p>
+        </div>
+        <button type="button" class="close-btn" (click)="close()">✕</button>
+    </header>
+
+    <section class="mission-summary">
+        <div class="summary-card">
+            <span class="label">Distance</span>
+            <span class="value">
+                {{ data.mission.distance >= 1000 ? (data.mission.distance / 1000 | number : '1.0-2') + ' km' : data.mission.distance + ' m' }}
+            </span>
+        </div>
+        <div class="summary-card">
+            <span class="label">Durée</span>
+            <span class="value">{{ (data.mission.durationSec / 60) | number:'1.0-1' }} min</span>
+        </div>
+        <div class="summary-card">
+            <span class="label">Mode</span>
+            <span class="value">{{ data.mission.mode }}</span>
+        </div>
+    </section>
+
+    <section class="logs-section">
+        <div class="logs-header">
+            <h3>Logs ({{ data.logs?.length || 0 }})</h3>
+        </div>
+
+        <div *ngIf="!data.logs || data.logs.length === 0" class="empty-state">
+            Aucun log disponible pour cette mission.
+        </div>
+
+        <ng-container *ngFor="let log of data.logs ?? []; let i = index">
+            <div class="log-entry">
+                <div class="log-time">
+                    <span class="timestamp">{{ getTimestampLabel(log, i) }}</span>
+                    <span class="phase" *ngIf="getPhaseLabel(log) as phase">{{ phase }}</span>
+                </div>
+                <div class="log-content">
+                    <span 
+                        class="level"
+                        *ngIf="getLevelLabel(log) as levelLabel"
+                        [ngClass]="getLevelClass(levelLabel)"
+                    >
+                        {{ levelLabel }}
+                    </span>
+                    <div class="message">
+                        {{ getPrimaryMessage(log, i) }}
+                    </div>
+                    <div *ngIf="getDetails(log) as details" class="details">
+                        {{ details }}
+                    </div>
+
+                    <div class="attributes" *ngIf="getAttributeEntries(log) as attributes">
+                        <div class="attribute" *ngFor="let attr of attributes">
+                            <span class="attr-key">{{ attr.key }}</span>
+                            <span class="attr-value">{{ formatValue(attr.value) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </section>
+</div>

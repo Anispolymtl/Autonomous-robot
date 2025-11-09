@@ -32,20 +32,24 @@ interface PoseData {
     providedIn: 'root',
 })
 export class MapService {
-
     map: OccupancyGrid | undefined;
     originCanvasPosition: { x: number; y: number } | undefined;
     private yaw = 0;
     private yawCos = 1;
     private yawSin = 0;
+
     selectedPoint: MapCoordinate | undefined;
     selectedCanvasCoord: { x: number; y: number } | undefined;
     pointList: MapCoordinate[] = [];
     private pointCanvasCoords: { x: number; y: number }[] = [];
     private robotPoses: Record<string, PoseData | undefined> = {};
 
-    constructor(private readonly socketService: SocketService) {}
-    
+    private needsRender = false;
+
+    constructor(private readonly socketService: SocketService) {
+        this.animationLoop();
+    }
+
     get isSocketAlive(): boolean {
         return this.socketService.isSocketAlive();
     }
@@ -70,13 +74,19 @@ export class MapService {
                 },
             };
             this.updateOrientationCache();
-            this.renderMap();
+            if (!this.robotPoses['limo1']) {
+                this.robotPoses['limo1'] = {
+                    header: { frame_id: 'limo1/map' },
+                    pose: { position: { x: 0, y: 0, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
+                };
+            }
+            this.needsRender = true;
         });
+
         this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
-            if (!payload?.robot || !payload.poseData || payload.robot == 'limo2') return; //A enlever le check pour si limo2
+            if (!payload?.robot || !payload.poseData) return;
             this.robotPoses[payload.robot] = payload.poseData;
-            console.log(this.robotPoses);
-            this.renderMap();
+            this.needsRender = true;
         });
     }
 
@@ -84,6 +94,16 @@ export class MapService {
         this.map = undefined;
         this.originCanvasPosition = undefined;
         this.robotPoses = {};
+        this.needsRender = true;
+    }
+
+    // 🔹 Boucle de rendu fluide
+    private animationLoop(): void {
+        requestAnimationFrame(() => this.animationLoop());
+        if (this.needsRender) {
+            this.renderMap();
+            this.needsRender = false;
+        }
     }
 
     renderMap(): void {
@@ -127,6 +147,7 @@ export class MapService {
 
         ctx.putImageData(imageData, 0, 0);
         this.originCanvasPosition = { x: 0.5, y: height - 0.5 };
+
         this.drawOriginMarker(ctx);
         this.drawMarkers(ctx);
         this.drawRobotPoses(ctx);
@@ -250,7 +271,6 @@ export class MapService {
             return;
         }
         const { w, x, y, z } = this.map.origin.orientation;
-        // Extract yaw around Z axis from quaternion.
         this.yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
         this.yawCos = Math.cos(this.yaw);
         this.yawSin = Math.sin(this.yaw);
@@ -370,8 +390,8 @@ export class MapService {
         const right = { x: rearCenter.x - perpX * halfBase, y: rearCenter.y - perpY * halfBase };
 
         ctx.save();
-        ctx.fillStyle = '#ffeb3b';
-        ctx.strokeStyle = '#fdd835';
+        ctx.fillStyle = '#00FF00';
+        ctx.strokeStyle = '#006600';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(tip.x, tip.y);
