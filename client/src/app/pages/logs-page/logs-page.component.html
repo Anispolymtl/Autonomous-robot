@@ -9,24 +9,36 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="status-badge">
+
+      <div class="status-badge" *ngIf="hasActiveMission; else noMission">
         <span>🔴</span>
-        <span>EN DIRECT: {{ liveData.length }} robots actifs</span>
+        <span>
+          Mission :
+          {{ missionName || missionId }}
+        </span>
       </div>
+
+      <ng-template #noMission>
+        <div class="status-badge">
+          <span>⚪</span>
+          <span>Aucune mission en direct</span>
+        </div>
+      </ng-template>
+
     </div>
   </div>
 
   <div class="tabs">
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'live'" 
+    <button
+      class="tab"
+      [class.active]="activeTab === 'live'"
       (click)="switchTab('live')"
     >
       📡 Surveillance
     </button>
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'history'" 
+    <button
+      class="tab"
+      [class.active]="activeTab === 'history'"
       (click)="switchTab('history')"
     >
       📂 Historique
@@ -39,41 +51,46 @@
 </div>
 
 <div class="main-container">
-  <!-- MAIN CONTENT -->
   <main class="content">
     <!-- LIVE TAB -->
     <div *ngIf="activeTab === 'live'" class="tab-content">
-      <h2 class="content-title">Surveillance en direct</h2>
+      <h2 class="content-title">Flux en temps réel</h2>
 
       <div class="table-container">
         <table>
           <thead>
             <tr>
+              <th>Heure</th>
               <th>Robot</th>
-              <th>Timestamp</th>
-              <th>Distance (m)</th>
-              <th>Position (X, Y)</th>
-              <th>Commande</th>
-              <th>Statut</th>
+              <th>Catégorie</th>
+              <th>Action</th>
+              <th>Détails</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of liveData">
-              <td class="robot-name">{{ row.robot }}</td>
-              <td class="timestamp">{{ row.timestamp }}</td>
-              <td class="position">{{ row.distance.toFixed(2) }}</td>
-              <td class="position">({{ row.x }}, {{ row.y }})</td>
+            <tr *ngFor="let log of liveData">
+              <td class="timestamp">{{ log.timestamp }}</td>
+              <td class="robot-name">{{ log.robot }}</td>
               <td>
-                <span class="command-badge">{{ row.command }}</span>
+                <span class="command-badge">{{ log.category }}</span>
               </td>
-              <td>
-                <span 
-                  class="status-badge-table"
-                  [class.status-executing]="row.status === 'executing'"
-                  [class.status-idle]="row.status === 'idle'"
-                >
-                  {{ row.status.toUpperCase() }}
-                </span>
+              <td>{{ log.action }}</td>
+              <td class="details">
+                <table>
+                  <tr *ngFor="let key of objectKeys(log.details)">
+                    <td style="padding-right: 1rem; color: #6b7280;">
+                      {{ key }}
+                    </td>
+                    <td
+                      style="
+                        font-family: 'Courier New', monospace;
+                        color: #1f2937;
+                      "
+                    >
+                      {{ log.details[key] }}
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
           </tbody>
@@ -85,6 +102,5 @@
     <div *ngIf="activeTab === 'history'" class="tab-content">
       <app-mission-list></app-mission-list>
     </div>
-
   </main>
 </div>
