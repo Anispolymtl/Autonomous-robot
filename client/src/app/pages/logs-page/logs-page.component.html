@@ -4,16 +4,15 @@
     <div class="header-left">
       <div class="logo">📈</div>
       <div class="header-title">
-        <h1>Mission Control System</h1>
-        <p>Logs & Diagnostics</p>
+        <h1>Centre de contrôle de mission</h1>
+        <p>Journalisation et diagnostics</p>
       </div>
     </div>
     <div class="header-right">
       <div class="status-badge">
-        <span>⏰</span>
-        <span>Live: {{ liveData.length }} robots actifs</span>
+        <span>🔴</span>
+        <span>EN DIRECT: {{ liveData.length }} robots actifs</span>
       </div>
-      <button class="settings-btn">⚙️</button>
     </div>
   </div>
 
@@ -23,14 +22,14 @@
       [class.active]="activeTab === 'live'" 
       (click)="switchTab('live')"
     >
-      📡 Live Monitoring
+      📡 Surveillance
     </button>
     <button 
       class="tab" 
       [class.active]="activeTab === 'history'" 
       (click)="switchTab('history')"
     >
-      📂 Mission History
+      📂 Historique
     </button>
   </div>
 </header>
@@ -44,7 +43,7 @@
   <main class="content">
     <!-- LIVE TAB -->
     <div *ngIf="activeTab === 'live'" class="tab-content">
-      <h2 class="content-title">Monitoring en Direct</h2>
+      <h2 class="content-title">Surveillance en direct</h2>
 
       <div class="table-container">
         <table>

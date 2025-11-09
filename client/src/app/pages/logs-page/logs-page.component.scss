@@ -86,21 +86,6 @@ $info: #3b82f6;
   color: $success;
 }
 
-.settings-btn {
-  padding: 0.625rem;
-  background: $bg-gray-50;
-  border: 1px solid $border-gray;
-  border-radius: 0.625rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1.25rem;
-
-  &:hover {
-    background: $bg-gray-100;
-    transform: rotate(90deg);
-  }
-}
-
 /* TABS */
 .tabs {
   display: flex;
