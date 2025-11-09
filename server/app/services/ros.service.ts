@@ -4,6 +4,7 @@ import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
 import { SocketService } from './socket/socket.service';
 import { NavService } from './nav/nav.service';
+import { StateService } from '@app/services/state/state.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -19,7 +20,8 @@ export class RosService implements OnModuleInit {
 
   constructor(
     private socketService: SocketService,
-    private navService: NavService
+    private navService: NavService,
+    private stateService: StateService
   ) {}
 
   async onModuleInit() {
@@ -34,6 +36,7 @@ export class RosService implements OnModuleInit {
       { node: nodeLimo2, identifyClient: clientLimo2 }
     ];
     this.navService.initNavService(nodeLimo1, nodeLimo2);
+    this.stateService.initStateService();
     nodeLimo1.spin();
     nodeLimo2.spin();
     this.setupMappingListner();

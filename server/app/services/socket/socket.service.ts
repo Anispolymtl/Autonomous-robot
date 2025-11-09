@@ -14,7 +14,14 @@ export class SocketService{
     removeSocket(socket: Socket) {
         this.sockets.delete(socket);
     }
-    
+
+    sendStateToAllSockets(robot: RobotId, state: any) {
+        console.log('Mission state to all sockets');
+        this.sockets.forEach((socket) => {
+            socket.emit('stateUpdate', state);
+        });
+    }
+
     sendMapToAllSockets(mapData: any) {
         console.log('Sending map data to all sockets');
         this.sockets.forEach((socket) => {
