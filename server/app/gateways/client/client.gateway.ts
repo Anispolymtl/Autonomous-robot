@@ -39,8 +39,7 @@ export class ClientGateway {
 
     constructor(
         private socketService: SocketService,
-        private rosService: RosService,
-        private missionRuntimeService: MissionRuntimeService,,
+        private missionRuntimeService: MissionRuntimeService,
         private navService: NavService
     ) {}
 

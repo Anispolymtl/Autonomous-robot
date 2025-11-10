@@ -49,7 +49,7 @@ export class SocketService{
         });
     }
 
-    sendMapToAllSockets(mapData: any) {
+    sendMapToAllSockets(mapData: any, robot: RobotId) {
         console.log('Sending map data to all sockets');
         this.payloads[robot].mapData = mapData;
         this.sockets.forEach((socket) => {
