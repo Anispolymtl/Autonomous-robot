@@ -80,15 +80,6 @@ export class RealPageComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    if (this.form.valid) {
-      this.message = `Connexion réussie pour l’équipe ${this.form.value.teamName} avec le robot ${this.form.value.robotName}.`;
-      console.log('Connexion envoyée', this.form.value);
-    } else {
-      this.message = 'Veuillez remplir tous les champs.';
-    }
-  }
-
   setSelectedRobot(robotId: RobotId): void {
     this.selectedRobotId = robotId;
   }

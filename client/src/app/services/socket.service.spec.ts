@@ -1,82 +1,95 @@
 import { TestBed } from '@angular/core/testing';
-import { Socket } from 'socket.io-client';
 import { SocketService } from './socket.service';
 
+class MockSocket {
+  connected = false;
+  on = jasmine.createSpy('on');
+  once = jasmine.createSpy('once');
+  off = jasmine.createSpy('off');
+  emit = jasmine.createSpy('emit');
+  disconnect = jasmine.createSpy('disconnect');
+}
+
 describe('SocketService', () => {
-    let service: SocketService;
-    let mockSocket: jasmine.SpyObj<Socket>;
+  let service: SocketService;
+  let mockSocket: MockSocket;
 
-    beforeEach(() => {
-        mockSocket = jasmine.createSpyObj<Socket>('Socket', ['on', 'emit', 'disconnect'], { connected: true, id: '1234' });
-
-        TestBed.configureTestingModule({
-            providers: [SocketService],
-        });
-
-        service = TestBed.inject(SocketService);
-        service.socket = mockSocket;
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [SocketService]
     });
 
-    describe('Initialization', () => {
-        it('should be created', () => {
-            expect(service).toBeTruthy();
-        });
+    service = TestBed.inject(SocketService);
+    mockSocket = new MockSocket();
+  });
 
-        it('should return the socket instance', () => {
-            expect(service.getSocket).toBe(mockSocket);
-        });
-    });
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
 
-    describe('Socket Connection', () => {
-        it('should connect to the server', () => {
-            spyOn(service, 'connect').and.callThrough();
+  it('should connect to a namespace', () => {
+    (service as any)['socket'] = undefined;
+    service.connect('testNamespace');
+    expect((service as any)['socket']).toBeDefined();
+  });
 
-            service.connect();
+  it('should not reconnect if socket is already connected', () => {
+    mockSocket.connected = true;
+    (service as any)['socket'] = mockSocket;
+    service.connect('anotherNamespace');
+    expect((service as any)['socket']).toBe(mockSocket);
+  });
 
-            expect(service.connect).toHaveBeenCalled();
-            expect(service.socket).toBeDefined();
-        });
+  it('should disconnect socket', () => {
+    (service as any)['socket'] = mockSocket;
+    service.disconnect();
+    expect(mockSocket.disconnect).toHaveBeenCalled();
+  });
 
-        it('should disconnect the socket', () => {
-            service.disconnect();
-            expect(mockSocket.disconnect).toHaveBeenCalled();
-        });
-    });
+  it('should call socket.on', () => {
+    (service as any)['socket'] = mockSocket;
+    const callback = jasmine.createSpy();
+    service.on('event', callback);
+    expect(mockSocket.on).toHaveBeenCalledWith('event', callback);
+  });
 
-    describe('Socket Status', () => {
-        it('should check if socket is alive', () => {
-            service.socket.connected = true;
-            expect(service.isSocketAlive()).toBeTrue();
+  it('should call socket.once', () => {
+    (service as any)['socket'] = mockSocket;
+    const callback = jasmine.createSpy();
+    service.once('event', callback);
+    expect(mockSocket.once).toHaveBeenCalledWith('event', callback);
+  });
 
-            service.connect();
-            expect(service.isSocketAlive()).toBeFalse();
-        });
+  it('should call socket.off', () => {
+    (service as any)['socket'] = mockSocket;
+    const callback = jasmine.createSpy();
+    service.off('event', callback);
+    expect(mockSocket.off).toHaveBeenCalledWith('event', callback);
+  });
 
-        it('should return false if socket is undefined', () => {
-            service.socket = undefined as unknown as Socket;
-            expect(service.isSocketAlive()).toBeFalse();
-        });
-    });
+  it('should emit event with data and callback', () => {
+    (service as any)['socket'] = mockSocket;
+    const cb = jasmine.createSpy();
+    service.send('event', { foo: 'bar' }, cb);
+    expect(mockSocket.emit).toHaveBeenCalledWith('event', { foo: 'bar' }, cb);
+  });
 
-    describe('Event Handling', () => {
-        it('should register event listeners', () => {
-            const callback = jasmine.createSpy('callback');
-            service.on('test-event', callback);
+  it('should emit event without data', () => {
+    (service as any)['socket'] = mockSocket;
+    service.send('event');
+    expect(mockSocket.emit).toHaveBeenCalledWith('event');
+  });
 
-            expect(mockSocket.on).toHaveBeenCalledWith('test-event', callback);
-        });
+  it('should return correct isSocketAlive value', () => {
+    (service as any)['socket'] = mockSocket;
+    mockSocket.connected = true;
+    expect(service.isSocketAlive()).toBeTrue();
+    mockSocket.connected = false;
+    expect(service.isSocketAlive()).toBeFalse();
+  });
 
-        it('should send events without callback', () => {
-            service.send('test-event', { data: 'test' });
-
-            expect(mockSocket.emit).toHaveBeenCalledWith('test-event', { data: 'test' });
-        });
-
-        it('should send events with callback', () => {
-            const callback = jasmine.createSpy('callback');
-            service.send('test-event', { data: 'test' }, callback);
-
-            expect(mockSocket.emit).toHaveBeenCalledWith('test-event', { data: 'test' }, callback);
-        });
-    });
+  it('should return the socket via getSocket', () => {
+    (service as any)['socket'] = mockSocket;
+    expect(service.getSocket).toBe(mockSocket as any);
+  });
 });

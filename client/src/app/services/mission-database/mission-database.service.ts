@@ -76,4 +76,3 @@ export class MissionDatabaseService {
         return this.http.post<{ created: number; message: string }>(`${this.missionsUrl}/populate`, { force });
     }
 }
-
