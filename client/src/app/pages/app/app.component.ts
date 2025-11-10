@@ -13,6 +13,7 @@ import { filter } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
     private syncing = false;
+    private readonly autoRedirectOrigins = new Set(['/home', '/', '/robot-login']);
 
     constructor(
         private missionModeService: MissionModeService,
@@ -45,22 +46,43 @@ export class AppComponent implements OnInit {
         if (this.syncing) return;
         this.syncing = true;
 
-        const currentUrl = this.router.url;
-        if (mode === 'REAL' && currentUrl !== '/real-mode') {
-            this.router.navigate(['/real-mode']).finally(() => (this.syncing = false));
-            return;
+        const currentUrl = this.normalizeUrl(this.router.url);
+
+        if (mode === 'REAL') {
+            if (currentUrl === '/simulation-mode' || (currentUrl !== '/real-mode' && this.shouldForceMissionRoute(currentUrl))) {
+                this.router.navigate(['/real-mode']).finally(() => (this.syncing = false));
+                return;
+            }
         }
 
-        if (mode === 'SIMULATION' && currentUrl !== '/simulation-mode') {
-            this.router.navigate(['/simulation-mode']).finally(() => (this.syncing = false));
-            return;
+        if (mode === 'SIMULATION') {
+            if (currentUrl === '/real-mode' || (currentUrl !== '/simulation-mode' && this.shouldForceMissionRoute(currentUrl))) {
+                this.router.navigate(['/simulation-mode']).finally(() => (this.syncing = false));
+                return;
+            }
         }
 
-        if (mode === null && (currentUrl === '/simulation-mode' || currentUrl === '/real-mode')) {
+        if (mode === null && this.isMissionRoute(currentUrl)) {
             this.router.navigate(['/home']).finally(() => (this.syncing = false));
             return;
         }
 
         this.syncing = false;
+    }
+
+    private normalizeUrl(url: string): string {
+        const [path] = url.split('?');
+        if (!path || path === '/') {
+            return '/';
+        }
+        return path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+    }
+
+    private shouldForceMissionRoute(url: string): boolean {
+        return this.autoRedirectOrigins.has(url);
+    }
+
+    private isMissionRoute(url: string): boolean {
+        return url === '/simulation-mode' || url === '/real-mode';
     }
 }
