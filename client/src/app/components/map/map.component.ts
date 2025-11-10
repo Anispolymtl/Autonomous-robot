@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
 import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
@@ -16,6 +16,7 @@ export interface Point2D {
 type RobotId = 'limo1' | 'limo2';
 
 export interface MapObject {
+  frame: string,
   map: OccupancyGrid | undefined;
   originCanvasPosition: Point2D | undefined;
   selectedCanvasCoord: Point2D | undefined;
@@ -36,7 +37,8 @@ export interface MapObject {
 export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('mapCanvas', { static: true }) private mapCanvasRef?: ElementRef<HTMLCanvasElement>;
   mapObj: MapObject = this.createInitialMapObject();
-
+  @Input({ required: true }) robotId!: RobotId;
+  
   constructor(
     private readonly mapService: MapService,
     private readonly socketService: SocketService,
@@ -96,7 +98,7 @@ ngOnInit(): void {
   }
 
   private configureMapSocketFeatures(): void {
-    this.socketService.on(MapEvent.RecoverMap, (recoveredMap: any) => {
+    this.socketService.on(`/${this.robotId}/${MapEvent.RecoverMap}`, (recoveredMap: any) => {
       console.log(MapEvent.RecoverMap)
       this.mapObj.map = {
         data: this.mapService.normaliseMapData(recoveredMap?.data),
@@ -109,9 +111,9 @@ ngOnInit(): void {
         },
       };
       this.mapService.updateOrientationCache(this.mapObj.map, this.mapObj.orientation);
-      if (!this.mapObj.robotPoses['limo1']) {
-        this.mapObj.robotPoses['limo1'] = {
-          header: { frame_id: 'limo1/map' },
+      if (!this.mapObj.robotPoses[this.robotId]) {
+        this.mapObj.robotPoses[this.robotId] = {
+          header: { frame_id: `${this.robotId}/map`},
           pose: { position: { x: 0, y: 0, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
         };
       }
@@ -119,14 +121,15 @@ ngOnInit(): void {
       if (canvas && this.mapObj.map) this.mapService.renderMap(canvas, this.mapObj);
     });
 
-    this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
-      if (!payload?.robot || !payload.poseData) return;
-      this.mapObj.robotPoses[payload.robot] = payload.poseData;
+    this.socketService.on(`/${this.robotId}/${MapEvent.PoseUpdate}`, (poseData: PoseData) => {
+      if (!poseData) return;
+      this.mapObj.robotPoses[this.robotId] = poseData;
       if (this.canvas && this.mapObj.map) this.mapService.renderMap(this.canvas, this.mapObj);
     });
 
-    this.socketService.on(MapEvent.newPoints, (payload: {robot: RobotId, points: Point2D[]}) => {
-      this.mapObj.pointList = payload.points.map(
+    this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, (points: Point2D[]) => {
+      if (points.length === 0) console.log('empty array', points)
+      this.mapObj.pointList = points.map(
         (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
       ).filter((point) => point != undefined);
       if (this.canvas && this.mapObj.map) this.mapService.renderMap(this.canvas, this.mapObj);
@@ -139,6 +142,7 @@ ngOnInit(): void {
 
   private createInitialMapObject(): MapObject {
     return {
+      frame: this.robotId,
       map: undefined,
       originCanvasPosition: undefined,
       selectedCanvasCoord: undefined,

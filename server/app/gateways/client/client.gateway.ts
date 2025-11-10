@@ -34,20 +34,17 @@ export class ClientGateway {
 
     @SubscribeMessage('point')
     onPointGet(socket: Socket, payload: {robot: RobotId , point: Point2D}) {
-        const points = this.navService.addPoint(payload);
-        this.server.emit('newPoints', {robot: payload.robot, points});
+        this.navService.addPoint(payload);
     }
 
     @SubscribeMessage('removePoint')
     onPointRemove(socket: Socket, payload: {robot: RobotId, index: number}) {
-        const points = this.navService.removePoint(payload);
-        this.server.emit('newPoints', {robot: payload.robot, points});
+        this.navService.removePoint(payload);
     }
 
     @SubscribeMessage('startNavGoal')
     onGoalGet(socket: Socket, payload: {robot: RobotId}) {
-        const points = this.navService.startGoal(payload.robot);
-        this.server.emit('newPoints', {robot: payload.robot, points});
+        this.navService.startGoal(payload.robot);
     }
 
 }

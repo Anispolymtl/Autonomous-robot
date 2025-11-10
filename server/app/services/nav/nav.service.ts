@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import * as rclnodejs from 'rclnodejs';
+import { SocketService } from "../socket/socket.service";
 
 type RobotId = 'limo1' | 'limo2';
 type Point2D = { x: number; y: number };
@@ -12,6 +13,10 @@ export class NavService {
     private points: Record<RobotId, Point2D[]> = { limo1: [], limo2: [] };
     private isNavigating: Record<RobotId, boolean> = { limo1: false, limo2: false };
     private isInit: boolean = false;
+    
+    constructor(
+        private socketService: SocketService
+    ) {}
 
     initNavService(nodeLimo1: rclnodejs.Node, nodeLimo2: rclnodejs.Node) {
         this.navClient1 = new rclnodejs.ActionClient(nodeLimo1, 'nav2_msgs/action/FollowWaypoints', 'follow_waypoints');
@@ -19,16 +24,16 @@ export class NavService {
         this.isInit = true;
     }
 
-    addPoint(payload: {robot: RobotId; point: Point2D}): Point2D[] {
+    addPoint(payload: {robot: RobotId; point: Point2D}) {
         if (!this.isInit || this.isNavigating[payload.robot]) return [];
         this.points[payload.robot].push(payload.point);
-        return this.points[payload.robot];
+        this.socketService.sendPointsToAllSockets(payload.robot, this.points[payload.robot]);
     }
 
     removePoint(payload: {robot: RobotId, index: number}) {
         if (!this.isInit || payload.index >= this.points[payload.robot].length || this.isNavigating[payload.robot] || payload.index < 0) return [];
         this.points[payload.robot].splice(payload.index, 1);
-        return this.points[payload.robot];
+        this.socketService.sendPointsToAllSockets(payload.robot, this.points[payload.robot]);
     }
 
     startGoal(robot: RobotId) {
@@ -40,7 +45,7 @@ export class NavService {
                 this.logger.error(`Failed to process queue for ${robot}`, err.stack),
             );
         }
-        return this.points[robot];
+        this.socketService.sendPointsToAllSockets(robot, this.points[robot]);
     }
 
     private async processPointQueue(robot: RobotId, queue: Point2D[]) {

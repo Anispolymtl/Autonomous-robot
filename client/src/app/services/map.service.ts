@@ -116,14 +116,14 @@ export class MapService {
 
     sendPoint(mapObj: MapObject): void{
         if(!mapObj.selectedPoint || !mapObj.selectedCanvasCoord) return;
-        this.socketService.send('point', {robot: 'limo1', point: mapObj.selectedPoint.world});
+        this.socketService.send('point', {robot: mapObj.frame, point: mapObj.selectedPoint.world});
         mapObj.selectedPoint = undefined;
         mapObj.selectedCanvasCoord = undefined;
     }
 
     removePoint(index: number, mapObj: MapObject): void {
         if (index < 0 || index >= mapObj.pointList.length) return;
-        this.socketService.send('removePoint', {robot: 'limo1', index});
+        this.socketService.send('removePoint', {robot: mapObj.frame, index});
     }
 
     sendGoal(mapObj: MapObject): void {
@@ -132,7 +132,7 @@ export class MapService {
             return;
         }
         console.log('Sending objective:', mapObj.pointList);
-        this.socketService.send('startNavGoal', {robot: 'limo1'});
+        this.socketService.send('startNavGoal', {robot: mapObj.frame});
     }
     
     private drawOriginMarker(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {

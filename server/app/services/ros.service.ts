@@ -4,6 +4,7 @@ import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
 import { SocketService } from './socket/socket.service';
 import { NavService } from './nav/nav.service';
+import { MappingSerivce } from './mapping/mapping.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -11,15 +12,11 @@ type RobotId = 'limo1' | 'limo2';
 export class RosService implements OnModuleInit {
   private readonly logger = new Logger(RosService.name);
   private limoList: LimoObject[];
-  private mappingNode: rclnodejs.Node | undefined;
-  private mappingSubscription: rclnodejs.Subscription | undefined;
-  private poseNode: rclnodejs.Node | undefined;
-  private poseSubscriptions: Partial<Record<RobotId, rclnodejs.Subscription>> = {};
 
 
   constructor(
-    private socketService: SocketService,
-    private navService: NavService
+    private navService: NavService,
+    private mappingService: MappingSerivce
   ) {}
 
   async onModuleInit() {
@@ -34,49 +31,10 @@ export class RosService implements OnModuleInit {
       { node: nodeLimo2, identifyClient: clientLimo2 }
     ];
     this.navService.initNavService(nodeLimo1, nodeLimo2);
+    this.mappingService.initialiseMappingService();
     nodeLimo1.spin();
     nodeLimo2.spin();
-    this.setupMappingListner();
-    this.setupPoseListners();
     this.logger.log('ROS2 client prêt !');
-  }
-
-  private setupMappingListner() {
-    this.mappingNode = new rclnodejs.Node('mapping_listener_backend');
-    this.mappingSubscription = this.mappingNode.createSubscription(
-      'nav_msgs/msg/OccupancyGrid',
-      '/limo1/map',
-      (msg) => {
-        this.socketService.sendMapToAllSockets(msg);
-      }
-    );
-    this.mappingNode.spin();
-    console.log('ROS2 subscriber started');
-  }
-
-  private setupPoseListners() {
-    this.poseNode = new rclnodejs.Node('pose_listener_backend');
-    this.poseSubscriptions.limo1 = this.poseNode.createSubscription(
-      'geometry_msgs/msg/PoseWithCovarianceStamped',
-      '/limo1/pose',
-      (msg) => {
-        const payload = this.extractPosePayload(msg);
-        console.log('Received pose data for limo1:', payload);
-        this.socketService.sendPoseToAllSockets('limo1', payload);
-      }
-    );
-    this.poseSubscriptions.limo2 = this.poseNode.createSubscription(
-      'geometry_msgs/msg/PoseWithCovarianceStamped',
-      '/limo2/pose',
-      (msg) => {
-        const payload = this.extractPosePayload(msg);
-        console.log('Received pose data for limo2:', payload);
-        this.socketService.sendPoseToAllSockets('limo2', payload);
-      }
-    );
-    this.poseNode.spin();
-
-    console.log('ROS2 pose subscribers started');
   }
 
   async identifyRobot(id: number): Promise<{ success: boolean; message: string }> {
@@ -93,15 +51,5 @@ export class RosService implements OnModuleInit {
         else resolve({ success: false, message: 'Échec de l’appel ROS2' });
       });
     });
-  }
-
-  private extractPosePayload(msg: any) {
-    if (msg?.pose?.pose) {
-      return {
-        header: msg.header,
-        pose: msg.pose.pose,
-      };
-    }
-    return msg;
   }
 }

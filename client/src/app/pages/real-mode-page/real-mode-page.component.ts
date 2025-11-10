@@ -8,6 +8,8 @@ import { MissionService } from '@app/services/mission.service';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
 
+type RobotId = 'limo1' | 'limo2';
+
 @Component({
   selector: 'app-real-page',
   standalone: true,
@@ -18,6 +20,8 @@ import { RobotStatusComponent } from '@app/components/robot-status/robot-status.
 export class RealPageComponent {
   form: FormGroup;
   message: string | null = null;
+  selectedRobotId: RobotId = 'limo1';
+
 
   @ViewChild(RobotStatusComponent)
   robotStatusComponent!: RobotStatusComponent;
@@ -72,6 +76,10 @@ export class RealPageComponent {
     } else {
       this.message = 'Veuillez remplir tous les champs.';
     }
+  }
+
+  setSelectedRobot(robotId: RobotId): void {
+    this.selectedRobotId = robotId;
   }
 
   back(): void {
