@@ -1,4 +1,5 @@
 export enum MapEvent {
     RecoverMap = 'mapUpdate',
-    PoseUpdate = 'poseUpdate'
+    PoseUpdate = 'poseUpdate',
+    newPoints = 'newPoints'
 }
