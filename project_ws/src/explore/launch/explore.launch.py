@@ -20,7 +20,6 @@ def launch_setup(context, *args, **kwargs):
             package='explore_lite',
             executable='explore',
             name='explore_node',
-            namespace=namespace,
             parameters=[ParameterFile(config_path, allow_substs=True),
                         {'use_sim_time': False}],
             output='screen',
@@ -32,7 +31,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
         'namespace',
-        default_value='limo1',
+        default_value='',
         description="Namespace obligatoire (limo1 ou limo2)"
     )
 

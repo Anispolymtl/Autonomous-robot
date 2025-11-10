@@ -12,6 +12,7 @@ def launch_with_namespace(context, *args, **kwargs):
         raise RuntimeError(f"Namespace invalide: {namespace}. Choisir 'limo1' ou 'limo2'.")
 
     pkg_robot = get_package_share_directory('robot_exploration')
+    explore_pkg = get_package_share_directory('explore_lite')
 
     # slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
 
@@ -65,11 +66,16 @@ def launch_with_namespace(context, *args, **kwargs):
     # )
     mission_action = Node(
         package='robot_exploration',
-        executable='mission_real',
-        name='mission_real',
+        executable='mission_server',
+        name='mission_server',
         output='screen',
         parameters=[{'use_sim_time': False}],
     )
+
+    explore_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(explore_pkg, 'launch', 'explore.launch.py')
+        ))
 
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
@@ -78,7 +84,8 @@ def launch_with_namespace(context, *args, **kwargs):
         mission_action,
         # slam_toolbox_launch,
         cartographer_launch,
-        nav2_launch
+        nav2_launch,
+        explore_launch
     ])
 
     return [group]

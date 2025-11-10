@@ -43,12 +43,21 @@ class MissionServer(Node):
         self.state_pub = self.create_publisher(String, "mission_state", 10)
         self.state_timer = self.create_timer(1.0, self.publish_state)
 
-        # ✅ Publisher ROS2 commun à explore_lite & ExplorerNode
+        # Publisher ROS2 commun à explore_lite & ExplorerNode
         self.resume_topic = "explore/resume"
+        # Juste après la création du publisher explore/resume
         self.resume_pub = self.create_publisher(Bool, "explore/resume", 10)
         self.get_logger().info(f"🛰️ Publication vers {self.resume_topic}")
 
-        # ✅ Service pour changer de mode
+        # Désactive exploration dès le départ
+        msg = Bool()
+        msg.data = False
+        for _ in range(3):  # Publier plusieurs fois pour fiabiliser l'envoi au démarrage
+            self.resume_pub.publish(msg)
+            time.sleep(0.5)
+        self.get_logger().info("🔒 Exploration initialement désactivée (en attente de do_mission)")
+
+        # Service pour changer de mode
         self.mode_srv = self.create_service(SetBool, "change_mode", self.change_mode_callback)
 
         self.get_logger().info(f"Mission Server prêt (ns='{self.get_namespace()}') ✅")
