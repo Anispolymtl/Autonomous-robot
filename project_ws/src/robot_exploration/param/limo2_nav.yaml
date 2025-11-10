@@ -111,6 +111,7 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 
 controller_server:
   ros__parameters:
+    use_final_approach_orientation: false
     odom_topic: limo2/odom
     use_sim_time: True
     controller_frequency: 20.0
