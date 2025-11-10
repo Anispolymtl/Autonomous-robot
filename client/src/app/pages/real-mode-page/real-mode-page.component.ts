@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
@@ -7,6 +7,8 @@ import { IdentifyService } from '@app/services/identify.service';
 import { MissionService } from '@app/services/mission.service';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
+import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -17,7 +19,7 @@ type RobotId = 'limo1' | 'limo2';
   templateUrl: './real-mode-page.component.html',
   styleUrls: ['./real-mode-page.component.scss'],
 })
-export class RealPageComponent {
+export class RealPageComponent implements OnInit {
   form: FormGroup;
   message: string | null = null;
   selectedRobotId: RobotId = 'limo1';
@@ -29,8 +31,14 @@ export class RealPageComponent {
   constructor(
     private router: Router,
     private identifyService: IdentifyService,
-    private missionService: MissionService
+    private missionService: MissionService,
+    private missionSessionService: MissionSessionService,
+    private missionDatabaseService: MissionDatabaseService
   ) {}
+
+  ngOnInit(): void {
+    this.missionSessionService.rehydrateActiveMission();
+  }
 
   onIdentify(robotId: number): void {
     this.identifyService.identifyRobot(robotId).subscribe({
@@ -46,6 +54,7 @@ export class RealPageComponent {
   startMission(): void {
     this.message = 'Mission demandée.';
     console.log('Mission demandée');
+    this.missionSessionService.markMissionStarted();
     this.missionService.startMission().subscribe({
       next: (response: any) => {
         console.log('Mission started successfully:', response);
@@ -62,9 +71,11 @@ export class RealPageComponent {
     this.missionService.cancelMission().subscribe({
       next: (response: any) => {
         console.log('Mission stopped successfully:', response);
+        this.finalizeMission();
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error stopping mission:', error);
+        this.finalizeMission();
       },
     });
   }
@@ -84,5 +95,38 @@ export class RealPageComponent {
 
   back(): void {
     this.router.navigate(['/home']);
+  }
+
+  private finalizeMission(): void {
+    this.missionSessionService.completeMission()
+      .then((mission) => {
+        if (!mission) {
+          this.router.navigate(['/home']);
+          return;
+        }
+
+        this.missionDatabaseService.createMission({
+          missionName: mission.missionName,
+          robots: mission.robots,
+          mode: mission.mode,
+          distance: mission.distance ?? 0,
+          durationSec: mission.durationSec ?? 0,
+          status: mission.status,
+          logs: mission.logs ?? []
+        }).subscribe({
+          next: () => {
+            console.log('Mission persistée en base de données');
+            this.router.navigate(['/home']);
+          },
+          error: (err) => {
+            console.error('Erreur lors de la sauvegarde de la mission:', err);
+            this.router.navigate(['/home']);
+          },
+        });
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la finalisation de la mission:', error);
+        this.router.navigate(['/home']);
+      });
   }
 }

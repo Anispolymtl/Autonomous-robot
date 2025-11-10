@@ -15,28 +15,33 @@ export interface Mission {
     _id?: string;
     createdAt?: Date | string;
     durationSec: number;
-    robotName: string;
+    robots: string[];
     mode: 'SIMULATION' | 'REAL';
     distance: number;
     missionName: string;
     logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface CreateMissionDto {
     durationSec: number;
-    robotName: string;
+    robots: string[];
     mode: 'SIMULATION' | 'REAL';
     distance: number;
     missionName: string;
+    logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface UpdateMissionDto {
     _id: string;
     durationSec?: number;
-    robotName?: string;
+    robots?: string[];
     mode?: 'SIMULATION' | 'REAL';
     distance?: number;
     missionName?: string;
+    logs?: MissionLogEntry[];
+    status?: string;
 }
 
 export interface MissionStats {

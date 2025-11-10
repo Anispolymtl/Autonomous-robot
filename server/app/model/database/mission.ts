@@ -17,9 +17,9 @@ export class Mission {
     @Prop({ required: false })
     durationSec?: number;
 
-    @ApiProperty()
-    @Prop({ required: false })
-    robotName?: string;
+    @ApiProperty({ type: [String], description: 'Liste des robots impliqués (2 entrées)' })
+    @Prop({ type: [String], required: true, validate: [(arr: string[]) => Array.isArray(arr) && arr.length === 2, 'Robots array must contain exactly 2 entries'] })
+    robots: string[];
 
     @ApiProperty()
     @Prop({ required: false, enum: ['SIMULATION', 'REAL'] })
@@ -32,7 +32,14 @@ export class Mission {
     @ApiProperty()
     @Prop({ required: false })
     missionName?: string;
+
+    @ApiProperty({ required: false })
+    @Prop({ required: false })
+    status?: string;
+
+    @ApiProperty({ required: false, type: [Object] })
+    @Prop({ type: Array, default: [] })
+    logs?: Record<string, unknown>[];
 }
 
 export const missionSchema = SchemaFactory.createForClass(Mission);
-

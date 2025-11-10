@@ -274,7 +274,7 @@ std::array<unsigned char, 256> init_translation_table()
   cost_translation_table[static_cast<unsigned char>(-1)] = 255;  // UNKNOWN
 
   for (size_t i = 0; i <= 100; ++i)
-    if (i >= 0 && i < 40)
+    if (i < 40)
       cost_translation_table[i] = 0;
     else if (i >= 50)
       cost_translation_table[i] = 254;

@@ -4,40 +4,44 @@
     <div class="header-left">
       <div class="logo">📈</div>
       <div class="header-title">
-        <h1>Mission Control System</h1>
-        <p>Logs & Diagnostics</p>
+        <h1>Centre de contrôle de mission</h1>
+        <p>Journalisation et diagnostics</p>
       </div>
     </div>
     <div class="header-right">
-      <div class="status-badge">
-        <span>⏰</span>
-        <span>Live: {{ liveData.length }} robots actifs</span>
+
+      <div class="status-badge" *ngIf="hasActiveMission; else noMission">
+        <span>🔴</span>
+        <span>
+          Mission :
+          {{ missionName || missionId }}
+        </span>
       </div>
-      <button class="settings-btn">⚙️</button>
+
+      <ng-template #noMission>
+        <div class="status-badge">
+          <span>⚪</span>
+          <span>Aucune mission en direct</span>
+        </div>
+      </ng-template>
+
     </div>
   </div>
 
   <div class="tabs">
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'live'" 
+    <button
+      class="tab"
+      [class.active]="activeTab === 'live'"
       (click)="switchTab('live')"
     >
-      📡 Live Monitoring
+      📡 Surveillance
     </button>
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'history'" 
+    <button
+      class="tab"
+      [class.active]="activeTab === 'history'"
       (click)="switchTab('history')"
     >
-      📂 Mission History
-    </button>
-    <button 
-      class="tab" 
-      [class.active]="activeTab === 'analytics'" 
-      (click)="switchTab('analytics')"
-    >
-      📊 Analytics
+      📂 Historique
     </button>
   </div>
 </header>
@@ -47,79 +51,70 @@
 </div>
 
 <div class="main-container">
-  <!-- MAIN CONTENT -->
   <main class="content">
     <!-- LIVE TAB -->
     <div *ngIf="activeTab === 'live'" class="tab-content">
-      <h2 class="content-title">Monitoring en Direct</h2>
+      <h2 class="content-title">Flux en temps réel</h2>
 
       <div class="table-container">
-        <table>
+        <table class="logs-table">
           <thead>
             <tr>
-              <th>Robot</th>
-              <th>Timestamp</th>
-              <th>Distance (m)</th>
-              <th>Position (X, Y)</th>
-              <th>Commande</th>
-              <th>Statut</th>
+              <th class="col-time">Heure</th>
+              <th class="col-robot">Robot</th>
+              <th class="col-category">Catégorie</th>
+              <th class="col-action">Action</th>
+              <th class="col-details">Détails</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of liveData">
-              <td class="robot-name">{{ row.robot }}</td>
-              <td class="timestamp">{{ row.timestamp }}</td>
-              <td class="position">{{ row.distance.toFixed(2) }}</td>
-              <td class="position">({{ row.x }}, {{ row.y }})</td>
-              <td>
-                <span class="command-badge">{{ row.command }}</span>
+            <tr *ngFor="let log of liveData" class="log-row">
+              <td class="col-time">
+                <span class="time-badge">{{ log.timestamp }}</span>
               </td>
-              <td>
+              <td class="col-robot">
+                <div class="robot-cell">
+                  <span class="robot-icon">🚗</span>
+                  <span class="robot-name-log">{{ log.robot }}</span>
+                </div>
+              </td>
+              <td class="col-category">
                 <span 
-                  class="status-badge-table"
-                  [class.status-executing]="row.status === 'executing'"
-                  [class.status-idle]="row.status === 'idle'"
+                  class="category-badge-log" 
+                  [class.command]="log.category === 'Command'" 
+                  [class.sensor]="log.category === 'Sensor'"
                 >
-                  {{ row.status.toUpperCase() }}
+                  {{ log.category }}
                 </span>
+              </td>
+              <td class="col-action">
+                <span class="action-text">{{ log.action }}</span>
+              </td>
+              <td class="col-details">
+                <div class="details-container">
+                  <span class="detail-tag" *ngFor="let key of objectKeys(log.details)">
+                    <span class="detail-key">{{ key }}</span>
+                    <span class="detail-value">{{ log.details[key] }}</span>
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
 
-      <div class="chart-container">
-        <h3 class="chart-title">Distance (m) - Historique 3 min</h3>
-        <div class="chart-placeholder">
-          📊 Graphique en temps réel (Robot-01, Robot-02, Robot-03)
+        <!-- ÉTAT VIDE -->
+        <div class="empty-state" *ngIf="liveData.length === 0">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Aucun log disponible</div>
+          <div class="empty-text">Les événements apparaîtront ici en temps réel</div>
         </div>
       </div>
+
     </div>
 
     <!-- HISTORY TAB -->
     <div *ngIf="activeTab === 'history'" class="tab-content">
       <app-mission-list></app-mission-list>
-    </div>
-
-    <!-- ANALYTICS TAB -->
-    <div *ngIf="activeTab === 'analytics'" class="tab-content">
-      <h2 class="content-title">Analyse & Diagnostics</h2>
-      <div class="analytics-grid">
-        <div class="analytics-card">
-          <div class="analytics-header">
-            <span class="icon-green">✓</span> Missions Réussies
-          </div>
-          <p class="analytics-value value-green-big">12/14</p>
-          <p class="analytics-subtitle">Taux de succès: 85.7%</p>
-        </div>
-        <div class="analytics-card">
-          <div class="analytics-header">
-            <span class="icon-orange">⚠️</span> Anomalies Détectées
-          </div>
-          <p class="analytics-value value-orange-big">7</p>
-          <p class="analytics-subtitle">Dernière: 2h 15min ago</p>
-        </div>
-      </div>
     </div>
   </main>
 </div>

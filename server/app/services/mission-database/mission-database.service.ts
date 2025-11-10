@@ -39,7 +39,7 @@ export class MissionDatabaseService {
     }
 
     async getMissionsByRobot(robotName: string): Promise<Mission[]> {
-        return await this.missionModel.find({ robotName }).sort({ createdAt: -1 }).exec();
+        return await this.missionModel.find({ robots: robotName }).sort({ createdAt: -1 }).exec();
     }
 
     async getMissionsByMode(mode: string): Promise<Mission[]> {
@@ -100,8 +100,11 @@ export class MissionDatabaseService {
 
         missions.forEach(mission => {
             // Par robot
-            if (mission.robotName) {
-                stats.byRobot[mission.robotName] = (stats.byRobot[mission.robotName] || 0) + 1;
+            if (Array.isArray(mission.robots)) {
+                mission.robots.forEach((robot) => {
+                    if (!robot) return;
+                    stats.byRobot[robot] = (stats.byRobot[robot] || 0) + 1;
+                });
             }
             
             // Par mode
@@ -144,42 +147,42 @@ export class MissionDatabaseService {
             const sampleMissions: CreateMissionDto[] = [
                 {
                     missionName: 'Inspection hangar #12',
-                    robotName: 'Atlas-R2',
+                    robots: ['Atlas-R2', 'Atlas-R5'],
                     mode: 'SIMULATION',
                     distance: 1500,
                     durationSec: 735,
                 },
                 {
                     missionName: 'Patrouille secteur A',
-                    robotName: 'Atlas-R2',
+                    robots: ['Atlas-R2', 'Atlas-R3'],
                     mode: 'SIMULATION',
                     distance: 2300,
                     durationSec: 1200,
                 },
                 {
                     missionName: 'Maintenance zone 5',
-                    robotName: 'Atlas-R1',
+                    robots: ['Atlas-R1', 'Atlas-R4'],
                     mode: 'REAL',
                     distance: 800,
                     durationSec: 450,
                 },
                 {
                     missionName: 'Reconnaissance périphérie',
-                    robotName: 'Atlas-R2',
+                    robots: ['Atlas-R2', 'Atlas-R4'],
                     mode: 'REAL',
                     distance: 3200,
                     durationSec: 1800,
                 },
                 {
                     missionName: 'Vérification système',
-                    robotName: 'Atlas-R1',
+                    robots: ['Atlas-R1', 'Atlas-R3'],
                     mode: 'REAL',
                     distance: 500,
                     durationSec: 300,
                 },
                 {
                     missionName: 'Inspection infrastructure',
-                    robotName: 'Atlas-R2',
+                    robots: ['Atlas-R2', 'Atlas-R5'],
                     mode: 'REAL',
                     distance: 4500,
                     durationSec: 2400,
@@ -196,4 +199,3 @@ export class MissionDatabaseService {
         }
     }
 }
-
