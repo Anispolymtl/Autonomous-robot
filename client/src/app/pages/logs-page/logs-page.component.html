@@ -69,16 +69,16 @@
           </thead>
           <tbody>
             <tr *ngFor="let log of liveData" class="log-row">
-              <td class="col-time">
+              <td class="col-time" data-label="Heure">
                 <span class="time-badge">{{ log.timestamp }}</span>
               </td>
-              <td class="col-robot">
+              <td class="col-robot" data-label="Robot">
                 <div class="robot-cell">
                   <span class="robot-icon">🚗</span>
                   <span class="robot-name-log">{{ log.robot }}</span>
                 </div>
               </td>
-              <td class="col-category">
+              <td class="col-category" data-label="Catégorie">
                 <span 
                   class="category-badge-log" 
                   [class.command]="log.category === 'Command'" 
@@ -87,10 +87,10 @@
                   {{ log.category }}
                 </span>
               </td>
-              <td class="col-action">
+              <td class="col-action" data-label="Action">
                 <span class="action-text">{{ log.action }}</span>
               </td>
-              <td class="col-details">
+              <td class="col-details" data-label="Détails">
                 <div class="details-container">
                   <span class="detail-tag" *ngFor="let key of objectKeys(log.details)">
                     <span class="detail-key">{{ key }}</span>

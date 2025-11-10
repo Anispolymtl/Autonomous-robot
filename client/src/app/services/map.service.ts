@@ -97,9 +97,10 @@ export class MapService {
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
             canvas.height = height;
-            canvas.style.width = `${width}px`;
-            canvas.style.height = `${height}px`;
         }
+
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
