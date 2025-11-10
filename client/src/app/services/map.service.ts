@@ -1,119 +1,23 @@
 import { Injectable } from '@angular/core';
+import { MapObject } from '@app/components/map/map.component';
+import { MapCoordinate } from '@app/interfaces/map-coordinate';
+import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
+import { Orientation } from '@app/interfaces/orientation';
 import { SocketService } from '@app/services/socket.service';
-import { MapEvent } from '@common/enums/sockets-events';
-
-interface MapOrientation {
-    position: { x: number; y: number; z: number };
-    orientation: { x: number; y: number; z: number; w: number };
-}
-
-interface OccupancyGrid {
-    data: Int8Array;
-    height: number;
-    width: number;
-    resolution: number;
-    origin: MapOrientation;
-}
-
-export interface MapCoordinate {
-    cell: { x: number; y: number };
-    world: { x: number; y: number };
-}
-
-interface PoseData {
-    header: { frame_id: string; stamp?: { sec: number; nanosec: number } };
-    pose: {
-        position: { x: number; y: number; z: number };
-        orientation: { x: number; y: number; z: number; w: number };
-    };
-}
 
 @Injectable({
     providedIn: 'root',
 })
 export class MapService {
-    map: OccupancyGrid | undefined;
-    originCanvasPosition: { x: number; y: number } | undefined;
-    private yaw = 0;
-    private yawCos = 1;
-    private yawSin = 0;
-
-    selectedPoint: MapCoordinate | undefined;
-    selectedCanvasCoord: { x: number; y: number } | undefined;
-    pointList: MapCoordinate[] = [];
-    private pointCanvasCoords: { x: number; y: number }[] = [];
-    private robotPoses: Record<string, PoseData | undefined> = {};
-
-    private needsRender = false;
-
     constructor(private readonly socketService: SocketService) {
-        this.animationLoop();
     }
 
-    get isSocketAlive(): boolean {
-        return this.socketService.isSocketAlive();
-    }
+    renderMap(canvas: HTMLCanvasElement, mapObj: MapObject): void {
+        if (!mapObj.map) return;
+        console.log('render')
 
-    connectToSocket() {
-        if (!this.socketService.isSocketAlive()) {
-            this.socketService.connect('client');
-            this.configureMapSocketFeatures();
-        }
-    }
-
-    configureMapSocketFeatures() {
-        this.socketService.on(MapEvent.RecoverMap, (recoveredMap: any) => {
-            this.map = {
-                data: this.normaliseMapData(recoveredMap?.data),
-                height: recoveredMap?.info?.height ?? 0,
-                width: recoveredMap?.info?.width ?? 0,
-                resolution: recoveredMap?.info?.resolution ?? 1,
-                origin: recoveredMap?.info?.origin ?? {
-                    position: { x: 0, y: 0, z: 0 },
-                    orientation: { x: 0, y: 0, z: 0, w: 1 },
-                },
-            };
-            this.updateOrientationCache();
-            if (!this.robotPoses['limo1']) {
-                this.robotPoses['limo1'] = {
-                    header: { frame_id: 'limo1/map' },
-                    pose: { position: { x: 0, y: 0, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
-                };
-            }
-            this.needsRender = true;
-        });
-
-        this.socketService.on(MapEvent.PoseUpdate, (payload: { robot: string; poseData: PoseData }) => {
-            if (!payload?.robot || !payload.poseData) return;
-            this.robotPoses[payload.robot] = payload.poseData;
-            this.needsRender = true;
-        });
-    }
-
-    resetMap() {
-        this.map = undefined;
-        this.originCanvasPosition = undefined;
-        this.robotPoses = {};
-        this.needsRender = true;
-    }
-
-    // 🔹 Boucle de rendu fluide
-    private animationLoop(): void {
-        requestAnimationFrame(() => this.animationLoop());
-        if (this.needsRender) {
-            this.renderMap();
-            this.needsRender = false;
-        }
-    }
-
-    renderMap(): void {
-        if (!this.map) return;
-
-        const { data, width, height } = this.map;
+        const { data, width, height } = mapObj.map;
         if (!data.length || !width || !height) return;
-
-        const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement | null;
-        if (!canvas) return;
 
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
@@ -146,23 +50,23 @@ export class MapService {
         }
 
         ctx.putImageData(imageData, 0, 0);
-        this.originCanvasPosition = { x: 0.5, y: height - 0.5 };
+        mapObj.originCanvasPosition = {x: 0.5, y: height - 0.5};
 
-        this.drawOriginMarker(ctx);
-        this.drawMarkers(ctx);
-        this.drawRobotPoses(ctx);
+        this.drawOriginMarker(ctx, mapObj);
+        this.drawMarkers(ctx, mapObj);
+        this.drawRobotPoses(ctx, mapObj);
     }
 
-    getOriginInWorld(): { x: number; y: number } | undefined {
-        if (!this.map) return undefined;
-        const { position } = this.map.origin;
+    getOriginInWorld(map: OccupancyGrid): { x: number; y: number } | undefined {
+        if (!map) return undefined;
+        const { position } = map.origin;
         return { x: position.x, y: position.y };
     }
 
-    canvasPointToMapCoordinate(canvasX: number, canvasY: number): MapCoordinate | undefined {
-        if (!this.map) return undefined;
+    canvasPointToMapCoordinate(mapObj: MapObject, canvasX: number, canvasY: number): MapCoordinate | undefined {
+        if (!mapObj.map) return undefined;
         
-        const { width, height } = this.map;
+        const { width, height } = mapObj.map;
         if (canvasX < 0 || canvasX >= width || canvasY < 0 || canvasY >= height) return undefined;
         
         const canvasXInt = Math.floor(canvasX);
@@ -172,14 +76,27 @@ export class MapService {
         
         return {
             cell: { x: gridX, y: gridY },
-            world: this.gridToWorld(gridX, gridY),
+            world: this.gridToWorld(gridX, gridY, mapObj),
         };
     }
     
-    onCanvasClick(event: MouseEvent): void {
-        const canvas = document.getElementById('mapCanvas') as HTMLCanvasElement | null;
-        if (!canvas) return;
+    worldPointToMapCoordinate(mapObj: MapObject, worldX: number, worldY: number): MapCoordinate | undefined {
+        if (!mapObj.map) return undefined;
+        const { width, height } = mapObj.map;
+        const canvasCoord = this.worldToCanvas(worldX, worldY, mapObj);
+        if (!canvasCoord) return undefined;
 
+        const gridX = Math.floor(canvasCoord.x);
+        const gridY = height - 1 - Math.floor(canvasCoord.y);
+        if (gridX < 0 || gridX >= width || gridY < 0 || gridY >= height) return undefined;
+
+        return {
+            cell: { x: gridX, y: gridY },
+            world: { x: worldX, y: worldY },
+        };
+    }
+    
+    onCanvasClick(event: MouseEvent, mapObj: MapObject, canvas: HTMLCanvasElement): void {
         const rect = canvas.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
 
@@ -188,67 +105,60 @@ export class MapService {
         const canvasX = (event.clientX - rect.left) * scaleX;
         const canvasY = (event.clientY - rect.top) * scaleY;
 
-        const coordinate = this.canvasPointToMapCoordinate(canvasX, canvasY);
+        const coordinate = this.canvasPointToMapCoordinate(mapObj, canvasX, canvasY);
         if (coordinate) {
-            this.selectedPoint = coordinate;
-            this.selectedCanvasCoord = this.snapToPixel(canvasX, canvasY);
-            this.renderMap();
+            mapObj.selectedPoint = coordinate;
+            mapObj.selectedCanvasCoord = this.snapToPixel(canvasX, canvasY);
+            this.renderMap(canvas, mapObj);
             console.log('Selected map coordinate:', coordinate);
         }
     }
 
-    addPoint(): void{
-        if(!this.selectedPoint || !this.selectedCanvasCoord) return;
-        this.pointList.push(this.selectedPoint);
-        this.pointCanvasCoords.push(this.selectedCanvasCoord);
-        this.selectedPoint = undefined;
-        this.selectedCanvasCoord = undefined;
-        this.renderMap();
+    sendPoint(mapObj: MapObject): void{
+        if(!mapObj.selectedPoint || !mapObj.selectedCanvasCoord) return;
+        this.socketService.send('point', {robot: 'limo1', point: mapObj.selectedPoint.world});
+        mapObj.selectedPoint = undefined;
+        mapObj.selectedCanvasCoord = undefined;
     }
 
-    removePoint(index: number): void {
-        if (index < 0 || index >= this.pointList.length) return;
-        this.pointList.splice(index, 1);
-        this.pointCanvasCoords.splice(index, 1);
-        this.renderMap();
+    removePoint(index: number, mapObj: MapObject): void {
+        if (index < 0 || index >= mapObj.pointList.length) return;
+        this.socketService.send('removePoint', {robot: 'limo1', index});
     }
 
-    sendCoords(): void {
-        if (!this.pointList.length) {
+    sendGoal(mapObj: MapObject): void {
+        if (!mapObj.pointList.length) {
             console.log('No coordinates to send.');
             return;
         }
-        console.log('Sending coordinates:', this.pointList);
-        this.socketService.send('pointlist', {robot: 'limo1', points: this.pointList.map(point => point.world)});
-        this.pointList = [];
-        this.pointCanvasCoords = [];
-        this.renderMap();
+        console.log('Sending objective:', mapObj.pointList);
+        this.socketService.send('startNavGoal', {robot: 'limo1'});
     }
     
-    private drawOriginMarker(ctx: CanvasRenderingContext2D): void {
-        if (!this.originCanvasPosition) return;
+    private drawOriginMarker(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
+        if (!mapObj.originCanvasPosition) return;
         ctx.save();
         ctx.fillStyle = '#e53935';
         const size = 6;
-        const x = Math.max(size / 2, Math.round(this.originCanvasPosition.x));
-        const y = Math.min(ctx.canvas.height - size / 2, Math.round(this.originCanvasPosition.y));
+        const x = Math.max(size / 2, Math.round(mapObj.originCanvasPosition.x));
+        const y = Math.min(ctx.canvas.height - size / 2, Math.round(mapObj.originCanvasPosition.y));
         ctx.fillRect(x - size / 2, y - size / 2, size, size);
         ctx.restore();
     }
 
-    private gridToWorld(gridX: number, gridY: number): { x: number; y: number } {
-        if (!this.map) return { x: 0, y: 0 };
-        const { resolution, origin } = this.map;
+    private gridToWorld(gridX: number, gridY: number, mapObj: MapObject): { x: number; y: number } {
+        if (!mapObj.map) return { x: 0, y: 0 };
+        const { resolution, origin } = mapObj.map;
         const offsetX = (gridX + 0.5) * resolution;
         const offsetY = (gridY + 0.5) * resolution;
 
-        const x = origin.position.x + offsetX * this.yawCos - offsetY * this.yawSin;
-        const y = origin.position.y + offsetX * this.yawSin + offsetY * this.yawCos;
+        const x = origin.position.x + offsetX * mapObj.orientation.yawCos - offsetY * mapObj.orientation.yawSin;
+        const y = origin.position.y + offsetX * mapObj.orientation.yawSin + offsetY * mapObj.orientation.yawCos;
 
         return { x, y };
     }
 
-    private normaliseMapData(rawData: unknown): Int8Array {
+    normaliseMapData(rawData: unknown): Int8Array {
         if (rawData && typeof rawData === 'object' && 'data' in (rawData as { data?: unknown })) {
             return this.normaliseMapData((rawData as { data: unknown }).data);
         }
@@ -263,27 +173,27 @@ export class MapService {
         return new Int8Array();
     }
 
-    private updateOrientationCache(): void {
-        if (!this.map) {
-            this.yaw = 0;
-            this.yawCos = 1;
-            this.yawSin = 0;
+    updateOrientationCache(map: OccupancyGrid, orientation: Orientation): void {
+        if (!map) {
+            orientation.yaw = 0;
+            orientation.yawCos = 1;
+            orientation.yawSin = 0;
             return;
         }
-        const { w, x, y, z } = this.map.origin.orientation;
-        this.yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
-        this.yawCos = Math.cos(this.yaw);
-        this.yawSin = Math.sin(this.yaw);
+        const { w, x, y, z } = map.origin.orientation;
+        orientation.yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
+        orientation.yawCos = Math.cos(orientation.yaw);
+        orientation.yawSin = Math.sin(orientation.yaw);
     }
 
-    private drawMarkers(ctx: CanvasRenderingContext2D): void {
+    private drawMarkers(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
         ctx.imageSmoothingEnabled = false;
         const savedPointColor = '#1e88e5';
         const selectedPointColor = '#ff1744';
-        this.drawPathThroughPoints(ctx, this.pointCanvasCoords, savedPointColor);
-        this.pointCanvasCoords.forEach(({ x, y }) => this.drawPointMarker(ctx, x, y, savedPointColor));
-        if (this.selectedCanvasCoord) {
-            this.drawPointMarker(ctx, this.selectedCanvasCoord.x, this.selectedCanvasCoord.y, selectedPointColor);
+        this.drawPathThroughPoints(ctx, mapObj.pointCanvasCoords, savedPointColor);
+        mapObj.pointCanvasCoords.forEach(({ x, y }) => this.drawPointMarker(ctx, x, y, savedPointColor));
+        if (mapObj.selectedCanvasCoord) {
+            this.drawPointMarker(ctx, mapObj.selectedCanvasCoord.x, mapObj.selectedCanvasCoord.y, selectedPointColor);
         }
     }
 
@@ -323,16 +233,16 @@ export class MapService {
         return { x: Math.round(x), y: Math.round(y) };
     }
 
-    private worldToCanvas(worldX: number, worldY: number): { x: number; y: number } | undefined {
-        if (!this.map) return undefined;
-        const { origin, resolution, width, height } = this.map;
+    private worldToCanvas(worldX: number, worldY: number, mapObj: MapObject): { x: number; y: number } | undefined {
+        if (!mapObj.map) return undefined;
+        const { origin, resolution, width, height } = mapObj.map;
         if (!resolution || !width || !height) return undefined;
 
         const dx = worldX - origin.position.x;
         const dy = worldY - origin.position.y;
 
-        const offsetX = dx * this.yawCos + dy * this.yawSin;
-        const offsetY = -dx * this.yawSin + dy * this.yawCos;
+        const offsetX = dx * mapObj.orientation.yawCos + dy * mapObj.orientation.yawSin;
+        const offsetY = -dx * mapObj.orientation.yawSin + dy * mapObj.orientation.yawCos;
 
         const gridX = offsetX / resolution - 0.5;
         const gridY = offsetY / resolution - 0.5;
@@ -347,21 +257,21 @@ export class MapService {
         return Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
     }
 
-    private orientationToCanvasVector(yaw: number): { x: number; y: number } {
+    private orientationToCanvasVector(yaw: number, mapObj: MapObject): { x: number; y: number } {
         const dirWorldX = Math.cos(yaw);
         const dirWorldY = Math.sin(yaw);
-        const dirGridX = dirWorldX * this.yawCos + dirWorldY * this.yawSin;
-        const dirGridY = -dirWorldX * this.yawSin + dirWorldY * this.yawCos;
+        const dirGridX = dirWorldX * mapObj.orientation.yawCos + dirWorldY * mapObj.orientation.yawSin;
+        const dirGridY = -dirWorldX * mapObj.orientation.yawSin + dirWorldY * mapObj.orientation.yawCos;
         return { x: dirGridX, y: -dirGridY };
     }
 
-    private drawRobotPoses(ctx: CanvasRenderingContext2D): void {
-        Object.values(this.robotPoses).forEach((poseData) => {
+    private drawRobotPoses(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
+        Object.values(mapObj.robotPoses).forEach((poseData) => {
             if (!poseData) return;
-            const canvasPos = this.worldToCanvas(poseData.pose.position.x, poseData.pose.position.y);
+            const canvasPos = this.worldToCanvas(poseData.pose.position.x, poseData.pose.position.y, mapObj);
             if (!canvasPos) return;
             const yaw = this.quaternionToYaw(poseData.pose.orientation);
-            const direction = this.orientationToCanvasVector(yaw);
+            const direction = this.orientationToCanvasVector(yaw, mapObj);
             this.drawRobotTriangle(ctx, canvasPos, direction);
         });
     }

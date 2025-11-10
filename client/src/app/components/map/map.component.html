@@ -1,5 +1,5 @@
 <div class="map-container">
-  <canvas id="mapCanvas" (click)="onCanvasClick($event)"></canvas>
+  <canvas #mapCanvas id="mapCanvas" (click)="onCanvasClick($event)"></canvas>
 </div>
 <div class="map-info" *ngIf="selectedPoint">
   <p>Cell: ({{ selectedPoint.cell.x }}, {{ selectedPoint.cell.y }})</p>

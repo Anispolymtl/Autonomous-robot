@@ -25,19 +25,28 @@ export class NavService {
         return this.points[payload.robot];
     }
 
-    async startGoal(robot: RobotId) {
+    removePoint(payload: {robot: RobotId, index: number}) {
+        if (!this.isInit || payload.index >= this.points[payload.robot].length || this.isNavigating[payload.robot] || payload.index < 0) return [];
+        this.points[payload.robot].splice(payload.index, 1);
+        return this.points[payload.robot];
+    }
+
+    startGoal(robot: RobotId) {
         const points = this.points[robot];
+        this.points[robot] = [];
         if (!points.length || !this.isInit) return;
         if (!this.isNavigating[robot]) {
             this.processPointQueue(robot, points).catch((err) =>
                 this.logger.error(`Failed to process queue for ${robot}`, err.stack),
             );
         }
+        return this.points[robot];
     }
 
     private async processPointQueue(robot: RobotId, queue: Point2D[]) {
         this.isNavigating[robot] = true;
         const waypoints = queue.splice(0, queue.length);
+        console.log(waypoints);
         try {
             await this.dispatchWaypoints(robot, waypoints);
         } catch (err) {
