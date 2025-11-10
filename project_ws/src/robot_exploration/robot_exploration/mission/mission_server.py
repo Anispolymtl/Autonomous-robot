@@ -151,7 +151,7 @@ class MissionServer(Node):
                 # Feedback
                 fb = DoMission.Feedback()
                 fb.time_elapsed = int(time.time() - t0)
-                fb.percent_complete = 0.0
+                fb.percent_complete = 0.0  # placeholder
                 goal_handle.publish_feedback(fb)
 
                 time.sleep(1.0)

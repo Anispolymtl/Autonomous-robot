@@ -8,6 +8,8 @@ import { RobotStatusComponent } from '@app/components/robot-status/robot-status.
 import { MissionSessionService } from '@app/services/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
+type RobotId = 'limo1' | 'limo2';
+
 @Component({
   selector: 'app-simulation-page',
   standalone: true,
@@ -21,6 +23,8 @@ import { MissionDatabaseService } from '@app/services/mission-database/mission-d
 })
 export class SimulationPageComponent implements OnInit {
   message: string | null = null;
+  selectedRobotId: RobotId = 'limo1';
+
   constructor(
     private router: Router,
     private missonService: MissionService,
@@ -92,6 +96,10 @@ export class SimulationPageComponent implements OnInit {
         console.error('Erreur lors de la finalisation de la mission:', error);
         this.router.navigate(['/home']);
       });
+  }
+
+  setSelectedRobot(robotId: RobotId): void {
+    this.selectedRobotId = robotId;
   }
 
   back(): void {
