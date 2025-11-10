@@ -68,12 +68,4 @@ export class MissionDatabaseService {
         return this.http.delete<{ message: string }>(`${this.missionsUrl}/${id}`);
     }
 
-    /**
-     * Peuple la base de données avec des missions d'exemple
-     * @param force Si true, supprime toutes les missions existantes avant de peupler
-     */
-    populateDatabase(force: boolean = false): Observable<{ created: number; message: string }> {
-        return this.http.post<{ created: number; message: string }>(`${this.missionsUrl}/populate`, { force });
-    }
 }
-
