@@ -93,10 +93,6 @@ export class RealPageComponent implements OnInit {
     this.selectedRobotId = robotId;
   }
 
-  back(): void {
-    this.router.navigate(['/home']);
-  }
-
   private finalizeMission(): void {
     this.missionSessionService.completeMission()
       .then((mission) => {
