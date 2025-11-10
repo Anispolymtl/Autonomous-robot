@@ -10,6 +10,8 @@ import { RobotStatusComponent } from '@app/components/robot-status/robot-status.
 import { MissionSessionService } from '@app/services/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
+type RobotId = 'limo1' | 'limo2';
+
 @Component({
   selector: 'app-real-page',
   standalone: true,
@@ -20,6 +22,8 @@ import { MissionDatabaseService } from '@app/services/mission-database/mission-d
 export class RealPageComponent implements OnInit {
   form: FormGroup;
   message: string | null = null;
+  selectedRobotId: RobotId = 'limo1';
+
 
   @ViewChild(RobotStatusComponent)
   robotStatusComponent!: RobotStatusComponent;
@@ -83,6 +87,10 @@ export class RealPageComponent implements OnInit {
     } else {
       this.message = 'Veuillez remplir tous les champs.';
     }
+  }
+
+  setSelectedRobot(robotId: RobotId): void {
+    this.selectedRobotId = robotId;
   }
 
   back(): void {

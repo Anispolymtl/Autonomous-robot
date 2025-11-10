@@ -14,7 +14,7 @@ class ExplorerNode(Node):
 
         # Subscriber to the map topic
         self.map_sub = self.create_subscription(
-            OccupancyGrid, 'cmap', self.map_callback, 10)
+            OccupancyGrid, 'map', self.map_callback, 10)
 
         # Action client for navigation
         ns = self.get_namespace() or namespace

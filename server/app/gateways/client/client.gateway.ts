@@ -14,6 +14,7 @@ import {
     MissionRuntimeService,
 } from '@app/services/mission-runtime/mission-runtime.service';
 import { Mission } from '@app/model/database/mission';
+import { NavService } from '@app/services/nav/nav.service';
 
 type RobotId = 'limo1' | 'limo2';
 type Point2D = { x: number; y: number };
@@ -38,8 +39,8 @@ export class ClientGateway {
 
     constructor(
         private socketService: SocketService,
-        private rosService: RosService,
         private missionRuntimeService: MissionRuntimeService,
+        private navService: NavService
     ) {}
 
     handleConnection(socket: Socket) {
@@ -52,10 +53,19 @@ export class ClientGateway {
         this.socketService.removeSocket(socket);
     }
 
-    @SubscribeMessage('pointlist')
-    onPointListGet(@ConnectedSocket() socket: Socket, @MessageBody() payload: { robot: RobotId; points: Point2D[] }) {
-        console.log('Réception des points depuis', socket.id);
-        this.rosService.handlePoints(payload);
+    @SubscribeMessage('point')
+    onPointGet(socket: Socket, payload: {robot: RobotId , point: Point2D}) {
+        this.navService.addPoint(payload);
+    }
+
+    @SubscribeMessage('removePoint')
+    onPointRemove(socket: Socket, payload: {robot: RobotId, index: number}) {
+        this.navService.removePoint(payload);
+    }
+
+    @SubscribeMessage('startNavGoal')
+    onGoalGet(socket: Socket, payload: {robot: RobotId}) {
+        this.navService.startGoal(payload.robot);
     }
 
     @SubscribeMessage('mission:create')
