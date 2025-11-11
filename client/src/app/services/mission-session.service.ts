@@ -94,6 +94,11 @@ export class MissionSessionService {
         if (!this.missionId) return;
         this.missionStartTimestamp = Date.now();
         this.sendMissionUpdate({ status: 'RUNNING' });
+        this.appendLog({
+            category: 'Command',
+            action: 'mission_started',
+            details: { status: 'RUNNING' },
+        });
     }
 
     sendMissionUpdate(data: Partial<Mission>): void {
@@ -139,6 +144,11 @@ export class MissionSessionService {
         this.sendMissionUpdate({
             status: 'COMPLETED',
             durationSec: finalDuration,
+        });
+        this.appendLog({
+            category: 'Command',
+            action: 'mission_completed',
+            details: { durationSec: finalDuration ?? null },
         });
 
         return new Promise<Mission | null>((resolve, reject) => {
