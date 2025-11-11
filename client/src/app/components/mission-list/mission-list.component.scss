@@ -17,11 +17,6 @@
         flex-wrap: wrap;
     }
 
-    .header-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
 
     .stats-container {
         display: flex;
@@ -98,27 +93,6 @@
         }
     }
 
-    .populate-btn {
-        padding: 10px 20px;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: background-color 0.2s;
-
-        &:hover:not(:disabled) {
-            background-color: #218838;
-        }
-
-        &:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-    }
 
     .logs-btn {
         padding: 10px 20px;

@@ -41,12 +41,25 @@ export class RealPageComponent implements OnInit {
   }
 
   onIdentify(robotId: number): void {
+    const robotNamespace = this.asRobotNamespace(robotId);
     this.identifyService.identifyRobot(robotId).subscribe({
       next: (res: any) => {
         this.message = `Réponse du robot ${robotId} : ${res.message}`;
+        this.missionSessionService.appendLog({
+          category: 'Command',
+          robot: robotNamespace,
+          action: 'identify_robot',
+          details: { success: true, message: res?.message ?? null },
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.message = `Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
+        this.missionSessionService.appendLog({
+          category: 'Command',
+          robot: robotNamespace,
+          action: 'identify_robot',
+          details: { success: false, error: err?.message ?? 'unknown' },
+        });
       },
     });
   }
@@ -84,8 +97,8 @@ export class RealPageComponent implements OnInit {
     this.selectedRobotId = robotId;
   }
 
-  back(): void {
-    this.router.navigate(['/home']);
+  private asRobotNamespace(robotId: number): RobotId {
+    return robotId === 2 ? 'limo2' : 'limo1';
   }
 
   private finalizeMission(): void {

@@ -4,12 +4,17 @@ import { MapCoordinate } from '@app/interfaces/map-coordinate';
 import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { SocketService } from '@app/services/socket.service';
+import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionLogDetails } from '@common/interfaces/mission-log-entry';
 
 @Injectable({
     providedIn: 'root',
 })
 export class MapService {
-    constructor(private readonly socketService: SocketService) {
+    constructor(
+        private readonly socketService: SocketService,
+        private readonly missionSessionService: MissionSessionService
+    ) {
     }
 
     renderMap(canvas: HTMLCanvasElement, mapObj: MapObject): void {
@@ -22,9 +27,10 @@ export class MapService {
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
             canvas.height = height;
-            canvas.style.width = `${width}px`;
-            canvas.style.height = `${height}px`;
         }
+
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -115,15 +121,28 @@ export class MapService {
     }
 
     sendPoint(mapObj: MapObject): void{
-        if(!mapObj.selectedPoint || !mapObj.selectedCanvasCoord) return;
-        this.socketService.send('point', {robot: mapObj.frame, point: mapObj.selectedPoint.world});
+        const point = mapObj.selectedPoint;
+        if(!point || !mapObj.selectedCanvasCoord) return;
+        this.socketService.send('point', {robot: mapObj.frame, point: point.world});
+        this.logCommand(mapObj.frame, 'waypoint_added', {
+            worldX: Number(point.world.x.toFixed(3)),
+            worldY: Number(point.world.y.toFixed(3)),
+            cellX: point.cell.x,
+            cellY: point.cell.y,
+        });
         mapObj.selectedPoint = undefined;
         mapObj.selectedCanvasCoord = undefined;
     }
 
     removePoint(index: number, mapObj: MapObject): void {
         if (index < 0 || index >= mapObj.pointList.length) return;
+        const removedPoint = mapObj.pointList[index];
         this.socketService.send('removePoint', {robot: mapObj.frame, index});
+        this.logCommand(mapObj.frame, 'waypoint_removed', {
+            index,
+            worldX: removedPoint?.world?.x ?? null,
+            worldY: removedPoint?.world?.y ?? null,
+        });
     }
 
     sendGoal(mapObj: MapObject): void {
@@ -133,6 +152,13 @@ export class MapService {
         }
         console.log('Sending objective:', mapObj.pointList);
         this.socketService.send('startNavGoal', {robot: mapObj.frame});
+        const serializedWaypoints = mapObj.pointList
+            .map((point, idx) => `#${idx + 1}(${point.world.x.toFixed(3)},${point.world.y.toFixed(3)})`)
+            .join('; ');
+        this.logCommand(mapObj.frame, 'navigation_goal_dispatched', {
+            waypointCount: mapObj.pointList.length,
+            waypoints: serializedWaypoints,
+        });
     }
     
     private drawOriginMarker(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
@@ -311,5 +337,14 @@ export class MapService {
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+    }
+
+    private logCommand(robot: string, action: string, details: MissionLogDetails): void {
+        this.missionSessionService.appendLog({
+            category: 'Command',
+            robot,
+            action,
+            details,
+        });
     }
 }

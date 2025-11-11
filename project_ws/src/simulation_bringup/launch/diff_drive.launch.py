@@ -305,6 +305,21 @@ def generate_launch_description():
         )
     ])
 
+    explorer_1 = Node(
+        package='robot_exploration',
+        executable='explorer_node',
+        name='explorer_node',
+        namespace='limo1',
+        output='screen',
+    )
+
+    explorer_2 = Node(
+        package='robot_exploration',
+        executable='explorer_node',
+        name='explorer_node',
+        namespace='limo2',
+        output='screen',
+    )
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
@@ -327,6 +342,7 @@ def generate_launch_description():
         slam_1,
         slam_2,
 
+        # Map Merge
         merge_map_node,
         static_tf_limo1,
         static_tf_limo2,
@@ -334,6 +350,10 @@ def generate_launch_description():
 
         #navigation2
         nav2_1,
-        nav2_2
+        nav2_2,
+
+        # Exploration
+        explorer_1,
+        explorer_2
 
     ])

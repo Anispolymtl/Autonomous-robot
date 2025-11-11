@@ -148,19 +148,4 @@ export class MissionDatabaseController {
         }
     }
 
-    @Post('/populate')
-    async populateDatabase(@Body() body: { force?: boolean }, @Res() response: Response) {
-        try {
-            const force = body?.force === true;
-            console.log(`POST /api/missions/populate - Populating database (force: ${force})...`);
-            const result = await this.missionDatabaseService.populateDatabase(force);
-            response.status(HttpStatus.CREATED).json(result);
-        } catch (error) {
-            console.error('Error populating database:', error);
-            response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                error: error.message || 'Failed to populate database' 
-            });
-        }
-    }
 }
-
