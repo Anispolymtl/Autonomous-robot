@@ -3,18 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MissionListComponent } from '@app/components/mission-list/mission-list.component';
 import { ActivatedRoute } from '@angular/router';
-
-interface LogDetails {
-  [key: string]: any; // pour permettre l’indexation dynamique
-}
-
-interface MissionLogEntry {
-  timestamp: string;
-  robot: string;
-  category: 'Command' | 'Sensor';
-  action: string;
-  details: LogDetails;
-}
+import { MissionLogEntry } from '@app/interfaces/mission';
 
 @Component({
   selector: 'app-logs-page',

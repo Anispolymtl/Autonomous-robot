@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Document } from 'mongoose';
+import { Document, SchemaTypes } from 'mongoose';
+import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 
 export type MissionDocument = Mission & Document;
 
@@ -38,8 +39,19 @@ export class Mission {
     status?: string;
 
     @ApiProperty({ required: false, type: [Object] })
-    @Prop({ type: Array, default: [] })
-    logs?: Record<string, unknown>[];
+    @Prop({
+        type: [
+            {
+                timestamp: { type: String, required: true },
+                robot: { type: String, required: true },
+                category: { type: String, enum: ['Command', 'Sensor'], required: true },
+                action: { type: String, required: true },
+                details: { type: SchemaTypes.Mixed, default: {} },
+            },
+        ],
+        default: [],
+    })
+    logs?: MissionLogEntry[];
 }
 
 export const missionSchema = SchemaFactory.createForClass(Mission);

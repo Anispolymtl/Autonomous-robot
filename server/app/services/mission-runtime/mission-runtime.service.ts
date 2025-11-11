@@ -1,15 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Mission } from '@app/model/database/mission';
 import { randomUUID } from 'crypto';
-
-export interface MissionLogEntry {
-    timestamp?: string | number;
-    level?: string;
-    message?: string;
-    phase?: string;
-    details?: string;
-    [key: string]: unknown;
-}
+import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 
 export interface MissionRuntimeSnapshot extends Mission {
     missionId: string;
@@ -53,7 +45,7 @@ export class MissionRuntimeService {
             distance: payload.distance ?? 0,
             durationSec: payload.durationSec ?? 0,
             status: payload.status ?? 'PENDING',
-            logs: payload.logs ?? [],
+            logs: payload.logs?.map((log) => this.normalizeLogEntry(log)) ?? [],
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -71,7 +63,7 @@ export class MissionRuntimeService {
 
         if (updates.logs && Array.isArray(updates.logs)) {
             mission.logs = mission.logs ?? [];
-            mission.logs.push(...(updates.logs as MissionLogEntry[]));
+            mission.logs.push(...(updates.logs as MissionLogEntry[]).map((log) => this.normalizeLogEntry(log)));
             delete updates.logs;
         }
 
@@ -83,10 +75,7 @@ export class MissionRuntimeService {
     appendLog(missionId: string, log: MissionLogEntry): MissionRuntimeSnapshot {
         const mission = this.ensureMission(missionId);
         mission.logs = mission.logs ?? [];
-        mission.logs.push({
-            ...log,
-            timestamp: log.timestamp ?? new Date().toISOString(),
-        });
+        mission.logs.push(this.normalizeLogEntry(log));
         mission.updatedAt = new Date();
         this.activeMission = mission;
         return mission;
@@ -117,5 +106,15 @@ export class MissionRuntimeService {
             throw new Error('Mission introuvable');
         }
         return this.activeMission;
+    }
+
+    private normalizeLogEntry(entry: Partial<MissionLogEntry>): MissionLogEntry {
+        return {
+            timestamp: entry.timestamp ?? new Date().toISOString(),
+            robot: entry.robot ?? 'unknown',
+            category: entry.category ?? 'Command',
+            action: entry.action ?? 'log',
+            details: { ...(entry.details ?? {}) },
+        };
     }
 }

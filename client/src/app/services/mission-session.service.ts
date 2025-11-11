@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Mission, MissionLogEntry, MissionLogObject } from '@app/interfaces/mission';
+import { Mission, MissionLogEntry } from '@app/interfaces/mission';
 import { SocketService } from '@app/services/socket.service';
 import { MissionMode, MissionModeService, ActiveMissionResponse } from '@app/services/mission-mode.service';
 
@@ -121,15 +121,12 @@ export class MissionSessionService {
         this.missionModeService.setMode(mission.mode ?? null);
     }
 
-    appendLog(entry: MissionLogEntry): void {
+    appendLog(entry: Partial<MissionLogEntry>): void {
         if (!this.missionId) return;
         const normalized = this.normalizeLogEntry(entry);
         this.socketService.send('mission:add-log', {
             missionId: this.missionId,
-            log: {
-                ...normalized,
-                timestamp: normalized.timestamp ?? new Date().toISOString(),
-            },
+            log: normalized,
         });
     }
 
@@ -229,13 +226,19 @@ export class MissionSessionService {
         this.missionModeService.setMode(null);
     }
 
-    private normalizeLogEntry(entry: MissionLogEntry | undefined): MissionLogObject {
-        if (entry && typeof entry === 'object') {
-            return { ...(entry as MissionLogObject) };
-        }
-        if (entry === null || entry === undefined) {
-            return { message: 'Log entry' };
-        }
-        return { message: String(entry) };
+    private normalizeLogEntry(entry: Partial<MissionLogEntry> | undefined): MissionLogEntry {
+        const timestamp = entry?.timestamp ?? new Date().toISOString();
+        const robot = entry?.robot ?? this.defaultRobots[0];
+        const category = entry?.category ?? 'Command';
+        const action = entry?.action ?? 'log';
+        const details = { ...(entry?.details ?? {}) };
+
+        return {
+            timestamp,
+            robot,
+            category,
+            action,
+            details,
+        };
     }
 }
