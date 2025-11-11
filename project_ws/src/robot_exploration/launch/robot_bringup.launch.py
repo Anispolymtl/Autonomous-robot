@@ -28,16 +28,6 @@ def launch_with_namespace(context, *args, **kwargs):
         launch_arguments={'namespace': namespace}.items(),
     )
 
-    # slam_toolbox_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(pkg_robot, 'launch', 'robot_slam.launch.py')
-    #     ),
-    #     launch_arguments={
-    #         'use_sim_time': 'false',
-    #         'slam_params_file': slam_config
-    #     }.items(),
-    # )
-
     cartographer_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot, 'launch', 'robot_cartographer.launch.py')
@@ -58,12 +48,13 @@ def launch_with_namespace(context, *args, **kwargs):
         }.items(),
     )
 
-    # id_srv = Node(
-    #     package='robot_exploration',
-    #     executable='identify_service',
-    #     name='identify_robot_service',
-    #     output='screen'
-    # )
+    id_srv = Node(
+        package='robot_exploration',
+        executable='identify_service',
+        name='identify_robot_service',
+        output='screen'
+    )
+
     mission_action = Node(
         package='robot_exploration',
         executable='mission_server',
@@ -80,9 +71,8 @@ def launch_with_namespace(context, *args, **kwargs):
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
         limo_launch,
-        # id_srv,
+        id_srv,
         mission_action,
-        # slam_toolbox_launch,
         cartographer_launch,
         nav2_launch,
         explore_launch
