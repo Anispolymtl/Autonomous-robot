@@ -4,6 +4,7 @@ import { GlobalNavbarComponent } from '@app/components/global-navbar/global-navb
 import { MissionModeService } from '@app/services/mission-mode.service';
 import { MissionSessionService } from '@app/services/mission-session.service';
 import { filter } from 'rxjs/operators';
+import { TelemetryLoggingService } from '@app/services/telemetry-logging.service';
 
 @Component({
     selector: 'app-root',
@@ -18,10 +19,12 @@ export class AppComponent implements OnInit {
     constructor(
         private missionModeService: MissionModeService,
         private missionSessionService: MissionSessionService,
-        private router: Router
+        private router: Router,
+        private telemetryLoggingService: TelemetryLoggingService
     ) {}
 
     ngOnInit(): void {
+        this.telemetryLoggingService.start();
         this.missionModeService.startPolling();
         this.missionModeService
             .ensureModeLoaded()

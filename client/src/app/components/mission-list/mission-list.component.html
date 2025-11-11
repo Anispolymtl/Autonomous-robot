@@ -22,13 +22,6 @@
     <!-- Filtres -->
     <div class="filters-container">
         <div class="filter-group">
-            <label>Filtrer par robot:</label>
-            <select [(ngModel)]="selectedRobot" (change)="filterByRobot(selectedRobot)">
-                <option [ngValue]="null">Tous</option>
-                <option *ngFor="let robot of getUniqueRobots()" [ngValue]="robot">{{ robot }}</option>
-            </select>
-        </div>
-        <div class="filter-group">
             <label>Filtrer par mode:</label>
             <select [(ngModel)]="selectedMode" (change)="filterByMode(selectedMode)">
                 <option [ngValue]="null">Tous</option>
@@ -36,7 +29,7 @@
                 <option value="SIMULATION">SIMULATION</option>
             </select>
         </div>
-        <button *ngIf="selectedRobot || selectedMode" (click)="clearFilters()" class="clear-btn">
+        <button *ngIf="selectedMode" (click)="clearFilters()" class="clear-btn">
             Effacer les filtres
         </button>
     </div>

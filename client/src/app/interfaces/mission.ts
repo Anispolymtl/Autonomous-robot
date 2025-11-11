@@ -1,15 +1,6 @@
-export type MissionLogEntry = MissionLogObject | MissionLogPrimitive;
+import { MissionLogEntry as SharedMissionLogEntry } from '@common/interfaces/mission-log-entry';
 
-export type MissionLogPrimitive = string | number | boolean | null | undefined;
-
-export interface MissionLogObject {
-    timestamp?: Date | string | number;
-    level?: string;
-    phase?: string;
-    message?: string;
-    details?: string;
-    [key: string]: unknown;
-}
+export type MissionLogEntry = SharedMissionLogEntry;
 
 export interface Mission {
     _id?: string;
