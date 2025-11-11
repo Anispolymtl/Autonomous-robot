@@ -15,10 +15,13 @@ export class MissionStateService implements OnDestroy {
   connectToSocket() {
     if (!this.socketService.isSocketAlive()) {
       this.socketService.connect('client');
-      this.socketService.getSocket.once('connect', () => {
-        console.log('[STATE] Socket connected');
-        this.configureStateSocketFeatures();
-      });
+      const socket = this.socketService.getSocket;
+      if (socket) {
+        socket.once('connect', () => {
+          console.log('[STATE] Socket connected');
+          this.configureStateSocketFeatures();
+        });
+      }
     } else {
       this.configureStateSocketFeatures();
     }
