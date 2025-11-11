@@ -68,6 +68,11 @@ export class ClientGateway {
         this.navService.startGoal(payload.robot);
     }
 
+    @SubscribeMessage('cancelNavGoal')
+    onCancelGet(socket: Socket, payload: {robot: RobotId}) {
+        this.navService.cancelGoal(payload.robot);
+    }
+
     @SubscribeMessage('mission:create')
     handleMissionCreate(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionCreatePayload) {
         try {

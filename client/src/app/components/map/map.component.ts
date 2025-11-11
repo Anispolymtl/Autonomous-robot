@@ -85,6 +85,10 @@ ngOnInit(): void {
     this.mapService.sendGoal(this.mapObj);
   }
 
+  cancelNav(): void {
+    this.socketService.send('cancelNavGoal', {robot: this.robotId});
+  }
+
   get originWorld() {
     return this.mapObj.map ? this.mapService.getOriginInWorld(this.mapObj.map) : undefined;
   }

@@ -11,6 +11,10 @@ export class NavService {
     private navClient1: any;
     private navClient2: any;
     private points: Record<RobotId, Point2D[]> = { limo1: [], limo2: [] };
+    private goalHandles: Record<RobotId, rclnodejs.ClientGoalHandle<any> | null> = {
+        limo1: null,
+        limo2: null,
+    };
     private isNavigating: Record<RobotId, boolean> = { limo1: false, limo2: false };
     private isInit: boolean = false;
     
@@ -81,13 +85,49 @@ export class NavService {
         };
         console.log(goal);
         console.log(goal.poses)
-        const goalHandle = await client.sendGoal(goal, (feedback) =>
-        this.logger.debug(
-            `[${robot}] current waypoint index: ${feedback?.current_waypoint}, current pose: ${feedback?.current_pose?.pose}`,
-        ),
+        const goalHandle = await client.sendGoal(
+            goal,
+            (feedback) =>
+                this.logger.debug(
+                    `[${robot}] current waypoint index: ${feedback?.current_waypoint}, current pose: ${feedback?.current_pose?.pose}`,
+                ),
         );
-        const result = await goalHandle.getResult();
-        this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+        this.goalHandles[robot] = goalHandle;
+        try {
+            const result = await goalHandle.getResult();
+            this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+        } finally {
+            this.goalHandles[robot] = null;
+        }
+    }
+
+    async cancelGoal(robot: RobotId) {
+        if (!this.isInit) {
+            this.logger.warn(`Attempted to cancel goal for ${robot} before NavService init`);
+            return;
+        }
+
+        const goalHandle = this.goalHandles[robot];
+        if (!goalHandle) {
+            this.logger.warn(`No active goal to cancel for ${robot}`);
+            return;
+        }
+
+        try {
+            const cancelResponse = await goalHandle.cancelGoal();
+            const cancelReturnCode = cancelResponse?.return_code ?? -1;
+            this.logger.log(`[${robot}] cancel request completed with code ${cancelReturnCode}`);
+
+            if (cancelReturnCode === 0) {
+                this.socketService.sendStateToAllSockets(robot, 'NAV_GOAL_CANCELLED');
+            } else {
+                this.logger.warn(`[${robot}] cancel request rejected with code ${cancelReturnCode}`);
+            }
+        } catch (err) {
+            this.logger.error(`[${robot}] Failed to cancel goal`, (err as Error).stack);
+        } finally {
+            this.goalHandles[robot] = null;
+        }
     }
 
     private buildRosTime() {
