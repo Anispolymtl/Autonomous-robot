@@ -8,7 +8,7 @@ import { MissionService } from '@app/services/mission.service';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
 import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
 

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MissionListComponent } from './mission-list.component';
-import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database.service';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { Mission } from '@app/interfaces/mission';

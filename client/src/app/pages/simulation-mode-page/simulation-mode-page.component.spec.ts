@@ -3,7 +3,7 @@ import { SimulationPageComponent } from './simulation-mode-page.component';
 import { Router } from '@angular/router';
 import { MissionService } from '@app/services/mission.service';
 import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database.service';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 

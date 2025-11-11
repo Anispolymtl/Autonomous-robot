@@ -3,7 +3,7 @@ import { IdentifyService } from '../../services/identify.service';
 
 @Component({
     selector: 'app-robot',
-    templateUrl: './robot.component.html'
+    templateUrl: './robot_identification.component.html'
 })
 export class RobotComponent {
     message = '';

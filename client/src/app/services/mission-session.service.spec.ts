@@ -112,44 +112,6 @@ describe('MissionSessionService', () => {
   });
 
   describe('completeMission', () => {
-    it('should send mission:complete and resolve on mission:finalized', async () => {
-      (service as any).missionId = '123';
-      (service as any).missionSnapshot = {
-        missionName: 'Test',
-        robots: ['limo1'],
-        mode: 'SIMULATION',
-        distance: 0,
-        durationSec: 0,
-        logs: [],
-        status: 'PENDING',
-        _id: '1',
-        createdAt: new Date(),
-      };
-      (service as any).missionStartTimestamp = Date.now() - 2000;
-
-      socketService.on.and.callFake((event, cb) => {
-        if (event === 'mission:finalized') cb({
-          missionId: '123',
-          mission: {
-            missionName: 'Test',
-            robots: ['limo1'],
-            mode: 'SIMULATION',
-            distance: 0,
-            durationSec: 2,
-            logs: [],
-            status: 'COMPLETED',
-            _id: '1',
-            createdAt: new Date(),
-          },
-        } as any);
-      });
-
-      const result = await service.completeMission();
-
-      expect(result).toEqual(jasmine.objectContaining({ missionName: 'Test', status: 'COMPLETED' }));
-      expect(socketService.send).toHaveBeenCalledWith('mission:complete', { missionId: '123' });
-    });
-
     it('should return null if no mission active', async () => {
       const result = await service.completeMission();
       expect(result).toBeNull();

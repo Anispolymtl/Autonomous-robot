@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { IdentifyService } from '@app/services/identify.service';
 import { MissionService } from '@app/services/mission.service';
 import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database.service';
 import { Component } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
