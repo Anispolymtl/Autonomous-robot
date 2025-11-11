@@ -43,14 +43,12 @@ export class SocketService{
     }
 
     sendStateToAllSockets(robot: RobotId, state: any) {
-        console.log('Mission state to all sockets');
         this.sockets.forEach((socket) => {
             socket.emit('stateUpdate', {robot, state});
         });
     }
 
     sendMapToAllSockets(mapData: any, robot: RobotId) {
-        console.log('Sending map data to all sockets');
         this.payloads[robot].mapData = mapData;
         this.sockets.forEach((socket) => {
             socket.emit(`/${robot}/mapUpdate`, mapData);
