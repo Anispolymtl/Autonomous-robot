@@ -50,13 +50,22 @@ class MissionServer(Node):
         self.get_logger().info(f"🛰️ Publication vers {self.resume_topic}")
 
         # Désactive exploration dès le départ
+        self.get_logger().info("⏳ Attente de /explore/resume...")
+        start_time = time.time()
+        while self.count_subscribers(self.resume_topic) == 0:
+            if time.time() - start_time > 10.0:
+                self.get_logger().warn("⚠️ Aucun subscriber /explore/resume détecté (timeout 10s)")
+                break
+            rclpy.spin_once(self, timeout_sec=0.5)
+
+        # --- Envoi répété de False pour bloquer exploration ---
         msg = Bool()
         msg.data = False
-        for _ in range(3):  # Publier plusieurs fois pour fiabiliser l'envoi au démarrage
+        for _ in range(5):  # plusieurs publications espacées
             self.resume_pub.publish(msg)
+            self.get_logger().info("🔒 Exploration désactivée (False publié sur /explore/resume)")
             time.sleep(0.5)
-        self.get_logger().info("🔒 Exploration initialement désactivée (en attente de do_mission)")
-
+        
         # Service pour changer de mode
         self.mode_srv = self.create_service(SetBool, "change_mode", self.change_mode_callback)
 
