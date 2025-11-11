@@ -13,6 +13,7 @@ def launch_with_namespace(context, *args, **kwargs):
 
     pkg_robot = get_package_share_directory('robot_exploration')
     explore_pkg = get_package_share_directory('explore_lite')
+    domain_pkg = get_package_share_directory('domain_bridge')
 
     # slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
 
@@ -68,23 +69,19 @@ def launch_with_namespace(context, *args, **kwargs):
             os.path.join(explore_pkg, 'launch', 'explore.launch.py')
         ))
     
-    domain_bridge_launch = IncludeLaunchDescription(
-        AnyLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('domain_bridge'),
-                'launch',
-                'domain_bridge.launch.xml'
-            )
-        ),
-        launch_arguments={
-            'config': os.path.join(pkg_robot, 'config', f'{namespace}_domain_bridge.yaml'),
-            'from_domain': '',
-            'to_domain': ''
-        }.items(),
+    domain_bridge_node = Node(
+        package='domain_bridge',
+        executable='domain_bridge',
+        name='domain_bridge',
+        output='screen',
+        arguments=[
+            os.path.join(domain_pkg, 'config', f'{namespace}_bridge_config.yaml')
+        ]
     )
 
+
     group = GroupAction(actions=[
-        domain_bridge_launch,
+        domain_bridge_node,
         PushRosNamespace(namespace),
         limo_launch,
         id_srv,

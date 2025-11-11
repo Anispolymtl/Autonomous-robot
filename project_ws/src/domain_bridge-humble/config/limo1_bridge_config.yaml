@@ -1,33 +1,29 @@
-domain_bridge:
-  # ----------------------------- #
-  # 🔹 Limo1  (67 ↔ 66)
-  # ----------------------------- #
+name: limo1_bridge
+from_domain: 67
+to_domain: 66
+bidirectional: True
+# ===========================
+#         TOPICS
+# ===========================
+topics:
+  # État général du robot
+  /limo1/mission_state:
+    type: std_msgs/msg/String
 
-  # --- Serveur (66) vers Robot Limo1 (67)
-  - name: web_to_limo1
-    from_domain: 66
-    to_domain: 67
-    topics:
-      - topic: /limo1/do_mission/_action/goal
-        type: limo_interfaces/action/DoMission_Goal
-      - topic: /limo1/do_mission/_action/cancel_goal
-        type: action_msgs/srv/CancelGoal
-    services:
-      - service: /limo1/identify_service
-        type: limo_interfaces/srv/Identify
+  # Carte générée
+  /limo1/map:
+    type: nav_msgs/msg/OccupancyGrid
 
-  # --- Robot Limo1 (67) vers Serveur (66)
-  - name: limo1_to_web
-    from_domain: 67
-    to_domain: 66
-    topics:
-      - topic: /limo1/do_mission/_action/result
-        type: limo_interfaces/action/DoMission_Result
-      - topic: /limo1/do_mission/_action/feedback
-        type: limo_interfaces/action/DoMission_Feedback
-      - topic: /limo1/do_mission/_action/status
-        type: action_msgs/msg/GoalStatusArray
-      - topic: /limo1/map
-        type: nav_msgs/msg/OccupancyGrid
-      - topic: /limo1/mission_state
-        type: std_msgs/msg/String
+# ===========================
+#         SERVICES
+# ===========================
+services:
+  /limo1/identify_robot:
+    type: std_srvs/srv/Trigger
+
+# ===========================
+#         ACTIONS
+# ===========================
+actions:
+  /limo1/do_mission:
+    type: limo_interfaces/action/DoMission
