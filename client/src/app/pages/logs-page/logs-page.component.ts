@@ -35,14 +35,14 @@ export class LogsPageComponent implements OnInit, OnDestroy {
   private missionUpdateHandler = (...args: unknown[]) => {
     const payload = args[0] as MissionEventPayload | undefined;
     if (!payload || !this.missionId || payload.missionId !== this.missionId) return;
-    this.liveData = payload.mission.logs ?? [];
+    this.liveData = this.sortLogs(payload.mission.logs ?? []);
     this.missionName = payload.mission.missionName ?? this.missionName;
   };
 
   private missionFinalizedHandler = (...args: unknown[]) => {
     const payload = args[0] as MissionEventPayload | undefined;
     if (!payload || !this.missionId || payload.missionId !== this.missionId) return;
-    this.liveData = payload.mission.logs ?? [];
+    this.liveData = this.sortLogs(payload.mission.logs ?? []);
     this.missionId = null;
     this.missionName = null;
     this.cleanupSocketListeners();
@@ -92,7 +92,7 @@ export class LogsPageComponent implements OnInit, OnDestroy {
 
       this.missionId = mission.missionId;
       this.missionName = mission.missionName ?? this.missionName;
-      this.liveData = mission.logs ?? [];
+      this.liveData = this.sortLogs(mission.logs ?? []);
       await this.ensureSocketConnected();
       this.registerSocketListeners();
     } catch (error) {
@@ -125,5 +125,11 @@ export class LogsPageComponent implements OnInit, OnDestroy {
     this.socketService.off('mission:updated', this.missionUpdateHandler);
     this.socketService.off('mission:finalized', this.missionFinalizedHandler);
     this.socketListenersRegistered = false;
+  }
+
+  private sortLogs(logs: MissionLogEntry[]): MissionLogEntry[] {
+    return [...logs].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 }
