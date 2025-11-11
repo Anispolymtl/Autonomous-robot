@@ -156,27 +156,6 @@ export class MissionListComponent implements OnInit {
         return robots.join(' & ');
     }
 
-    populateDatabase(): void {
-        if (confirm('Voulez-vous peupler la base de données avec des missions d\'exemple ?\n\nCela va supprimer toutes les missions existantes et créer 6 missions d\'exemple.')) {
-            this.loading = true;
-            this.error = null;
-            
-            this.missionDatabaseService.populateDatabase(true).subscribe({
-                next: (result) => {
-                    console.log('Database populated:', result);
-                    this.loadMissions();
-                    this.loadStats();
-                    this.loading = false;
-                },
-                error: (error: HttpErrorResponse) => {
-                    console.error('Error populating database:', error);
-                    this.error = `Erreur lors du peuplement: ${error.message || error.statusText || 'Erreur inconnue'}`;
-                    this.loading = false;
-                }
-            });
-        }
-    }
-
     openLogsDialog(mission: Mission): void {
         const logs = this.extractLogsFromMission(mission);
         this.dialog.open(MissionLogsDialogComponent, {

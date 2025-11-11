@@ -1,5 +1,11 @@
 .app-main {
-  padding-top: 3rem;
   min-height: 100vh;
-  transition: padding-top 0.3s ease;
+  padding: calc(var(--navbar-offset, 6rem) + 1.5rem) 1rem 2rem;
+  transition: padding 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    padding: calc(var(--navbar-offset, 6rem) + 2rem) 2rem 3rem;
+  }
 }

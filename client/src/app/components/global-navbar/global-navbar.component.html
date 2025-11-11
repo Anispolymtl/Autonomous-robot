@@ -1,11 +1,11 @@
-<header class="navbar" [class.navbar--scrolled]="isScrolled">
+<header class="navbar" #navbarRef [class.navbar--scrolled]="isScrolled">
   <div class="navbar__container">
     <a class="navbar__brand" routerLink="/home" aria-label="Accueil Station de commande">
       <img src="assets/limo-icon.png" alt="Logo robot Limo" class="navbar__logo" />
       <span class="navbar__title">Station de commande</span>
     </a>
 
-    <nav class="navbar__nav" role="navigation" aria-label="Navigation principale">
+    <nav id="primary-navigation" class="navbar__nav" role="navigation" aria-label="Navigation principale">
       <a
         *ngIf="showHomeLink"
         class="navbar__link"
