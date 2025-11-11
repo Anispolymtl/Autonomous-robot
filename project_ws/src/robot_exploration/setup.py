@@ -30,6 +30,10 @@ setup(
         'map_merge = robot_exploration.map_merge.map_merge:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
         'cartographer_convert = robot_exploration.autonomous_exploration.cartographer_convert:main',
+        'base_manager = robot_exploration.localization.base_manager:main',
+        'initial_pose_publisher = robot_exploration.localization.initial_pose_publisher:main',
+        'robot_pose_monitor = robot_exploration.localization.robot_pose_monitor:main',
+
     ],
     },
 )
