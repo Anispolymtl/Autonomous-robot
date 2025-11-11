@@ -1,0 +1,33 @@
+domain_bridge:
+  # ----------------------------- #
+  # 🔹 Limo2  (68 ↔ 66)
+  # ----------------------------- #
+
+  # --- Serveur (66) vers Robot Limo2 (68)
+  - name: web_to_limo2
+    from_domain: 66
+    to_domain: 68
+    topics:
+      - topic: /limo2/do_mission/_action/goal
+        type: limo_interfaces/action/DoMission_Goal
+      - topic: /limo2/do_mission/_action/cancel_goal
+        type: action_msgs/srv/CancelGoal
+    services:
+      - service: /limo2/identify_service
+        type: limo_interfaces/srv/Identify
+
+  # --- Robot Limo2 (68) vers Serveur (66)
+  - name: limo2_to_web
+    from_domain: 68
+    to_domain: 66
+    topics:
+      - topic: /limo2/do_mission/_action/result
+        type: limo_interfaces/action/DoMission_Result
+      - topic: /limo2/do_mission/_action/feedback
+        type: limo_interfaces/action/DoMission_Feedback
+      - topic: /limo2/do_mission/_action/status
+        type: action_msgs/msg/GoalStatusArray
+      - topic: /limo2/map
+        type: nav_msgs/msg/OccupancyGrid
+      - topic: /limo2/mission_state
+        type: std_msgs/msg/String

@@ -4,7 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import PushRosNamespace, Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource, AnyLaunchDescriptionSource
 
 def launch_with_namespace(context, *args, **kwargs):
     namespace = LaunchConfiguration('namespace').perform(context)
@@ -67,8 +67,24 @@ def launch_with_namespace(context, *args, **kwargs):
         PythonLaunchDescriptionSource(
             os.path.join(explore_pkg, 'launch', 'explore.launch.py')
         ))
+    
+    domain_bridge_launch = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('domain_bridge'),
+                'launch',
+                'domain_bridge.launch.xml'
+            )
+        ),
+        launch_arguments={
+            'config': os.path.join(pkg_robot, 'config', f'{namespace}_domain_bridge.yaml'),
+            'from_domain': '',
+            'to_domain': ''
+        }.items(),
+    )
 
     group = GroupAction(actions=[
+        domain_bridge_launch,
         PushRosNamespace(namespace),
         limo_launch,
         id_srv,
