@@ -35,6 +35,10 @@ export class MissionRuntimeService {
             throw new Error('Mission payload incomplet');
         }
 
+        const normalizedLogs = payload.logs?.map((log) => this.normalizeLogEntry(log)) ?? [];
+        const initialDistance = normalizedLogs.length
+            ? this.computeTotalDistance(normalizedLogs)
+            : payload.distance ?? 0;
         const missionId = randomUUID();
         this.activeMission = {
             missionId,
@@ -42,10 +46,10 @@ export class MissionRuntimeService {
             missionName: payload.missionName,
             robots: payload.robots,
             mode: payload.mode ?? 'SIMULATION',
-            distance: payload.distance ?? 0,
+            distance: initialDistance,
             durationSec: payload.durationSec ?? 0,
             status: payload.status ?? 'PENDING',
-            logs: payload.logs?.map((log) => this.normalizeLogEntry(log)) ?? [],
+            logs: normalizedLogs,
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -65,6 +69,7 @@ export class MissionRuntimeService {
             mission.logs = mission.logs ?? [];
             mission.logs.push(...(updates.logs as MissionLogEntry[]).map((log) => this.normalizeLogEntry(log)));
             delete updates.logs;
+            mission.distance = this.computeTotalDistance(mission.logs);
         }
 
         Object.assign(mission, updates, { updatedAt: new Date() });
@@ -76,6 +81,7 @@ export class MissionRuntimeService {
         const mission = this.ensureMission(missionId);
         mission.logs = mission.logs ?? [];
         mission.logs.push(this.normalizeLogEntry(log));
+        mission.distance = this.computeTotalDistance(mission.logs);
         mission.updatedAt = new Date();
         this.activeMission = mission;
         return mission;
@@ -84,6 +90,7 @@ export class MissionRuntimeService {
     completeMission(missionId: string): MissionRuntimeSnapshot {
         const mission = this.ensureMission(missionId);
         mission.status = 'COMPLETED';
+        mission.distance = this.computeTotalDistance(mission.logs);
         mission.updatedAt = new Date();
         this.activeMission = null;
         this.currentMode = null;
@@ -116,5 +123,31 @@ export class MissionRuntimeService {
             action: entry.action ?? 'log',
             details: { ...(entry.details ?? {}) },
         };
+    }
+
+    private computeTotalDistance(logs: MissionLogEntry[] | undefined): number {
+        if (!logs?.length) {
+            return 0;
+        }
+
+        const maxDistanceByRobot = new Map<string, number>();
+
+        for (const log of logs) {
+            if (!log) continue;
+            const rawDistance = log.details?.['totalDistance'];
+            if (rawDistance === undefined || rawDistance === null) continue;
+
+            const distance = typeof rawDistance === 'number' ? rawDistance : Number(rawDistance);
+            if (!Number.isFinite(distance) || distance < 0) continue;
+
+            const robotId = log.robot ?? 'unknown';
+            const currentMax = maxDistanceByRobot.get(robotId) ?? 0;
+            if (distance > currentMax) {
+                maxDistanceByRobot.set(robotId, distance);
+            }
+        }
+
+        const total = Array.from(maxDistanceByRobot.values()).reduce((sum, value) => sum + value, 0);
+        return Number(total.toFixed(3));
     }
 }

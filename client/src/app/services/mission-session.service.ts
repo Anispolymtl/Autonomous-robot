@@ -27,11 +27,17 @@ export class MissionSessionService {
     private missionSnapshot: Mission | null = null;
     private missionStartTimestamp: number | null = null;
     private readonly defaultRobots: string[] = ['limo1', 'limo2'];
+    private robotDistances: Record<string, number> = {};
+    private lastDistanceEmitted = 0;
     private listenersRegistered = false;
     private missionUpdateHandler = (...args: unknown[]) => {
         const payload = args[0] as MissionEventPayload;
         if (this.missionId && payload?.missionId === this.missionId) {
-            this.missionSnapshot = payload.mission;
+            const mission = payload.mission ?? null;
+            if (mission) {
+                this.lastDistanceEmitted = mission.distance ?? this.lastDistanceEmitted;
+                this.missionSnapshot = mission;
+            }
         }
     };
 
@@ -58,6 +64,8 @@ export class MissionSessionService {
                 cleanup();
                 this.missionId = payload.missionId;
                 this.missionSnapshot = payload.mission;
+                this.robotDistances = {};
+                this.lastDistanceEmitted = payload.mission?.distance ?? 0;
                 this.missionModeService.setMode(payload.mission?.mode ?? null);
                 resolve(payload);
             };
@@ -114,12 +122,29 @@ export class MissionSessionService {
         });
     }
 
+    updateRobotDistance(robotId: string, distance: number): void {
+        if (!this.missionId) return;
+        if (!Number.isFinite(distance) || distance < 0) return;
+
+        const robot = robotId || this.defaultRobots[0];
+        this.robotDistances[robot] = distance;
+
+        const totalDistance = Object.values(this.robotDistances).reduce((sum, value) => sum + value, 0);
+        const normalized = Number(totalDistance.toFixed(3));
+        if (normalized === this.lastDistanceEmitted) return;
+
+        this.lastDistanceEmitted = normalized;
+        this.sendMissionUpdate({ distance: normalized });
+    }
+
     async rehydrateActiveMission(): Promise<void> {
         if (this.missionId) return;
         const mission: ActiveMissionResponse | null = await firstValueFrom(this.missionModeService.fetchActiveMission());
         if (!mission) return;
         this.missionId = mission.missionId;
         this.missionSnapshot = mission;
+        this.robotDistances = {};
+        this.lastDistanceEmitted = mission.distance ?? 0;
         if (mission.durationSec) {
             this.missionStartTimestamp = Date.now() - mission.durationSec * 1000;
         }
@@ -228,6 +253,8 @@ export class MissionSessionService {
         this.missionId = null;
         this.missionSnapshot = null;
         this.missionStartTimestamp = null;
+        this.robotDistances = {};
+        this.lastDistanceEmitted = 0;
         if (this.listenersRegistered) {
             this.socketService.off('mission:updated', this.missionUpdateHandler);
             this.listenersRegistered = false;

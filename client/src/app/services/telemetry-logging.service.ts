@@ -111,6 +111,7 @@ export class TelemetryLoggingService implements OnDestroy {
             const { x, y, z } = pose.pose.position;
             const headingRad = this.quaternionToYaw(pose.pose.orientation);
             const distanceFromOrigin = Math.sqrt(x * x + y * y + z * z);
+            const totalDistance = Number(this.totalDistance[robot].toFixed(3));
 
             this.missionSessionService.appendLog({
                 category: 'Sensor',
@@ -122,10 +123,11 @@ export class TelemetryLoggingService implements OnDestroy {
                     posZ: Number(z.toFixed(3)),
                     headingDeg: Number((headingRad * (180 / Math.PI)).toFixed(1)),
                     distanceFromOrigin: Number(distanceFromOrigin.toFixed(3)),
-                    totalDistance: Number(this.totalDistance[robot].toFixed(3)),
+                    totalDistance,
                 },
             });
 
+            this.missionSessionService.updateRobotDistance(robot, totalDistance);
             this.lastLoggedAt[robot] = now;
         });
     }
