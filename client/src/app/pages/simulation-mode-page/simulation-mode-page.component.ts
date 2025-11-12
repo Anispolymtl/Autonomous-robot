@@ -101,8 +101,4 @@ export class SimulationPageComponent implements OnInit {
   setSelectedRobot(robotId: RobotId): void {
     this.selectedRobotId = robotId;
   }
-
-  back(): void {
-    this.router.navigate(['/home']);
-  }
 }

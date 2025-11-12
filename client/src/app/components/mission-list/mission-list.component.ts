@@ -20,7 +20,6 @@ export class MissionListComponent implements OnInit {
     stats: MissionStats | null = null;
     loading = false;
     error: string | null = null;
-    selectedRobot: string | null = null;
     selectedMode: 'SIMULATION' | 'REAL' | null = null;
 
     constructor(
@@ -39,9 +38,7 @@ export class MissionListComponent implements OnInit {
         
         let request: Observable<Mission[]>;
         
-        if (this.selectedRobot) {
-            request = this.missionDatabaseService.getMissionsByRobot(this.selectedRobot);
-        } else if (this.selectedMode) {
+        if (this.selectedMode) {
             request = this.missionDatabaseService.getMissionsByMode(this.selectedMode);
         } else {
             request = this.missionDatabaseService.getAllMissions();
@@ -75,20 +72,12 @@ export class MissionListComponent implements OnInit {
         });
     }
 
-    filterByRobot(robotName: string | null): void {
-        this.selectedRobot = robotName;
-        this.selectedMode = null;
-        this.loadMissions();
-    }
-
     filterByMode(mode: 'SIMULATION' | 'REAL' | null): void {
         this.selectedMode = mode;
-        this.selectedRobot = null;
         this.loadMissions();
     }
 
     clearFilters(): void {
-        this.selectedRobot = null;
         this.selectedMode = null;
         this.loadMissions();
     }
@@ -139,42 +128,11 @@ export class MissionListComponent implements OnInit {
         return `${meters} m`;
     }
 
-    getUniqueRobots(): string[] {
-        const robots = this.missions.reduce<string[]>((acc, mission: Mission) => {
-            if (Array.isArray(mission.robots)) {
-                acc.push(...mission.robots);
-            }
-            return acc;
-        }, []);
-        return [...new Set(robots)];
-    }
-
     formatRobots(robots: string[] | undefined): string {
         if (!robots || robots.length === 0) {
             return 'N/A';
         }
         return robots.join(' & ');
-    }
-
-    populateDatabase(): void {
-        if (confirm('Voulez-vous peupler la base de données avec des missions d\'exemple ?\n\nCela va supprimer toutes les missions existantes et créer 6 missions d\'exemple.')) {
-            this.loading = true;
-            this.error = null;
-            
-            this.missionDatabaseService.populateDatabase(true).subscribe({
-                next: (result) => {
-                    console.log('Database populated:', result);
-                    this.loadMissions();
-                    this.loadStats();
-                    this.loading = false;
-                },
-                error: (error: HttpErrorResponse) => {
-                    console.error('Error populating database:', error);
-                    this.error = `Erreur lors du peuplement: ${error.message || error.statusText || 'Erreur inconnue'}`;
-                    this.loading = false;
-                }
-            });
-        }
     }
 
     openLogsDialog(mission: Mission): void {

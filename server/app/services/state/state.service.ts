@@ -20,7 +20,6 @@ export class StateService {
             'std_msgs/msg/String',
             '/limo1/mission_state',
             (msg) => {
-                console.log(`[ROS2] [limo1] mission_state = ${msg.data}`);
                 this.socketService.sendStateToAllSockets('limo1', msg.data);
             }
         );
@@ -31,7 +30,6 @@ export class StateService {
           'std_msgs/msg/String',
           '/limo2/mission_state',
           (msg) => {
-            console.log(`[ROS2] [limo2] mission_state = ${msg.data}`);
             this.socketService.sendStateToAllSockets('limo2', msg.data);
           }
         );

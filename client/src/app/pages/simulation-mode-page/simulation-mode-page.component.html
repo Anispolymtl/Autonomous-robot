@@ -1,30 +1,32 @@
-<div class="card">
-    <h1>Connexion au robot</h1>
-    <p>Mode sélectionné : <strong>Simulation</strong></p>
+<div class="mode-page">
+    <div class="mode-layout">
+        <section class="card mode-card mode-card--controls">
+            <h1>Connexion au robot</h1>
+            <p>Mode sélectionné : <strong>Simulation</strong></p>
 
-    <button class="btn" (click)="startMission()">Lancer la mission</button>
-    <button class="btn" (click)="stopMission()">Arrêter la mission</button>
-    <button class="btn secondary" (click)="back()">⬅ Revenir au choix du mode</button>
+            <button class="btn" (click)="startMission()">Lancer la mission</button>
+            <button class="btn" (click)="stopMission()">Arrêter la mission</button>
+            @if (message) {
+            <div class="message-box">{{ message }}</div> }
+        </section>
 
-    @if (message) {
-    <div class="message-box">{{ message }}</div> }
-</div>
+        <section class="status-card mode-card mode-card--status">
+            <h1>État des robots</h1>
+            <app-robot-status></app-robot-status>
+        </section>
 
-<div class="status-card">
-    <h1>État des robots</h1>
-    <app-robot-status></app-robot-status>
-</div>
-
-<div class="map-card">
-    <h1>Carte d'exploration</h1>
-    <div class="robot-selector">
-        <span>Robot sélectionné :</span>
-        <button class="btn" [disabled]="selectedRobotId === 'limo1'" (click)="setSelectedRobot('limo1')">limo1</button>
-        <button class="btn" [disabled]="selectedRobotId === 'limo2'" (click)="setSelectedRobot('limo2')">limo2</button>
+        <section class="map-card mode-card mode-card--map">
+            <h1>Carte d'exploration</h1>
+            <div class="robot-selector">
+                <span>Robot sélectionné :</span>
+                <button class="btn" [disabled]="selectedRobotId === 'limo1'" (click)="setSelectedRobot('limo1')">limo1</button>
+                <button class="btn" [disabled]="selectedRobotId === 'limo2'" (click)="setSelectedRobot('limo2')">limo2</button>
+            </div>
+            @if (selectedRobotId === 'limo1') {
+                <app-map robotId="limo1"></app-map>
+            } @else {
+                <app-map robotId="limo2"></app-map>
+            }
+        </section>
     </div>
-    @if (selectedRobotId === 'limo1') {
-        <app-map robotId="limo1"></app-map>
-    } @else {
-        <app-map robotId="limo2"></app-map>
-    }
 </div>

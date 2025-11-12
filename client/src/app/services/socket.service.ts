@@ -6,9 +6,9 @@ import { environment } from 'src/environments/environment';
     providedIn: 'root',
 })
 export class SocketService {
-    socket: Socket;
+    socket?: Socket;
 
-    get getSocket(): Socket {
+    get getSocket(): Socket | undefined {
         return this.socket;
     }
 
@@ -23,12 +23,12 @@ export class SocketService {
     }
 
     disconnect() {
-        if (this.socket) {
-            this.socket.disconnect();
-        }
+        if (!this.socket) return;
+        this.socket.disconnect();
+        this.socket = undefined;
     }
 
-        on<T>(event: string, action: (data: T) => void): void {
+    on<T>(event: string, action: (data: T) => void): void {
         if (this.socket) this.socket.on(event, action);
     }
 
@@ -41,6 +41,7 @@ export class SocketService {
     }
 
     send<T, R>(event: string, data?: T, callback?: (response: R) => void): void {
+        if (!this.socket) return;
         this.socket.emit(event, ...[data, callback].filter((x) => x));
     }
 }

@@ -20,10 +20,8 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   constructor(private missionStateService: MissionStateService) {}
 
   ngOnInit(): void {
-    // ✅ Connexion aux namespaces ROS2 (sockets)
     this.missionStateService.connectToSocket();
     
-    // ✅ Écoute en temps réel des états
     this.sub1 = this.missionStateService.getLimo1State$().subscribe((state) => {
       this.robot1Status = state;
     });
@@ -34,7 +32,6 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // ✅ Nettoyage
     if (this.sub1) this.sub1.unsubscribe();
     if (this.sub2) this.sub2.unsubscribe();
     this.missionStateService.disconnect();

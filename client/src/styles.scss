@@ -1,3 +1,30 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --navbar-offset: 6rem;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  background-color: #f5f6fb;
+  color: #1f2937;
+}
+
+img,
+canvas,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Overlay baseline (mirrors Angular CDK defaults to ensure dialogs center correctly) */
 .cdk-overlay-container {
     position: fixed;
