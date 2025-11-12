@@ -1,6 +1,6 @@
 import { MapService } from './map.service';
-import { SocketService } from '@app/services/socket.service';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { SocketService } from '@app/services/socket/socket.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MapObject } from '@app/components/map/map.component';
 import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';

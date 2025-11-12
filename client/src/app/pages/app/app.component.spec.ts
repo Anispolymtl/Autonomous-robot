@@ -2,8 +2,8 @@
 // import { AppComponent } from './app.component';
 // import { Router, NavigationEnd } from '@angular/router';
 // import { Subject, of } from 'rxjs';
-// import { MissionModeService } from '@app/services/mission-mode.service';
-// import { MissionSessionService } from '@app/services/mission-session.service';
+// import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
+// import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 // import { GlobalNavbarComponent } from '@app/components/global-navbar/global-navbar.component';
 
 // describe('AppComponent', () => {

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { MissionListComponent } from './mission-list.component';
-import { MissionDatabaseService } from '@app/services/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Mission, MissionLogEntry, MissionStats } from '@app/interfaces/mission';

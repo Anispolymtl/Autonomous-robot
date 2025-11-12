@@ -3,9 +3,9 @@ import { SimulationPageComponent } from './simulation-mode-page.component';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MissionService } from '@app/services/mission.service';
-import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database.service';
+import { MissionService } from '@app/services/mission/mission.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 describe('SimulationPageComponent', () => {
   let component: SimulationPageComponent;

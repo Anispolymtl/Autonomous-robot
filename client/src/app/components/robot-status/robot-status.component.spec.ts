@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RobotStatusComponent } from './robot-status.component';
-import { MissionStateService } from '@app/services/state.service';
+import { MissionStateService } from '@app/services/state/state.service';
 import { Subject } from 'rxjs';
 
 describe('RobotStatusComponent', () => {

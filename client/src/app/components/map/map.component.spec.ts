@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MapComponent } from './map.component';
-import { MapService } from '@app/services/map.service';
-import { SocketService } from '@app/services/socket.service';
+import { MapService } from '@app/services/map/map.service';
+import { SocketService } from '@app/services/socket/socket.service';
 
 class MockMapService {
   onCanvasClick = jasmine.createSpy('onCanvasClick');

@@ -5,8 +5,8 @@ import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { PoseData } from '@app/interfaces/pose-data';
 import { MapEvent } from '@common/enums/sockets-events';
-import { MapService } from '@app/services/map.service';
-import { SocketService } from '@app/services/socket.service';
+import { MapService } from '@app/services/map/map.service';
+import { SocketService } from '@app/services/socket/socket.service';
 
 export interface Point2D {
   x: number;

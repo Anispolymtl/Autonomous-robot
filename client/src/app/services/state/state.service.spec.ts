@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MissionStateService } from './state.service';
-import { SocketService } from '@app/services/socket.service';
+import { SocketService } from '@app/services/socket/socket.service';
 
 describe('MissionStateService', () => {
   let service: MissionStateService;

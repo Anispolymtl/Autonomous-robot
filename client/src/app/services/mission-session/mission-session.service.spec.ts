@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync } from '@angular/core/testing';
 import { MissionSessionService } from './mission-session.service';
-import { SocketService } from '@app/services/socket.service';
-import { MissionModeService } from '@app/services/mission-mode.service';
+import { SocketService } from '@app/services/socket/socket.service';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
 import { Mission } from '@app/interfaces/mission';
 
 describe('MissionSessionService', () => {

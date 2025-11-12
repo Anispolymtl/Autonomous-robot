@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Mission, MissionLogEntry, MissionStats } from '@app/interfaces/mission';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MissionDatabaseService } from '@app/services/mission-database.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MissionLogsDialogComponent } from '@app/components/mission-logs-dialog/mission-logs-dialog.component';
 

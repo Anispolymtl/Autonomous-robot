@@ -2,7 +2,7 @@
 // import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 // import { of, BehaviorSubject } from 'rxjs';
 // import { GlobalNavbarComponent } from './global-navbar.component';
-// import { MissionModeService, MissionMode } from '@app/services/mission-mode.service';
+// import { MissionModeService, MissionMode } from '@app/services/mission-mode/mission-mode.service';
 
 // describe('GlobalNavbarComponent', () => {
 //   let component: GlobalNavbarComponent;

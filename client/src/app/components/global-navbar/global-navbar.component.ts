@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, 
 import { Router, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
 import { NgIf } from '@angular/common';
-import { MissionModeService, MissionMode } from '@app/services/mission-mode.service';
+import { MissionModeService, MissionMode } from '@app/services/mission-mode/mission-mode.service';
 import { Subject } from 'rxjs';
 
 @Component({

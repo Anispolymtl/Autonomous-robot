@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { MissionModeService, MissionMode } from '@app/services/mission-mode.service';
+import { MissionModeService, MissionMode } from '@app/services/mission-mode/mission-mode.service';
 
 export function missionModeGuard(requiredMode: Exclude<MissionMode, null>): CanActivateFn {
     return () => {

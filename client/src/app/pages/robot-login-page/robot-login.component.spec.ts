@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RobotLoginComponent } from './robot-login.component';
 import { Router } from '@angular/router';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 

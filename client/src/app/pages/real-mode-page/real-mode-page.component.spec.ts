@@ -3,10 +3,10 @@ import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RealPageComponent } from './real-mode-page.component';
-import { IdentifyService } from '@app/services/identify.service';
-import { MissionService } from '@app/services/mission.service';
-import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database.service';
+import { IdentifyService } from '@app/services/identify/identify.service';
+import { MissionService } from '@app/services/mission/mission.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 const mockRouter = {
   navigate: jasmine.createSpy('navigate')

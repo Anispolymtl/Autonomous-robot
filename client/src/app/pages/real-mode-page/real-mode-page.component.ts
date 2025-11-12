@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IdentifyService } from '@app/services/identify.service';
-import { MissionService } from '@app/services/mission.service';
+import { IdentifyService } from '@app/services/identify/identify.service';
+import { MissionService } from '@app/services/mission/mission.service';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
-import { MissionSessionService } from '@app/services/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
 

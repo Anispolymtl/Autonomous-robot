@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Mission, MissionLogEntry } from '@app/interfaces/mission';
-import { SocketService } from '@app/services/socket.service';
-import { MissionMode, MissionModeService, ActiveMissionResponse } from '@app/services/mission-mode.service';
+import { SocketService } from '@app/services/socket/socket.service';
+import { MissionMode, MissionModeService, ActiveMissionResponse } from '@app/services/mission-mode/mission-mode.service';
 
 interface MissionCreatedPayload {
     missionId: string;

@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { LogsPageComponent } from './logs-page.component';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
-import { MissionModeService } from '@app/services/mission-mode.service';
-import { SocketService } from '@app/services/socket.service';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
+import { SocketService } from '@app/services/socket/socket.service';
 
 describe('LogsPageComponent', () => {
   let component: LogsPageComponent;

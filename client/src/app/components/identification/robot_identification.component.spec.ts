@@ -1,7 +1,7 @@
 // import { ComponentFixture, TestBed } from '@angular/core/testing';
 // import { of, throwError } from 'rxjs';
 // import { RobotComponent } from '@app/components/identification/robot_identification.component';
-// import { IdentifyService } from '@app/services/identify.service';
+// import { IdentifyService } from '@app/services/identify/identify.service';
 
 // describe('RobotComponent', () => {
 //   let component: RobotComponent;
