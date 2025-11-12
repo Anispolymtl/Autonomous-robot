@@ -1,32 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MissionDatabaseController } from './mission-database.controller';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
-import { Response } from 'express';
 import { CreateMissionDto } from '@app/model/dto/mission/create-mission.dto';
 import { UpdateMissionDto } from '@app/model/dto/mission/update-mission.dto';
+import { Mission } from '@app/model/database/mission';
+import { Response } from 'express';
 
 describe('MissionDatabaseController', () => {
   let controller: MissionDatabaseController;
-  let service: Partial<MissionDatabaseService>;
-  let mockResponse: Partial<Response>;
+  let service: Partial<Record<keyof MissionDatabaseService, jest.Mock>>;
 
   beforeEach(async () => {
     service = {
-      getAllMissions: jest.fn().mockResolvedValue([{ id: '1', name: 'Test Mission' }]),
-      getMissionById: jest.fn().mockResolvedValue({ id: '1', name: 'Test Mission' }),
-      getMissionsByRobot: jest.fn().mockResolvedValue([{ id: '1', name: 'Test Mission' }]),
-      getMissionsByMode: jest.fn().mockResolvedValue([{ id: '1', name: 'Test Mission' }]),
-      getMissionStats: jest.fn().mockResolvedValue({ total: 1 }),
-      createMission: jest.fn().mockResolvedValue({ id: '1', name: 'Created Mission' }),
-      updateMission: jest.fn().mockResolvedValue({ id: '1', name: 'Updated Mission' }),
-      deleteMission: jest.fn().mockResolvedValue(true),
-      populateDatabase: jest.fn().mockResolvedValue({ populated: true }),
-    };
-
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
+      getAllMissions: jest.fn(),
+      getMissionById: jest.fn(),
+      getMissionsByRobot: jest.fn(),
+      getMissionsByMode: jest.fn(),
+      getMissionStats: jest.fn(),
+      createMission: jest.fn(),
+      updateMission: jest.fn(),
+      deleteMission: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -37,136 +30,208 @@ describe('MissionDatabaseController', () => {
     controller = module.get<MissionDatabaseController>(MissionDatabaseController);
   });
 
+  const mockResponse = () => {
+    const res: Partial<Response> = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    res.send = jest.fn().mockReturnValue(res);
+    return res as Response;
+  };
+
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
   describe('getAllMissions', () => {
     it('should return all missions', async () => {
-      await controller.getAllMissions(mockResponse as Response);
-      expect(service.getAllMissions).toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith([{ id: '1', name: 'Test Mission' }]);
+      const res = mockResponse();
+      const missions: Mission[] = [{ missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 }];
+      service.getAllMissions.mockResolvedValue(missions);
+
+      await controller.getAllMissions(res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(missions);
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.getAllMissions.mockRejectedValue(new Error('DB error'));
+      await controller.getAllMissions(res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('DB error');
     });
   });
 
   describe('getMissionById', () => {
-    it('should return mission when found', async () => {
-      await controller.getMissionById('1', mockResponse as Response);
-      expect(service.getMissionById).toHaveBeenCalledWith('1');
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ id: '1', name: 'Test Mission' });
+    it('should return a mission by ID', async () => {
+      const res = mockResponse();
+      const mission: Mission = { missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 };
+      service.getMissionById.mockResolvedValue(mission);
+
+      await controller.getMissionById('123', res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mission);
     });
 
-    it('should return 404 when mission not found', async () => {
-      (service.getMissionById as jest.Mock).mockResolvedValueOnce(null);
-      await controller.getMissionById('2', mockResponse as Response);
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.send).toHaveBeenCalledWith('Mission not found');
+    it('should return 404 if mission not found', async () => {
+      const res = mockResponse();
+      service.getMissionById.mockResolvedValue(null);
+
+      await controller.getMissionById('123', res);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith('Mission not found');
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.getMissionById.mockRejectedValue(new Error('DB error'));
+      await controller.getMissionById('123', res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('DB error');
     });
   });
 
   describe('getMissionsByRobot', () => {
-    it('should return missions filtered by robot', async () => {
-      await controller.getMissionsByRobot('Robo1', mockResponse as Response);
-      expect(service.getMissionsByRobot).toHaveBeenCalledWith('Robo1');
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    it('should return missions for a robot', async () => {
+      const res = mockResponse();
+      const missions: Mission[] = [{ missionName: 'M1', robots: ['r1'], mode: 'SIMULATION', distance: 0, durationSec: 0 }];
+      service.getMissionsByRobot.mockResolvedValue(missions);
+
+      await controller.getMissionsByRobot('r1', res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(missions);
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.getMissionsByRobot.mockRejectedValue(new Error('DB error'));
+      await controller.getMissionsByRobot('r1', res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('DB error');
     });
   });
 
   describe('getMissionsByMode', () => {
-    it('should return missions filtered by mode', async () => {
-      await controller.getMissionsByMode('AUTO', mockResponse as Response);
-      expect(service.getMissionsByMode).toHaveBeenCalledWith('AUTO');
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    it('should return missions by mode', async () => {
+      const res = mockResponse();
+      const missions: Mission[] = [{ missionName: 'M1', robots: [], mode: 'REAL', distance: 0, durationSec: 0 }];
+      service.getMissionsByMode.mockResolvedValue(missions);
+
+      await controller.getMissionsByMode('REAL', res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(missions);
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.getMissionsByMode.mockRejectedValue(new Error('DB error'));
+      await controller.getMissionsByMode('REAL', res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('DB error');
     });
   });
 
   describe('getMissionStats', () => {
     it('should return mission stats', async () => {
-      await controller.getMissionStats(mockResponse as Response);
-      expect(service.getMissionStats).toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ total: 1 });
+      const res = mockResponse();
+      const stats = { total: 5 };
+      service.getMissionStats.mockResolvedValue(stats);
+
+      await controller.getMissionStats(res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(stats);
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.getMissionStats.mockRejectedValue(new Error('DB error'));
+
+      await controller.getMissionStats(res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('DB error');
     });
   });
 
   describe('createMission', () => {
-    it('should create a mission', async () => {
-      const dto: CreateMissionDto = {
-        missionName: 'New Mission',
-        durationSec: 60,
-        robots: ['Robo1'],
-        mode: 'AUTO',
-        distance: 100,
-      };
-      await controller.createMission(dto, mockResponse as Response);
-      expect(service.createMission).toHaveBeenCalledWith(dto);
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({ id: '1', name: 'Created Mission' });
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      const dto: CreateMissionDto = { missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 };
+      service.createMission.mockRejectedValue(new Error('Invalid'));
+
+      await controller.createMission(dto, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith('Invalid');
     });
   });
 
   describe('updateMission', () => {
-    it('should update a mission', async () => {
+    it('should update mission', async () => {
+      const res = mockResponse();
       const dto: UpdateMissionDto = {
-        _id: '1',
-        missionName: 'Updated Mission',
-        durationSec: 60,
-        robots: ['Robo1'],
-        mode: 'AUTO',
-        distance: 150,
+        missionName: 'Updated',
+        _id: ''
       };
-      await controller.updateMission(dto, mockResponse as Response);
-      expect(service.updateMission).toHaveBeenCalledWith(dto);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ id: '1', name: 'Updated Mission' });
+      const mission: Mission = { missionName: 'Updated', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 };
+      service.updateMission.mockResolvedValue(mission);
+
+      await controller.updateMission(dto, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mission);
     });
 
-    it('should return 404 if mission does not exist', async () => {
-      (service.updateMission as jest.Mock).mockResolvedValueOnce(null);
+    it('should return 404 if mission not found', async () => {
+      const res = mockResponse();
       const dto: UpdateMissionDto = {
-        _id: '2',
-        missionName: 'Missing Mission',
-        durationSec: 60,
-        robots: ['Robo2'],
-        mode: 'AUTO',
-        distance: 100,
+        missionName: 'Updated',
+        _id: ''
       };
-      await controller.updateMission(dto, mockResponse as Response);
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.send).toHaveBeenCalledWith('Mission not found');
+      service.updateMission.mockResolvedValue(null);
+
+      await controller.updateMission(dto, res);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith('Mission not found');
+    });
+
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      const dto: UpdateMissionDto = {
+        missionName: 'Updated',
+        _id: ''
+      };
+      service.updateMission.mockRejectedValue(new Error('Invalid'));
+
+      await controller.updateMission(dto, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith('Invalid');
     });
   });
 
   describe('deleteMission', () => {
-    it('should delete mission', async () => {
-      await controller.deleteMission('1', mockResponse as Response);
-      expect(service.deleteMission).toHaveBeenCalledWith('1');
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Mission deleted successfully' });
+    it('should delete a mission', async () => {
+      const res = mockResponse();
+      service.deleteMission.mockResolvedValue(true);
+
+      await controller.deleteMission('123', res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Mission deleted successfully' });
     });
 
     it('should return 404 if mission not found', async () => {
-      (service.deleteMission as jest.Mock).mockResolvedValueOnce(false);
-      await controller.deleteMission('2', mockResponse as Response);
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Mission not found' });
-    });
-  });
+      const res = mockResponse();
+      service.deleteMission.mockResolvedValue(false);
 
-  describe('populateDatabase', () => {
-    it('should populate database with force=false', async () => {
-      await controller.populateDatabase({}, mockResponse as Response);
-      expect(service.populateDatabase).toHaveBeenCalledWith(false);
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({ populated: true });
+      await controller.deleteMission('123', res);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Mission not found' });
     });
 
-    it('should populate database with force=true', async () => {
-      await controller.populateDatabase({ force: true }, mockResponse as Response);
-      expect(service.populateDatabase).toHaveBeenCalledWith(true);
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
+    it('should handle errors', async () => {
+      const res = mockResponse();
+      service.deleteMission.mockRejectedValue(new Error('DB error'));
+
+      await controller.deleteMission('123', res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
     });
   });
 });

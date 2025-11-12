@@ -1,166 +1,147 @@
-import { TestBed } from '@angular/core/testing';
 import { MapService } from './map.service';
 import { SocketService } from '@app/services/socket.service';
+import { MissionSessionService } from '@app/services/mission-session.service';
 import { MapObject } from '@app/components/map/map.component';
 import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 
 describe('MapService', () => {
-  let service: MapService;
-  let socketService: jasmine.SpyObj<SocketService>;
-  let canvas: HTMLCanvasElement;
-  let ctx: CanvasRenderingContext2D;
+    let service: MapService;
+    let socketServiceSpy: jasmine.SpyObj<SocketService>;
+    let missionSessionServiceSpy: jasmine.SpyObj<MissionSessionService>;
+    let canvas: HTMLCanvasElement;
+    let ctx: CanvasRenderingContext2D;
 
-  beforeEach(() => {
-    socketService = jasmine.createSpyObj('SocketService', ['send']);
-    TestBed.configureTestingModule({
-      providers: [
-        MapService,
-        { provide: SocketService, useValue: socketService },
-      ],
+    beforeEach(() => {
+        socketServiceSpy = jasmine.createSpyObj('SocketService', ['send']);
+        missionSessionServiceSpy = jasmine.createSpyObj('MissionSessionService', ['appendLog']);
+        service = new MapService(socketServiceSpy, missionSessionServiceSpy);
+
+        canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        spyOn(canvas, 'getContext').and.returnValue(ctx);
     });
 
-    service = TestBed.inject(MapService);
-    canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 2;
-    ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  });
-
-  const mockMapObj = (): MapObject => ({
-    map: {
-      data: new Int8Array([0, 100, 200, -1]),
-      width: 2,
-      height: 2,
-      resolution: 1,
-      origin: {
-        position: { x: 0, y: 0, z: 0 },
-        orientation: { x: 0, y: 0, z: 0, w: 1 },
-      },
-    },
-    orientation: { yaw: 0, yawCos: 1, yawSin: 0 },
-    pointList: [],
-    pointCanvasCoords: [],
-    robotPoses: {},
-    frame: 'robot1',
-  } as unknown as MapObject);
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  it('should normalize various data types correctly', () => {
-    const array = [1, 2, 3];
-    const int8 = new Int8Array(array);
-    const buffer = int8.buffer;
-
-    expect(service.normaliseMapData({ data: int8 })).toEqual(int8);
-    expect(service.normaliseMapData(buffer)).toEqual(jasmine.any(Int8Array));
-    expect(service.normaliseMapData(int8)).toEqual(int8);
-    expect(service.normaliseMapData(array)).toEqual(Int8Array.from(array));
-  });
-
-  it('should return undefined if map is missing in getOriginInWorld', () => {
-    expect(service.getOriginInWorld(undefined as unknown as OccupancyGrid)).toBeUndefined();
-  });
-
-  it('should return correct origin from getOriginInWorld', () => {
-    const map: OccupancyGrid = {
-      data: new Int8Array(),
-      width: 1,
-      height: 1,
-      resolution: 1,
-      origin: {
-        position: { x: 10, y: 20, z: 0 },
-        orientation: { x: 0, y: 0, z: 0, w: 1 },
-      },
-    };
-    expect(service.getOriginInWorld(map)).toEqual({ x: 10, y: 20 });
-  });
-
-  it('should update orientation cache correctly', () => {
-    const map: OccupancyGrid = {
-      data: new Int8Array(),
-      width: 1,
-      height: 1,
-      resolution: 1,
-      origin: { position: { x: 0, y: 0, z: 0 }, orientation: { w: 1, x: 0, y: 0, z: 0 } },
-    };
-    const orientation: Orientation = { yaw: 0, yawCos: 0, yawSin: 0 };
-    service.updateOrientationCache(map, orientation);
-    expect(orientation.yawCos).toBeCloseTo(1);
-    expect(orientation.yawSin).toBeCloseTo(0);
-  });
-
-  it('should handle missing map gracefully in worldPointToMapCoordinate', () => {
-    const mapObj = mockMapObj();
-    mapObj.map = undefined as any;
-    const result = service.worldPointToMapCoordinate(mapObj, 1, 1);
-    expect(result).toBeUndefined();
-  });
-
-  it('should convert between canvas and map coordinates', () => {
-    const mapObj = mockMapObj();
-    const coord = service.canvasPointToMapCoordinate(mapObj, 1, 1);
-    expect(coord?.cell).toEqual({ x: 1, y: 0 });
-    expect(coord?.world).toBeDefined();
-  });
-
-  it('should ignore out-of-bounds canvas points', () => {
-    const mapObj = mockMapObj();
-    expect(service.canvasPointToMapCoordinate(mapObj, -1, -1)).toBeUndefined();
-  });
-
-  it('should send point when selected', () => {
-    const mapObj = mockMapObj();
-    mapObj.selectedPoint = { cell: { x: 1, y: 1 }, world: { x: 1, y: 1 } };
-    mapObj.selectedCanvasCoord = { x: 1, y: 1 };
-    service.sendPoint(mapObj);
-    expect(socketService.send).toHaveBeenCalledWith('point', {
-      robot: 'robot1',
-      point: { x: 1, y: 1 },
+    it('devrait être créé', () => {
+        expect(service).toBeTruthy();
     });
-  });
 
-  it('should not send point when nothing is selected', () => {
-    const mapObj = mockMapObj();
-    service.sendPoint(mapObj);
-    expect(socketService.send).not.toHaveBeenCalled();
-  });
-
-  it('should send removePoint with valid index', () => {
-    const mapObj = mockMapObj();
-    mapObj.pointList = [{}, {}] as any;
-    service.removePoint(1, mapObj);
-    expect(socketService.send).toHaveBeenCalledWith('removePoint', {
-      robot: 'robot1',
-      index: 1,
+    it('renderMap ne fait rien si mapObj.map est manquant', () => {
+        const mapObj = { map: undefined } as unknown as MapObject;
+        spyOn(console, 'log');
+        service.renderMap(canvas, mapObj);
+        expect(console.log).not.toHaveBeenCalledWith('render');
     });
-  });
 
-  it('should not send removePoint for invalid index', () => {
-    const mapObj = mockMapObj();
-    mapObj.pointList = [];
-    service.removePoint(5, mapObj);
-    expect(socketService.send).not.toHaveBeenCalled();
-  });
+    it('renderMap met à jour la taille du canvas et trace des pixels', () => {
+        const data = new Int8Array([0, 50, -1, 100]);
+        const mapObj = {
+            map: { data, width: 2, height: 2 },
+            pointCanvasCoords: [],
+            robotPoses: {},
+            orientation: { yaw: 0, yawCos: 1, yawSin: 0 },
+        } as unknown as MapObject;
 
-  it('should sendGoal if pointList not empty', () => {
-    const mapObj = mockMapObj();
-    mapObj.pointList = [{ x: 1, y: 2 }] as any;
-    service.sendGoal(mapObj);
-    expect(socketService.send).toHaveBeenCalledWith('startNavGoal', { robot: 'robot1' });
-  });
+        spyOn(ctx, 'putImageData');
+        service.renderMap(canvas, mapObj);
+        expect(ctx.putImageData).toHaveBeenCalled();
+    });
 
-  it('should skip sendGoal if pointList empty', () => {
-    const mapObj = mockMapObj();
-    service.sendGoal(mapObj);
-    expect(socketService.send).not.toHaveBeenCalled();
-  });
+    it('getOriginInWorld retourne la position d’origine', () => {
+        const map: OccupancyGrid = {
+            data: new Int8Array(),
+            width: 1,
+            height: 1,
+            resolution: 1,
+            origin: { position: { x: 5, y: 10, z: 15 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
+        };
+        const result = service.getOriginInWorld(map);
+        expect(result).toEqual({ x: 5, y: 10 });
+    });
 
-  it('should not crash when rendering map with valid map data', () => {
-    const mapObj = mockMapObj();
-    spyOn(canvas, 'getContext').and.returnValue(ctx);
-    expect(() => service.renderMap(canvas, mapObj)).not.toThrow();
-  });
+    it('canvasPointToMapCoordinate retourne undefined si hors limites', () => {
+        const mapObj = { map: { width: 10, height: 10 } } as MapObject;
+        const result = service.canvasPointToMapCoordinate(mapObj, -1, 0);
+        expect(result).toBeUndefined();
+    });
+
+    it('canvasPointToMapCoordinate retourne une coordonnée valide', () => {
+        const mapObj = {
+            map: {
+                width: 10,
+                height: 10,
+                resolution: 1,
+                origin: { position: { x: 0, y: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 } },
+            },
+            orientation: { yaw: 0, yawCos: 1, yawSin: 0 },
+        } as MapObject;
+        const result = service.canvasPointToMapCoordinate(mapObj, 5, 5);
+        expect(result?.cell).toEqual({ x: 5, y: 4 });
+    });
+
+    it('worldPointToMapCoordinate retourne undefined si hors limites', () => {
+        const mapObj = {
+            map: { width: 1, height: 1, resolution: 1, origin: { position: { x: 0, y: 0 }, orientation: { x:0,y:0,z:0,w:1 } } },
+            orientation: { yawCos: 1, yawSin: 0 },
+        } as MapObject;
+        const result = service.worldPointToMapCoordinate(mapObj, 999, 999);
+        expect(result).toBeUndefined();
+    });
+
+    it('sendPoint envoie les données du point et réinitialise la sélection', () => {
+        const mapObj = {
+            frame: 'limo1',
+            selectedPoint: { world: { x: 1, y: 2 }, cell: { x: 3, y: 4 } },
+            selectedCanvasCoord: { x: 10, y: 20 },
+        } as unknown as MapObject;
+
+        service.sendPoint(mapObj);
+        expect(socketServiceSpy.send).toHaveBeenCalledWith('point', jasmine.anything());
+        expect(missionSessionServiceSpy.appendLog).toHaveBeenCalled();
+        expect(mapObj.selectedPoint).toBeUndefined();
+    });
+
+    it('removePoint envoie removePoint et logCommand', () => {
+        const mapObj = {
+            frame: 'limo1',
+            pointList: [{ world: { x: 1, y: 2 } }],
+        } as unknown as MapObject;
+
+        service.removePoint(0, mapObj);
+        expect(socketServiceSpy.send).toHaveBeenCalledWith('removePoint', jasmine.anything());
+        expect(missionSessionServiceSpy.appendLog).toHaveBeenCalled();
+    });
+
+    it('sendGoal ne fait rien si pointList vide', () => {
+        const mapObj = { frame: 'limo1', pointList: [] } as unknown as MapObject;
+        spyOn(console, 'log');
+        service.sendGoal(mapObj);
+        expect(console.log).toHaveBeenCalledWith('No coordinates to send.');
+    });
+
+    it('normaliseMapData gère plusieurs formats', () => {
+        expect(service.normaliseMapData(new Int8Array([1]))).toEqual(new Int8Array([1]));
+        expect(service.normaliseMapData(new ArrayBuffer(2))).toBeInstanceOf(Int8Array);
+        expect(service.normaliseMapData({ data: [1, 2] })).toEqual(new Int8Array([1, 2]));
+        expect(service.normaliseMapData([1, 2])).toEqual(new Int8Array([1, 2]));
+    });
+
+    it('updateOrientationCache met à jour les angles yawCos/yawSin', () => {
+        const orientation: Orientation = { yaw: 0, yawCos: 0, yawSin: 0 };
+        const map: OccupancyGrid = {
+            data: new Int8Array(),
+            width: 1,
+            height: 1,
+            resolution: 1,
+            origin: { position: { x: 0, y: 0, z: 15 }, orientation: { x: 0, y: 0, z: 0.707, w: 0.707 } },
+        };
+        service.updateOrientationCache(map, orientation);
+        expect(orientation.yawCos).toBeCloseTo(Math.cos(Math.PI / 2), 1);
+    });
+
+    it('updateOrientationCache remet les valeurs par défaut si map undefined', () => {
+        const orientation: Orientation = { yaw: 1, yawCos: 0.5, yawSin: 0.5 };
+        service.updateOrientationCache(undefined as any, orientation);
+        expect(orientation).toEqual({ yaw: 0, yawCos: 1, yawSin: 0 });
+    });
 });

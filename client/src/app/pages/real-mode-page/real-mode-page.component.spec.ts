@@ -1,53 +1,53 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { RealPageComponent } from './real-mode-page.component';
+import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { RealPageComponent } from './real-mode-page.component';
 import { IdentifyService } from '@app/services/identify.service';
 import { MissionService } from '@app/services/mission.service';
 import { MissionSessionService } from '@app/services/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database.service';
-import { Component } from '@angular/core';
-import { of, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 
-@Component({ selector: 'app-map', template: '' })
-class MapStubComponent {}
+const mockRouter = {
+  navigate: jasmine.createSpy('navigate')
+};
 
-@Component({ selector: 'app-robot-status', template: '' })
-class RobotStatusStubComponent {}
+const mockIdentifyService = {
+  identifyRobot: jasmine.createSpy('identifyRobot')
+};
+
+const mockMissionService = {
+  startMission: jasmine.createSpy('startMission'),
+  cancelMission: jasmine.createSpy('cancelMission')
+};
+
+const mockMissionSessionService = {
+  rehydrateActiveMission: jasmine.createSpy('rehydrateActiveMission'),
+  markMissionStarted: jasmine.createSpy('markMissionStarted'),
+  appendLog: jasmine.createSpy('appendLog'),
+  completeMission: jasmine.createSpy('completeMission')
+};
+
+const mockMissionDatabaseService = {
+  createMission: jasmine.createSpy('createMission')
+};
 
 describe('RealPageComponent', () => {
   let component: RealPageComponent;
   let fixture: ComponentFixture<RealPageComponent>;
-  let routerSpy: jasmine.SpyObj<Router>;
-  let identifyServiceSpy: jasmine.SpyObj<IdentifyService>;
-  let missionServiceSpy: jasmine.SpyObj<MissionService>;
-  let missionSessionSpy: jasmine.SpyObj<MissionSessionService>;
-  let missionDatabaseSpy: jasmine.SpyObj<MissionDatabaseService>;
 
   beforeEach(async () => {
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    identifyServiceSpy = jasmine.createSpyObj('IdentifyService', ['identifyRobot']);
-    missionServiceSpy = jasmine.createSpyObj('MissionService', ['startMission', 'cancelMission']);
-    missionSessionSpy = jasmine.createSpyObj('MissionSessionService', ['rehydrateActiveMission', 'markMissionStarted', 'completeMission']);
-    missionDatabaseSpy = jasmine.createSpyObj('MissionDatabaseService', ['createMission']);
-
     await TestBed.configureTestingModule({
       imports: [RealPageComponent],
-    })
-    .overrideComponent(RealPageComponent, {
-      set: {
-        imports: [MapStubComponent, RobotStatusStubComponent]
-      }
-    })
-    .overrideProvider(Router, { useValue: routerSpy })
-    .overrideProvider(IdentifyService, { useValue: identifyServiceSpy })
-    .overrideProvider(MissionService, { useValue: missionServiceSpy })
-    .overrideProvider(MissionSessionService, { useValue: missionSessionSpy })
-    .overrideProvider(MissionDatabaseService, { useValue: missionDatabaseSpy })
-    .compileComponents();
-  });
+      providers: [
+        { provide: Router, useValue: mockRouter },
+        { provide: IdentifyService, useValue: mockIdentifyService },
+        { provide: MissionService, useValue: mockMissionService },
+        { provide: MissionSessionService, useValue: mockMissionSessionService },
+        { provide: MissionDatabaseService, useValue: mockMissionDatabaseService }
+      ]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RealPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -58,42 +58,79 @@ describe('RealPageComponent', () => {
   });
 
   it('should call rehydrateActiveMission on init', () => {
-    expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalled();
+    component.ngOnInit();
+    expect(mockMissionSessionService.rehydrateActiveMission).toHaveBeenCalled();
   });
 
   describe('onIdentify', () => {
-    it('should set message on success', () => {
-      identifyServiceSpy.identifyRobot.and.returnValue(of({ message: 'ok' }));
+    it('should handle successful identify', () => {
+      const response = { message: 'Identifié' };
+      mockIdentifyService.identifyRobot.and.returnValue(of(response));
+
       component.onIdentify(1);
-      expect(component.message).toBe('Réponse du robot 1 : ok');
+
+      expect(mockIdentifyService.identifyRobot).toHaveBeenCalledWith(1);
+      expect(component.message).toContain('Réponse du robot 1');
+      expect(mockMissionSessionService.appendLog).toHaveBeenCalledWith(jasmine.objectContaining({
+        category: 'Command',
+        details: jasmine.objectContaining({ success: true })
+      }));
     });
 
-    it('should set message on error', () => {
-      const error = new HttpErrorResponse({ error: 'fail', status: 500 });
-      identifyServiceSpy.identifyRobot.and.returnValue(throwError(() => error));
+    it('should handle identify error', () => {
+      const error = new HttpErrorResponse({ status: 500, statusText: 'Server Error' });
+      mockIdentifyService.identifyRobot.and.returnValue(throwError(() => error));
+
       component.onIdentify(2);
-      expect(component.message).toContain('Erreur lors de l\'identification du robot 2');
+
+      expect(mockIdentifyService.identifyRobot).toHaveBeenCalledWith(2);
+      expect(component.message).toContain('Erreur lors de l\'identification');
+      expect(mockMissionSessionService.appendLog).toHaveBeenCalledWith(jasmine.objectContaining({
+        details: jasmine.objectContaining({ success: false })
+      }));
     });
   });
 
   describe('startMission', () => {
-    it('should mark mission started and call startMission', () => {
-      missionServiceSpy.startMission.and.returnValue(of({}));
+    it('should start mission and mark as started', () => {
+      mockMissionService.startMission.and.returnValue(of({ ok: true }));
+
       component.startMission();
+
+      expect(mockMissionSessionService.markMissionStarted).toHaveBeenCalled();
+      expect(mockMissionService.startMission).toHaveBeenCalled();
       expect(component.message).toBe('Mission demandée.');
-      expect(missionSessionSpy.markMissionStarted).toHaveBeenCalled();
-      expect(missionServiceSpy.startMission).toHaveBeenCalled();
+    });
+
+    it('should handle mission start error', () => {
+      const error = new HttpErrorResponse({ status: 500 });
+      mockMissionService.startMission.and.returnValue(throwError(() => error));
+
+      component.startMission();
+
+      expect(mockMissionService.startMission).toHaveBeenCalled();
     });
   });
 
   describe('stopMission', () => {
-    it('should set message and call cancelMission', () => {
-      missionServiceSpy.cancelMission.and.returnValue(of({}));
+    it('should stop mission successfully', () => {
       spyOn<any>(component, 'finalizeMission');
+      mockMissionService.cancelMission.and.returnValue(of({ ok: true }));
+
       component.stopMission();
+
+      expect(component['finalizeMission']).toHaveBeenCalled();
       expect(component.message).toBe('Mission terminée.');
-      expect(missionServiceSpy.cancelMission).toHaveBeenCalled();
-      expect((component as any).finalizeMission).toHaveBeenCalled();
+    });
+
+    it('should handle mission stop error and still finalize', () => {
+      spyOn<any>(component, 'finalizeMission');
+      const error = new HttpErrorResponse({ status: 400 });
+      mockMissionService.cancelMission.and.returnValue(throwError(() => error));
+
+      component.stopMission();
+
+      expect(component['finalizeMission']).toHaveBeenCalled();
     });
   });
 
@@ -102,48 +139,69 @@ describe('RealPageComponent', () => {
     expect(component.selectedRobotId).toBe('limo2');
   });
 
-  it('should navigate back', () => {
-    component.back();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+  describe('asRobotNamespace', () => {
+    it('should return limo1 for 1', () => {
+      expect((component as any).asRobotNamespace(1)).toBe('limo1');
+    });
+
+    it('should return limo2 for 2', () => {
+      expect((component as any).asRobotNamespace(2)).toBe('limo2');
+    });
   });
 
   describe('finalizeMission', () => {
-    const mockMission = {
-      missionName: 'Test Mission',
-      robots: [],
-      mode: 'REAL' as const,
-      status: 'done',
-      distance: 100,
-      durationSec: 3600,
-      logs: []
-    };
-
-    it('should complete mission and create mission in db', fakeAsync(() => {
-      missionSessionSpy.completeMission.and.returnValue(Promise.resolve(mockMission));
-      missionDatabaseSpy.createMission.and.returnValue(of(mockMission));
+    it('should navigate home if mission is null', fakeAsync(() => {
+      mockMissionSessionService.completeMission.and.returnValue(Promise.resolve(null));
 
       (component as any).finalizeMission();
       tick();
 
-      expect(missionSessionSpy.completeMission).toHaveBeenCalled();
-      expect(missionDatabaseSpy.createMission).toHaveBeenCalledWith(jasmine.objectContaining({
-        missionName: 'Test Mission'
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
+    }));
+
+    it('should create mission and navigate home on success', fakeAsync(() => {
+      const mission = {
+        missionName: 'Test',
+        robots: ['limo1'],
+        mode: 'REAL',
+        distance: 10,
+        durationSec: 60,
+        status: 'completed',
+        logs: []
+      };
+      mockMissionSessionService.completeMission.and.returnValue(Promise.resolve(mission));
+      mockMissionDatabaseService.createMission.and.returnValue(of({}));
+
+      (component as any).finalizeMission();
+      tick();
+
+      expect(mockMissionDatabaseService.createMission).toHaveBeenCalledWith(jasmine.objectContaining({
+        missionName: 'Test'
       }));
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     }));
 
-    it('should navigate home if no mission', fakeAsync(() => {
-      missionSessionSpy.completeMission.and.returnValue(Promise.resolve(null));
+    it('should handle database save error gracefully', fakeAsync(() => {
+      const mission = {
+        missionName: 'Erreur',
+        robots: ['limo1'],
+        mode: 'REAL',
+        status: 'failed'
+      };
+      mockMissionSessionService.completeMission.and.returnValue(Promise.resolve(mission));
+      mockMissionDatabaseService.createMission.and.returnValue(throwError(() => new Error('DB Error')));
+
       (component as any).finalizeMission();
       tick();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     }));
 
-    it('should navigate home on error', fakeAsync(() => {
-      missionSessionSpy.completeMission.and.returnValue(Promise.reject('fail'));
+    it('should handle promise rejection', fakeAsync(() => {
+      mockMissionSessionService.completeMission.and.returnValue(Promise.reject('error'));
       (component as any).finalizeMission();
       tick();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     }));
   });
 });

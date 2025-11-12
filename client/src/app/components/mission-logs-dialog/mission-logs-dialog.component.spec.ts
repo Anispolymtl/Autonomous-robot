@@ -4,88 +4,122 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Mission, MissionLogEntry } from '@app/interfaces/mission';
 
 describe('MissionLogsDialogComponent', () => {
-  let component: MissionLogsDialogComponent;
-  let fixture: ComponentFixture<MissionLogsDialogComponent>;
-  let dialogRefSpy: jasmine.SpyObj<MatDialogRef<MissionLogsDialogComponent>>;
+    let component: MissionLogsDialogComponent;
+    let fixture: ComponentFixture<MissionLogsDialogComponent>;
+    let dialogRefSpy: jasmine.SpyObj<MatDialogRef<MissionLogsDialogComponent>>;
 
-  const mockMission: Mission = {
-    durationSec: 120,
-    robots: ['robot1'],
-    mode: 'REAL',
-    distance: 100,
-    missionName: 'Mission de test',
-  };
+    const mockMission: Mission = {
+        _id: '123',
+        createdAt: new Date('2025-01-01T10:00:00Z'),
+        durationSec: 120,
+        robots: ['limo1', 'limo2'],
+        mode: 'SIMULATION',
+        distance: 15.2,
+        missionName: 'Mission Test',
+        logs: [],
+        status: 'COMPLETED',
+    };
 
-  const mockLogs: MissionLogEntry[] = [
-    { timestamp: new Date(), message: 'Mission démarrée', level: 'info' },
-    { time: '2024-01-01T00:00:00Z', event: 'Erreur critique', level: 'error', details: 'Crash moteur' },
-    'Entrée brute',
-  ];
+    const mockLogs: MissionLogEntry[] = [
+        {
+            timestamp: '2025-01-01T12:00:00Z',
+            robot: 'limo1',
+            category: 'Command',
+            action: 'move_forward',
+            details: { distance: 5 },
+        },
+        {
+            timestamp: 'invalid-date',
+            robot: 'limo2',
+            action: 'status_check',
+            details: {},
+            category: 'Command',
+        },
+    ];
 
-  beforeEach(async () => {
-    dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+    beforeEach(async () => {
+        dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
-    await TestBed.configureTestingModule({
-      imports: [MissionLogsDialogComponent],
-      providers: [
-        { provide: MatDialogRef, useValue: dialogRefSpy },
-        { provide: MAT_DIALOG_DATA, useValue: { mission: mockMission, logs: mockLogs } },
-      ],
-    }).compileComponents();
+        await TestBed.configureTestingModule({
+            imports: [MissionLogsDialogComponent],
+            providers: [
+                { provide: MatDialogRef, useValue: dialogRefSpy },
+                { provide: MAT_DIALOG_DATA, useValue: { mission: mockMission, logs: mockLogs } },
+            ],
+        }).compileComponents();
 
-    fixture = TestBed.createComponent(MissionLogsDialogComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        fixture = TestBed.createComponent(MissionLogsDialogComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create the component', () => {
+        expect(component).toBeTruthy();
+    });
 
-  it('should close the dialog', () => {
-    component.close();
-    expect(dialogRefSpy.close).toHaveBeenCalled();
-  });
+    it('should close the dialog when close() is called', () => {
+        component.close();
+        expect(dialogRefSpy.close).toHaveBeenCalled();
+    });
 
-  it('should handle invalid timestamp gracefully', () => {
-    const label = component.getTimestampLabel({} as MissionLogEntry, 1);
-    expect(label).toContain('Entrée #');
-  });
+    describe('formatTimestamp()', () => {
+        it('should return the original value if the date is invalid', () => {
+            const result = component.formatTimestamp('not-a-date');
+            expect(result).toBe('not-a-date');
+        });
+    });
 
-  it('should return phase label when present', () => {
-    const log = { phase: 'INIT' } as MissionLogEntry;
-    expect(component.getPhaseLabel(log)).toBe('INIT');
-  });
+    describe('getDetailEntries()', () => {
+        it('should return key-value pairs from the details field', () => {
+            const log: MissionLogEntry = {
+                timestamp: '2025-01-01T12:00:00Z',
+                robot: 'limo1',
+                category: 'Command',
+                action: 'rotate',
+                details: { angle: 90, speed: 0.5 },
+            };
+            const entries = component.getDetailEntries(log);
+            expect(entries).toEqual([
+                { key: 'angle', value: 90 },
+                { key: 'speed', value: 0.5 },
+            ]);
+        });
 
-  it('should return level label in uppercase', () => {
-    const log = { level: 'warn' } as MissionLogEntry;
-    expect(component.getLevelLabel(log)).toBe('WARN');
-  });
+        it('should return an empty array if details is empty', () => {
+            const log: MissionLogEntry = {
+                timestamp: '2025-01-01T12:00:00Z',
+                robot: 'limo2',
+                action: 'idle',
+                details: {},
+                category: 'Command',
+            };
+            const entries = component.getDetailEntries(log);
+            expect(entries).toEqual([]);
+        });
+    });
 
-  it('should return proper CSS class for level', () => {
-    expect(component.getLevelClass('ERROR')).toBe('error');
-    expect(component.getLevelClass('WARN')).toBe('warn');
-    expect(component.getLevelClass('INFO')).toBe('info');
-  });
+    describe('formatValue()', () => {
+        it('should return "—" for null, undefined, or empty string', () => {
+            expect(component.formatValue(null)).toBe('—');
+            expect(component.formatValue(undefined)).toBe('—');
+            expect(component.formatValue('')).toBe('—');
+        });
 
-  it('should return primary message correctly', () => {
-    const log = { message: 'Test message' } as MissionLogEntry;
-    expect(component.getPrimaryMessage(log, 0)).toBe('Test message');
-  });
+        it('should format a Date with the correct format', () => {
+            const date = new Date('2025-01-01T12:00:00Z');
+            const result = component.formatValue(date);
+            expect(result).toContain('2025');
+        });
 
-  it('should fallback to entry label if no message found', () => {
-    const log = {} as MissionLogEntry;
-    expect(component.getPrimaryMessage(log, 0)).toContain('Entrée #');
-  });
+        it('should convert an object to JSON string', () => {
+            const obj = { a: 1, b: 'test' };
+            const result = component.formatValue(obj);
+            expect(result).toBe(JSON.stringify(obj));
+        });
 
-  it('should format details when available', () => {
-    const log = { details: 'Erreur fatale' } as MissionLogEntry;
-    expect(component.getDetails(log)).toBe('Erreur fatale');
-  });
-
-  it('should return attribute entries excluding hidden keys', () => {
-    const log = { custom: 42, message: 'hidden' } as MissionLogEntry;
-    const entries = component.getAttributeEntries(log);
-    expect(entries).toEqual([{ key: 'custom', value: 42 }]);
-  });
+        it('should convert a number or string to text', () => {
+            expect(component.formatValue(42)).toBe('42');
+            expect(component.formatValue('abc')).toBe('abc');
+        });
+    });
 });

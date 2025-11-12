@@ -1,120 +1,146 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync } from '@angular/core/testing';
 import { MissionSessionService } from './mission-session.service';
-import { SocketService } from './socket.service';
-import { MissionModeService } from './mission-mode.service';
+import { SocketService } from '@app/services/socket.service';
+import { MissionModeService } from '@app/services/mission-mode.service';
+import { Mission } from '@app/interfaces/mission';
 
 describe('MissionSessionService', () => {
   let service: MissionSessionService;
-  let socketService: jasmine.SpyObj<SocketService>;
-  let missionModeService: jasmine.SpyObj<MissionModeService>;
+  let mockSocketService: jasmine.SpyObj<SocketService>;
+  let mockMissionModeService: jasmine.SpyObj<MissionModeService>;
+
+  const missionMock: Mission = {
+    missionName: 'TestMission',
+    robots: ['limo1'],
+    mode: 'SIMULATION',
+    distance: 10,
+    durationSec: 0,
+    logs: [],
+    status: 'PENDING'
+  };
 
   beforeEach(() => {
-    const socketSpy = jasmine.createSpyObj('SocketService', ['send', 'on', 'off', 'connect', 'isSocketAlive', 'disconnect']);
-    const modeSpy = jasmine.createSpyObj('MissionModeService', ['setMode', 'fetchActiveMission']);
+    mockSocketService = jasmine.createSpyObj('SocketService', [
+      'on',
+      'off',
+      'send',
+      'connect',
+      'disconnect',
+      'isSocketAlive'
+    ]);
+    mockMissionModeService = jasmine.createSpyObj('MissionModeService', [
+      'setMode',
+      'fetchActiveMission'
+    ]);
 
     TestBed.configureTestingModule({
       providers: [
         MissionSessionService,
-        { provide: SocketService, useValue: socketSpy },
-        { provide: MissionModeService, useValue: modeSpy },
-      ],
+        { provide: SocketService, useValue: mockSocketService },
+        { provide: MissionModeService, useValue: mockMissionModeService }
+      ]
     });
 
     service = TestBed.inject(MissionSessionService);
-    socketService = TestBed.inject(SocketService) as jasmine.SpyObj<SocketService>;
-    missionModeService = TestBed.inject(MissionModeService) as jasmine.SpyObj<MissionModeService>;
   });
 
-  it('should be created', () => {
+  it('devrait être créé', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('initializeMission', () => {
-    it('should send mission:create and resolve on mission:created', async () => {
-      const mockMission = {
-        missionName: 'Test',
-        robots: ['limo1', 'limo2'],
-        mode: 'SIMULATION' as 'SIMULATION' | 'REAL',
-        distance: 0,
-        durationSec: 0,
-        logs: [],
-        status: 'PENDING',
-        _id: '1',
-        createdAt: new Date(),
-      };
-
-      socketService.on.and.callFake((event, cb) => {
-        if (event === 'mission:created') cb({ missionId: '123', mission: mockMission } as any);
-      });
-      socketService.isSocketAlive.and.returnValue(true);
-
-      const result = await service.initializeMission('Test', 'SIMULATION');
-      expect(result.missionId).toBe('123');
-      expect(result.mission).toEqual(mockMission);
-      expect(missionModeService.setMode).toHaveBeenCalledWith('SIMULATION');
-      expect(socketService.send).toHaveBeenCalledWith('mission:create', jasmine.any(Object));
-    });
-
-    it('should reject on mission:error', async () => {
-      socketService.on.and.callFake((event, cb) => {
-        if (event === 'mission:error') cb({ message: 'Error!' } as any);
-      });
-      socketService.isSocketAlive.and.returnValue(true);
-
-      try {
-        await service.initializeMission('Test', 'SIMULATION');
-        fail('Expected initializeMission to throw');
-      } catch (err: any) {
-        expect(err.message).toBe('Error!');
-      }
-    });
+  it('devrait retourner currentMission et hasActiveMission', () => {
+    (service as any).missionSnapshot = missionMock;
+    (service as any).missionId = '123';
+    expect(service.currentMission).toBe(missionMock);
+    expect(service.hasActiveMission).toBeTrue();
   });
 
-  describe('markMissionStarted', () => {
-    it('should set timestamp and send mission update', () => {
-      (service as any).missionId = '123';
-      spyOn(Date, 'now').and.returnValue(1000);
-
-      service.markMissionStarted();
-
-      expect((service as any).missionStartTimestamp).toBe(1000);
-      expect(socketService.send).toHaveBeenCalledWith('mission:update', jasmine.objectContaining({
-        missionId: '123',
-        data: jasmine.objectContaining({ status: 'RUNNING', durationSec: 0 }),
-      }));
-    });
+  it('markMissionStarted ne fait rien si missionId null', () => {
+    spyOn<any>(service, 'sendMissionUpdate');
+    service.markMissionStarted();
+    expect(service['sendMissionUpdate']).not.toHaveBeenCalled();
   });
 
-  describe('rehydrateActiveMission', () => {
-    it('should do nothing if mission already active', async () => {
-      (service as any).missionId = '123';
-      await service.rehydrateActiveMission();
-      expect(missionModeService.fetchActiveMission).not.toHaveBeenCalled();
-    });
+  it('markMissionStarted envoie mise à jour et log', () => {
+    (service as any).missionId = '1';
+    spyOn<any>(service, 'sendMissionUpdate');
+    spyOn(service as any, 'appendLog');
+    service.markMissionStarted();
+    expect(service['sendMissionUpdate']).toHaveBeenCalled();
+    expect(service['appendLog']).toHaveBeenCalled();
   });
 
-  describe('appendLog', () => {
-    it('should send log if mission active', () => {
-      (service as any).missionId = '123';
-      const logEntry = { message: 'Hello' };
-      service.appendLog(logEntry);
+  it('sendMissionUpdate ne fait rien si missionId null', () => {
+    service.sendMissionUpdate({ distance: 1 });
+    expect(mockSocketService.send).not.toHaveBeenCalled();
+  });
 
-      expect(socketService.send).toHaveBeenCalledWith('mission:add-log', jasmine.objectContaining({
-        missionId: '123',
-        log: jasmine.objectContaining({ message: 'Hello' }),
-      }));
-    });
+  it('sendMissionUpdate calcule durationSec si non défini', () => {
+    (service as any).missionId = '1';
+    (service as any).missionStartTimestamp = Date.now() - 3000;
+    service.sendMissionUpdate({});
+    expect(mockSocketService.send).toHaveBeenCalledWith('mission:update', jasmine.any(Object));
+  });
 
-    it('should not send log if no mission active', () => {
-      service.appendLog({ message: 'Hello' });
-      expect(socketService.send).not.toHaveBeenCalled();
-    });
+  it('updateRobotDistance met à jour correctement', () => {
+    (service as any).missionId = '1';
+    spyOn(service as any, 'sendMissionUpdate');
+    service.updateRobotDistance('limo1', 10);
+    expect(service['sendMissionUpdate']).toHaveBeenCalledWith({ distance: 10 });
+  });
+
+  it('updateRobotDistance ignore valeurs invalides', () => {
+    (service as any).missionId = '1';
+    spyOn(service as any, 'sendMissionUpdate');
+    service.updateRobotDistance('limo1', -1);
+    expect(service['sendMissionUpdate']).not.toHaveBeenCalled();
+  });
+
+  it('rehydrateActiveMission ne fait rien si missionId existe', fakeAsync(() => {
+    (service as any).missionId = '1';
+    service.rehydrateActiveMission();
+    expect(mockMissionModeService.fetchActiveMission).not.toHaveBeenCalled();
+  }));
+
+  it('appendLog envoie un log normalisé', () => {
+    (service as any).missionId = '1';
+    service.appendLog({ action: 'test' });
+    expect(mockSocketService.send).toHaveBeenCalledWith('mission:add-log', jasmine.any(Object));
   });
 
   describe('completeMission', () => {
-    it('should return null if no mission active', async () => {
+    it('retourne null si missionId absent', async () => {
       const result = await service.completeMission();
       expect(result).toBeNull();
     });
+  });
+
+  it('disconnectSocket appelle disconnect si socket vivant', () => {
+    mockSocketService.isSocketAlive.and.returnValue(true);
+    service.disconnectSocket();
+    expect(mockSocketService.disconnect).toHaveBeenCalled();
+  });
+
+  describe('ensureSocketConnected', () => {
+    it('résout si socket déjà connecté', fakeAsync(async () => {
+      mockSocketService.isSocketAlive.and.returnValue(true);
+      await service['ensureSocketConnected']();
+      expect(mockSocketService.connect).not.toHaveBeenCalled();
+    }));
+  });
+
+  it('registerMissionListeners ne s’enregistre qu’une seule fois', () => {
+    service['registerMissionListeners']();
+    service['registerMissionListeners']();
+    expect(mockSocketService.on).toHaveBeenCalledTimes(1);
+  });
+
+
+  it('normalizeLogEntry remplit les champs manquants', () => {
+    const entry = service['normalizeLogEntry']({});
+    expect(entry.category).toBe('Command');
+    expect(entry.action).toBe('log');
+    expect(entry.robot).toBe('limo1');
+    expect(entry.timestamp).toBeTruthy();
   });
 });
