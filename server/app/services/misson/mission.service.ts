@@ -9,7 +9,7 @@ export class MissionService implements OnModuleInit {
     private DoMission: any;
 
     /** Robots disponibles — adapter selon ton contexte */
-    private robots: string[] = ['limo1']; // ⚙️ mets ['limo1', 'limo2'] pour la simulation
+    private robots: string[] = ['limo1', 'limo2']; // ⚙️ mets ['limo1', 'limo2'] pour la simulation
 
     async onModuleInit() {
         this.DoMission = (rclnodejs.require('limo_interfaces') as any).action.DoMission;
