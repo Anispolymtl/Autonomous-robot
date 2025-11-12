@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { MissionSessionService } from '@app/services/mission-session.service';
-import { SocketService } from '@app/services/socket.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { SocketService } from '@app/services/socket/socket.service';
 import { PoseData } from '@app/interfaces/pose-data';
 import { Socket } from 'socket.io-client';
 

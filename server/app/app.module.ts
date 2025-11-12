@@ -5,8 +5,8 @@ import { Mission, missionSchema } from '@app/model/database/mission';
 import { MissionDatabaseController } from '@app/controllers/mission-database/mission-database.controller';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
-import { RosService } from '@app/services/ros.service';
-import { RosController } from '@app/controllers/ros.controller';
+import { RosService } from '@app/services/ros/ros.service';
+import { RosController } from '@app/controllers/ros/ros.controller';
 import { MissionController } from './controllers/mission/mission.controller';
 import { MissionService } from './services/misson/mission.service';
 import { SocketService } from './services/socket/socket.service';

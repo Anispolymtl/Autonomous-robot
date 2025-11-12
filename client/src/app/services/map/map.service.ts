@@ -3,8 +3,8 @@ import { MapObject } from '@app/components/map/map.component';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
 import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
-import { SocketService } from '@app/services/socket.service';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { SocketService } from '@app/services/socket/socket.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionLogDetails } from '@common/interfaces/mission-log-entry';
 
 @Injectable({
