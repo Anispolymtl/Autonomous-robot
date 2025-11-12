@@ -133,10 +133,3 @@ Les conventions respectent les standards du développement TypeScript :
 > 🧭 Ces conventions garantissent un code propre, uniforme et facile à maintenir, quel que soit le module du projet (embarqué, serveur ou client).
 
 ---
-
-### 🔗 Lien depuis le README
-
-Pour ajouter ce fichier à ton `README.md`, ajoute la ligne suivante à la fin du document :
-
-```markdown
-[📘 Voir les autres conventions de codage](./CONTRIBUTING.md)
