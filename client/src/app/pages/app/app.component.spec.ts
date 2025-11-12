@@ -1,95 +1,118 @@
-// import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-// import { AppComponent } from './app.component';
-// import { Router, NavigationEnd } from '@angular/router';
-// import { Subject, of } from 'rxjs';
-// import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
-// import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
-// import { GlobalNavbarComponent } from '@app/components/global-navbar/global-navbar.component';
+import { Component } from '@angular/core';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Router, RouterOutlet } from '@angular/router';
+import { AppComponent } from './app.component';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { TelemetryLoggingService } from '@app/services/telemetry-logging/telemetry-logging.service';
+import { Subject } from 'rxjs';
 
-// describe('AppComponent', () => {
-//   let component: AppComponent;
-//   let fixture: ComponentFixture<AppComponent>;
+type MissionMode = 'REAL' | 'SIMULATION' | null | undefined;
 
-//   let routerSpy: jasmine.SpyObj<Router>;
-//   let missionModeSpy: jasmine.SpyObj<MissionModeService>;
-//   let missionSessionSpy: jasmine.SpyObj<MissionSessionService>;
-//   let modeSubject: Subject<'REAL' | 'SIMULATION' | null>;
+@Component({
+  selector: 'app-global-navbar',
+  standalone: true,
+  template: ''
+})
+class GlobalNavbarStubComponent {}
 
-//   beforeEach(async () => {
-//     modeSubject = new Subject<'REAL' | 'SIMULATION' | null>();
+describe('AppComponent', () => {
+  let fixture: ComponentFixture<AppComponent>;
+  let routerSpy: jasmine.SpyObj<Router>;
+  let missionModeSpy: jasmine.SpyObj<MissionModeService>;
+  let missionSessionSpy: jasmine.SpyObj<MissionSessionService>;
+  let telemetryLoggingSpy: jasmine.SpyObj<TelemetryLoggingService>;
+  let modeSubject: Subject<MissionMode>;
+  let currentUrl = '/home';
 
-//     routerSpy = jasmine.createSpyObj('Router', ['navigate'], {
-//       events: of(new NavigationEnd(0, '/home', '/home')),
-//     });
-//     // Définit url read-only
-//     Object.defineProperty(routerSpy, 'url', { get: () => '/home' });
+  const setRouterUrl = (url: string) => {
+    currentUrl = url;
+  };
 
-//     missionModeSpy = jasmine.createSpyObj('MissionModeService', ['startPolling', 'ensureModeLoaded'], {
-//       mode$: modeSubject.asObservable(),
-//     });
+  beforeEach(async () => {
+    modeSubject = new Subject<MissionMode>();
 
-//     missionSessionSpy = jasmine.createSpyObj('MissionSessionService', ['rehydrateActiveMission']);
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    routerSpy.navigate.and.returnValue(Promise.resolve(true));
+    Object.defineProperty(routerSpy, 'url', { get: () => currentUrl });
 
-//     await TestBed.configureTestingModule({
-//       imports: [AppComponent, GlobalNavbarComponent],
-//       providers: [
-//         { provide: Router, useValue: routerSpy },
-//         { provide: MissionModeService, useValue: missionModeSpy },
-//         { provide: MissionSessionService, useValue: missionSessionSpy },
-//       ],
-//     }).compileComponents();
+    missionModeSpy = jasmine.createSpyObj(
+      'MissionModeService',
+      ['startPolling', 'ensureModeLoaded'],
+      { mode$: modeSubject.asObservable() }
+    );
+    missionModeSpy.ensureModeLoaded.and.returnValue(Promise.resolve(null));
 
-//     fixture = TestBed.createComponent(AppComponent);
-//     component = fixture.componentInstance;
-//   });
+    missionSessionSpy = jasmine.createSpyObj('MissionSessionService', ['rehydrateActiveMission']);
+    telemetryLoggingSpy = jasmine.createSpyObj('TelemetryLoggingService', ['start']);
 
-//   it('should create', () => {
-//     expect(component).toBeTruthy();
-//   });
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        { provide: Router, useValue: routerSpy },
+        { provide: MissionModeService, useValue: missionModeSpy },
+        { provide: MissionSessionService, useValue: missionSessionSpy },
+        { provide: TelemetryLoggingService, useValue: telemetryLoggingSpy }
+      ]
+    })
+      .overrideComponent(AppComponent, {
+        set: {
+          imports: [RouterOutlet, GlobalNavbarStubComponent]
+        }
+      })
+      .compileComponents();
 
-//   it('should start polling on init', () => {
-//     fixture.detectChanges();
-//     expect(missionModeSpy.startPolling).toHaveBeenCalled();
-//   });
+    fixture = TestBed.createComponent(AppComponent);
+  });
 
-//   it('should rehydrate mission and redirect based on ensureModeLoaded', fakeAsync(() => {
-//     missionModeSpy.ensureModeLoaded.and.returnValue(Promise.resolve('SIMULATION'));
-//     fixture.detectChanges();
-//     tick(); // attend la promise
-//     expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalled();
-//     expect(routerSpy.navigate).toHaveBeenCalledWith(['/simulation-mode']);
-//   }));
+  it('devrait démarrer la télémétrie et le polling lors de ngOnInit', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
 
-//   it('should handle null mode and redirect to /home if on a mode page', () => {
-//     // Simule qu’on est sur /simulation-mode
-//     Object.defineProperty(routerSpy, 'url', { get: () => '/simulation-mode' });
+    expect(telemetryLoggingSpy.start).toHaveBeenCalledTimes(1);
+    expect(missionModeSpy.startPolling).toHaveBeenCalledTimes(1);
+  }));
 
-//     fixture.detectChanges();
-//     modeSubject.next(null);
-//     fixture.detectChanges();
+  it('rehydrate et redirige vers simulation quand ensureModeLoaded retourne SIMULATION', fakeAsync(() => {
+    missionModeSpy.ensureModeLoaded.and.returnValue(Promise.resolve('SIMULATION'));
+    setRouterUrl('/home');
 
-//     expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
-//   });
+    fixture.detectChanges();
+    tick();
 
-//   it('should redirect to /real-mode if mode is REAL', () => {
-//     Object.defineProperty(routerSpy, 'url', { get: () => '/home' });
+    expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalledTimes(1);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/simulation-mode']);
+  }));
 
-//     fixture.detectChanges();
-//     modeSubject.next('REAL');
-//     fixture.detectChanges();
+  it('redirige vers real-mode lorsqu’un mode REAL est émis', fakeAsync(() => {
+    setRouterUrl('/home');
 
-//     expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalled();
-//     expect(routerSpy.navigate).toHaveBeenCalledWith(['/real-mode']);
-//   });
+    fixture.detectChanges();
+    tick();
 
-//   it('should redirect to /simulation-mode if mode is SIMULATION', () => {
-//     Object.defineProperty(routerSpy, 'url', { get: () => '/home' });
+    missionSessionSpy.rehydrateActiveMission.calls.reset();
+    routerSpy.navigate.calls.reset();
 
-//     fixture.detectChanges();
-//     modeSubject.next('SIMULATION');
-//     fixture.detectChanges();
+    modeSubject.next('REAL');
+    tick();
 
-//     expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalled();
-//     expect(routerSpy.navigate).toHaveBeenCalledWith(['/simulation-mode']);
-//   });
-// });
+    expect(missionSessionSpy.rehydrateActiveMission).toHaveBeenCalledTimes(1);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/real-mode']);
+  }));
+
+  it('retourne à /home lorsque le mode devient null sur une route mission', fakeAsync(() => {
+    setRouterUrl('/simulation-mode');
+
+    fixture.detectChanges();
+    tick();
+
+    missionSessionSpy.rehydrateActiveMission.calls.reset();
+    routerSpy.navigate.calls.reset();
+
+    modeSubject.next(null);
+    tick();
+
+    expect(missionSessionSpy.rehydrateActiveMission).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+  }));
+});

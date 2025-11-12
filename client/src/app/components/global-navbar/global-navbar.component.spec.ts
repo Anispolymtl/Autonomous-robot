@@ -1,131 +1,135 @@
-// import { ComponentFixture, TestBed } from '@angular/core/testing';
-// import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-// import { of, BehaviorSubject } from 'rxjs';
-// import { GlobalNavbarComponent } from './global-navbar.component';
-// import { MissionModeService, MissionMode } from '@app/services/mission-mode/mission-mode.service';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NavigationEnd, Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Subject } from 'rxjs';
+import { GlobalNavbarComponent } from './global-navbar.component';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
 
-// describe('GlobalNavbarComponent', () => {
-//   let component: GlobalNavbarComponent;
-//   let fixture: ComponentFixture<GlobalNavbarComponent>;
-//   let routerSpy: Partial<Router>;
-//   let activatedRouteStub: Partial<ActivatedRoute>;
-//   let missionModeServiceMock: Partial<MissionModeService>;
-//   let modeSubject: BehaviorSubject<MissionMode | undefined>;
+describe('GlobalNavbarComponent', () => {
+  let fixture: ComponentFixture<GlobalNavbarComponent>;
+  let component: GlobalNavbarComponent;
+  let router: Router;
+  let routerEvents$: Subject<NavigationEnd>;
+  let modeSubject$: Subject<'REAL' | 'SIMULATION' | null | undefined>;
+  let originalRAF: typeof requestAnimationFrame | undefined;
+  let originalCAF: typeof cancelAnimationFrame | undefined;
 
-//   beforeEach(async () => {
-//     modeSubject = new BehaviorSubject<MissionMode | undefined>(null);
+  beforeEach(async () => {
+    routerEvents$ = new Subject<NavigationEnd>();
+    modeSubject$ = new Subject<'REAL' | 'SIMULATION' | null | undefined>();
 
-//     missionModeServiceMock = {
-//       mode$: modeSubject.asObservable(),
-//     };
+    originalRAF = window.requestAnimationFrame;
+    originalCAF = window.cancelAnimationFrame;
+    (window as typeof window & { requestAnimationFrame: jasmine.Spy }).requestAnimationFrame = jasmine
+      .createSpy('requestAnimationFrame')
+      .and.callFake((cb: FrameRequestCallback) => {
+        cb(0);
+        return 1;
+      });
+    (window as typeof window & { cancelAnimationFrame: jasmine.Spy }).cancelAnimationFrame = jasmine.createSpy(
+      'cancelAnimationFrame'
+    );
 
-//     routerSpy = {
-//       events: of(new NavigationEnd(0, '/home', '/home')),
-//     };
+    await TestBed.configureTestingModule({
+      imports: [GlobalNavbarComponent, RouterTestingModule],
+      providers: [
+        {
+          provide: MissionModeService,
+          useValue: {
+            mode$: modeSubject$.asObservable()
+          }
+        }
+      ]
+    }).compileComponents();
 
-//     activatedRouteStub = {
-//       snapshot: {
-//         url: [],
-//         params: {},
-//         queryParams: {},
-//         fragment: null,
-//         data: {},
-//         outlet: 'primary',
-//         routeConfig: null,
-//         root: {} as any,
-//         parent: null,
-//         firstChild: null,
-//         children: [],
-//         pathFromRoot: [],
-//         paramMap: {} as any,
-//         queryParamMap: {} as any,
-//       } as any,
-//     };
+    router = TestBed.inject(Router);
+    spyOnProperty(router, 'events', 'get').and.returnValue(routerEvents$.asObservable());
 
-//     await TestBed.configureTestingModule({
-//       imports: [GlobalNavbarComponent],
-//       providers: [
-//         { provide: Router, useValue: routerSpy },
-//         { provide: MissionModeService, useValue: missionModeServiceMock },
-//         { provide: ActivatedRoute, useValue: activatedRouteStub },
-//       ],
-//     }).compileComponents();
+    fixture = TestBed.createComponent(GlobalNavbarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
 
-//     fixture = TestBed.createComponent(GlobalNavbarComponent);
-//     component = fixture.componentInstance;
-//     fixture.detectChanges();
-//   });
+  afterEach(() => {
+    if (originalRAF) {
+      window.requestAnimationFrame = originalRAF;
+    }
+    if (originalCAF) {
+      window.cancelAnimationFrame = originalCAF;
+    }
+  });
 
-//   it('should create', () => {
-//     expect(component).toBeTruthy();
-//   });
+  it('crée le composant', () => {
+    expect(component).toBeTruthy();
+  });
 
-//   it('should detect home page from router events', () => {
-//     expect(component.isHomePage).toBeTrue();
-//   });
+  it('met à jour isHomePage selon les événements de navigation', () => {
+    routerEvents$.next(new NavigationEnd(1, '/home', '/home'));
+    expect(component.isHomePage).toBeTrue();
 
-//   it('should update currentMode when missionModeService emits', () => {
-//     expect(component.currentMode).toBeNull();
+    routerEvents$.next(new NavigationEnd(2, '/real-mode', '/real-mode'));
+    expect(component.isHomePage).toBeFalse();
+  });
 
-//     modeSubject.next('SIMULATION');
-//     fixture.detectChanges();
-//     expect(component.currentMode).toBe('SIMULATION');
+  it('réagit aux changements de mode provenant du service', () => {
+    expect(component.currentMode).toBeNull();
 
-//     modeSubject.next('REAL');
-//     fixture.detectChanges();
-//     expect(component.currentMode).toBe('REAL');
-//   });
+    modeSubject$.next('SIMULATION');
+    expect(component.currentMode).toBe('SIMULATION');
 
-//   it('should compute showSimulationLink correctly', () => {
-//     component.isHomePage = true;
-//     component.currentMode = 'SIMULATION';
-//     expect(component.showSimulationLink).toBeFalse();
+    modeSubject$.next('REAL');
+    expect(component.currentMode).toBe('REAL');
+  });
 
-//     component.isHomePage = false;
-//     component.currentMode = 'SIMULATION';
-//     expect(component.showSimulationLink).toBeTrue();
+  it('calcule correctement showSimulationLink, showRealModeLink et showHomeLink', () => {
+    component.isHomePage = true;
+    component.currentMode = 'SIMULATION';
+    expect(component.showSimulationLink).toBeFalse();
 
-//     component.currentMode = 'REAL';
-//     expect(component.showSimulationLink).toBeFalse();
-//   });
+    component.isHomePage = false;
+    expect(component.showSimulationLink).toBeTrue();
+    expect(component.showRealModeLink).toBeFalse();
 
-//   it('should compute showRealModeLink correctly', () => {
-//     component.isHomePage = true;
-//     component.currentMode = 'REAL';
-//     expect(component.showRealModeLink).toBeFalse();
+    component.currentMode = 'REAL';
+    expect(component.showRealModeLink).toBeTrue();
+    expect(component.showSimulationLink).toBeFalse();
 
-//     component.isHomePage = false;
-//     component.currentMode = 'REAL';
-//     expect(component.showRealModeLink).toBeTrue();
+    component.currentMode = null;
+    expect(component.showHomeLink).toBeTrue();
+    component.currentMode = 'REAL';
+    expect(component.showHomeLink).toBeFalse();
+  });
 
-//     component.currentMode = 'SIMULATION';
-//     expect(component.showRealModeLink).toBeFalse();
-//   });
+  it('met à jour isScrolled avec checkScroll', () => {
+    const scrollSpy = spyOnProperty(window, 'scrollY', 'get');
+    scrollSpy.and.returnValue(10);
+    component['checkScroll']();
+    expect(component.isScrolled).toBeFalse();
 
-//   it('should compute showHomeLink correctly', () => {
-//     component.currentMode = null;
-//     expect(component.showHomeLink).toBeTrue();
+    scrollSpy.and.returnValue(50);
+    component['checkScroll']();
+    expect(component.isScrolled).toBeTrue();
+  });
 
-//     component.currentMode = 'REAL';
-//     expect(component.showHomeLink).toBeFalse();
+  it('programme une mise à jour de la hauteur de la barre de navigation', () => {
+    const setPropertySpy = spyOn(document.documentElement.style, 'setProperty').and.callThrough();
 
-//     component.currentMode = 'SIMULATION';
-//     expect(component.showHomeLink).toBeFalse();
-//   });
+    component['scheduleNavbarOffsetUpdate']();
 
-//   it('should update isScrolled on checkScroll', () => {
-//     spyOnProperty(window, 'scrollY', 'get').and.returnValue(0);
-//     component['checkScroll']();
-//     expect(component.isScrolled).toBeFalse();
+    expect(window.requestAnimationFrame).toHaveBeenCalled();
+    expect(setPropertySpy).toHaveBeenCalledWith('--navbar-offset', jasmine.stringMatching(/px$/));
+  });
 
-//     spyOnProperty(window, 'scrollY', 'get').and.returnValue(100);
-//     component['checkScroll']();
-//     expect(component.isScrolled).toBeTrue();
-//   });
+  it('nettoie les ressources lors de ngOnDestroy', () => {
+    const destroy$ = component['destroy$'];
+    const nextSpy = spyOn(destroy$, 'next').and.callThrough();
+    const completeSpy = spyOn(destroy$, 'complete').and.callThrough();
 
-//   it('should complete destroy$ on ngOnDestroy', () => {
-//     const destroySpy = spyOn((component as any).destroy$, 'complete');
-//     component.ngOnDestroy();
-//     expect(destroySpy).toHaveBeenCalled();
-//   });
-// });
+    component['updateFrame'] = 123 as unknown as number;
+    component.ngOnDestroy();
+
+    expect(nextSpy).toHaveBeenCalled();
+    expect(completeSpy).toHaveBeenCalled();
+    expect(window.cancelAnimationFrame).toHaveBeenCalledWith(123);
+  });
+});
