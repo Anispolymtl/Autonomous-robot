@@ -28,7 +28,7 @@ class BatteryManager(Node):
 
     def update_battery(self):
         # Simulation simple d'une décharge
-        self.battery_level = max(0.0, self.battery_level - 0.10)  
+        self.battery_level = max(0.0, self.battery_level - 1)  
 
         msg = Float32()
         msg.data = self.battery_level
@@ -52,11 +52,24 @@ class BatteryManager(Node):
         future.add_done_callback(self.on_return_response)
 
     def on_return_response(self, future):
-        result = future.result()
+        """
+        Callback quand le service return_to_base répond.
+        Si ça échoue, on autorise une tentative future
+        (par exemple si Nav2 n’était pas encore prêt).
+        """
+        try:
+            result = future.result()
+        except Exception as e:
+            self.get_logger().error(f"[BatteryManager] Service call failed: {e}")
+            self.low_battery_triggered = False
+            return
+
         if result.success:
-            self.get_logger().info("[BatteryManager] Return-to-base accepted.")
+            self.get_logger().info("[BatteryManager] Return-to-base accepted by BaseManager.")
         else:
-            self.get_logger().error("[BatteryManager] Return-to-base FAILED.")
+            self.get_logger().error(f"[BatteryManager] Return-to-base FAILED: {result.message}")
+            # On redonne la possibilité de réessayer plus tard
+            self.low_battery_triggered = False
 
 
 def main(args=None):

@@ -65,7 +65,7 @@
     <!-- Robot 1 -->
     <model name="limo1">
       <self_collide>true</self_collide>
-      <pose>2 -3 0.35 0 0 0</pose>
+      <pose>0 0 0.35 0 0 0</pose>
       <include merge="true">
         <uri>package://simulation_description/models/limo_diff_drive1</uri>
       </include>

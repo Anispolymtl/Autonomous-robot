@@ -337,6 +337,16 @@ def generate_launch_description():
         output='screen'
     )
 
+    robot_position_monitor = Node(
+        package='robot_exploration',
+        executable='robot_position_monitor',
+        name='robot_position_monitor',
+        parameters=[{
+            "robot_namespaces": ["limo1", "limo2"]
+        }],
+        output='screen'
+    )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -372,7 +382,8 @@ def generate_launch_description():
         explorer_1,
         explorer_2,
 
-        battery_limo1
-        # base_limo1
+        robot_position_monitor,
+        battery_limo1,
+        base_limo1
 
     ])
