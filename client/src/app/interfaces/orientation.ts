@@ -1,0 +1,1 @@
+export interface Orientation { yaw: number; yawCos: number; yawSin: number}

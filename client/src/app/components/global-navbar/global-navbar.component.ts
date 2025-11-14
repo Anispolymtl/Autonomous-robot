@@ -1,8 +1,8 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
 import { NgIf } from '@angular/common';
-import { MissionModeService, MissionMode } from '@app/services/mission-mode.service';
+import { MissionModeService, MissionMode } from '@app/services/mission-mode/mission-mode.service';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -12,11 +12,14 @@ import { Subject } from 'rxjs';
   templateUrl: './global-navbar.component.html',
   styleUrls: ['./global-navbar.component.scss'],
 })
-export class GlobalNavbarComponent implements OnInit, OnDestroy {
+export class GlobalNavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   isScrolled = false;
   isHomePage = false;
   currentMode: MissionMode = null;
+  private updateFrame: number | null = null;
   private destroy$ = new Subject<void>();
+
+  @ViewChild('navbarRef') navbarRef?: ElementRef<HTMLElement>;
 
   constructor(private router: Router, private missionModeService: MissionModeService) {}
 
@@ -27,7 +30,19 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.isHomePage = event.urlAfterRedirects.includes('/home');
+        this.scheduleNavbarOffsetUpdate();
       });
+
+    this.missionModeService.mode$
+      .pipe(filter((mode): mode is MissionMode => mode !== undefined), takeUntil(this.destroy$))
+      .subscribe((mode) => {
+        this.currentMode = mode;
+        this.scheduleNavbarOffsetUpdate();
+      });
+  }
+
+  ngAfterViewInit(): void {
+    this.scheduleNavbarOffsetUpdate();
   }
 
   @HostListener('window:scroll', [])
@@ -35,11 +50,32 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
     this.checkScroll();
   }
 
+  @HostListener('window:resize', [])
+  onWindowResize(): void {
+    this.scheduleNavbarOffsetUpdate();
+  }
+
   private checkScroll(): void {
     this.isScrolled = window.scrollY > 20;
-    this.missionModeService.mode$
-      .pipe(filter((mode): mode is MissionMode => mode !== undefined), takeUntil(this.destroy$))
-      .subscribe((mode) => (this.currentMode = mode));
+  }
+
+  private scheduleNavbarOffsetUpdate(): void {
+    if (typeof window === 'undefined') return;
+    if (this.updateFrame) {
+      cancelAnimationFrame(this.updateFrame);
+    }
+    this.updateFrame = requestAnimationFrame(() => {
+      this.updateFrame = null;
+      this.updateNavbarOffset();
+    });
+  }
+
+  private updateNavbarOffset(): void {
+    if (typeof document === 'undefined') return;
+    const navbarElement = this.navbarRef?.nativeElement;
+    if (!navbarElement) return;
+    const height = navbarElement.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--navbar-offset', `${height + 16}px`);
   }
 
   get showSimulationLink(): boolean {
@@ -59,5 +95,8 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.updateFrame) {
+      cancelAnimationFrame(this.updateFrame);
+    }
   }
 }

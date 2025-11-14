@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MissionService } from '@app/services/mission.service';
+import { MissionService } from '@app/services/mission/mission.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+
+type RobotId = 'limo1' | 'limo2';
 
 @Component({
   selector: 'app-simulation-page',
@@ -21,6 +23,8 @@ import { MissionDatabaseService } from '@app/services/mission-database/mission-d
 })
 export class SimulationPageComponent implements OnInit {
   message: string | null = null;
+  selectedRobotId: RobotId = 'limo1';
+
   constructor(
     private router: Router,
     private missonService: MissionService,
@@ -94,7 +98,7 @@ export class SimulationPageComponent implements OnInit {
       });
   }
 
-  back(): void {
-    this.router.navigate(['/home']);
+  setSelectedRobot(robotId: RobotId): void {
+    this.selectedRobotId = robotId;
   }
 }

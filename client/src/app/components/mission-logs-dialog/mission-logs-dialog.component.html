@@ -37,32 +37,32 @@
             Aucun log disponible pour cette mission.
         </div>
 
-        <ng-container *ngFor="let log of data.logs ?? []; let i = index">
+        <ng-container *ngFor="let log of data.logs ?? []">
             <div class="log-entry">
-                <div class="log-time">
-                    <span class="timestamp">{{ getTimestampLabel(log, i) }}</span>
-                    <span class="phase" *ngIf="getPhaseLabel(log) as phase">{{ phase }}</span>
+                <div class="log-meta">
+                    <div>
+                        <span class="meta-label">Heure</span>
+                        <span class="meta-value">{{ formatTimestamp(log.timestamp) }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Robot</span>
+                        <span class="meta-value">{{ log.robot }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Catégorie</span>
+                        <span class="meta-value">{{ log.category }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Action</span>
+                        <span class="meta-value">{{ log.action }}</span>
+                    </div>
                 </div>
-                <div class="log-content">
-                    <span 
-                        class="level"
-                        *ngIf="getLevelLabel(log) as levelLabel"
-                        [ngClass]="getLevelClass(levelLabel)"
-                    >
-                        {{ levelLabel }}
-                    </span>
-                    <div class="message">
-                        {{ getPrimaryMessage(log, i) }}
-                    </div>
-                    <div *ngIf="getDetails(log) as details" class="details">
-                        {{ details }}
-                    </div>
 
-                    <div class="attributes" *ngIf="getAttributeEntries(log) as attributes">
-                        <div class="attribute" *ngFor="let attr of attributes">
-                            <span class="attr-key">{{ attr.key }}</span>
-                            <span class="attr-value">{{ formatValue(attr.value) }}</span>
-                        </div>
+                <div class="log-details" *ngIf="getDetailEntries(log) as details" [class.empty]="details.length === 0">
+                    <span *ngIf="details.length === 0" class="detail-placeholder">Aucun détail</span>
+                    <div class="detail-chip" *ngFor="let detail of details">
+                        <span class="detail-key">{{ detail.key }}</span>
+                        <span class="detail-value">{{ formatValue(detail.value) }}</span>
                     </div>
                 </div>
             </div>

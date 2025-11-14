@@ -1,46 +1,41 @@
 import os
-
-from ament_index_python.packages import get_package_share_directory
-from launch_ros.actions import Node
-
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from ament_index_python.packages import get_package_share_directory
+from launch_ros.actions import PushRosNamespace, Node
+from launch.actions import DeclareLaunchArgument, GroupAction, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
+from launch_ros.parameter_descriptions import ParameterFile
+
+
+def launch_setup(context, *args, **kwargs):
+    namespace = LaunchConfiguration('namespace').perform(context)
+    pkg_explore = get_package_share_directory('explore_lite')
+
+    config_path = os.path.join(pkg_explore, 'config', f'{namespace}_params.yaml')
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Le fichier de configuration '{config_path}' est introuvable !")
+    
+    return [
+        Node(
+            package='explore_lite',
+            executable='explore',
+            name='explore_node',
+            parameters=[ParameterFile(config_path, allow_substs=True),
+                        {'use_sim_time': False}],
+            output='screen',
+            remappings=[('tf', '/tf'), ('tf_static', '/tf_static')],
+        )
+    ]
 
 
 def generate_launch_description():
-    ld = LaunchDescription()
-    config = os.path.join(
-        get_package_share_directory("explore_lite"), "config", "params_costmap.yaml"
-    )
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    namespace = LaunchConfiguration("namespace")
-
-    declare_use_sim_time_argument = DeclareLaunchArgument(
-        "use_sim_time", default_value="false", description="Use simulation/Gazebo clock"
-    )
-    declare_namespace_argument = DeclareLaunchArgument(
-        "namespace",
-        default_value="limo1",
-        description="Namespace for the explore node",
+    declare_namespace = DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description="Namespace obligatoire (limo1 ou limo2)"
     )
 
-    # Map fully qualified names to relative ones so the node's namespace can be prepended.
-    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
-    # https://github.com/ros/geometry2/issues/32
-    # https://github.com/ros/robot_state_publisher/pull/30
-    remappings = [("tf", "/tf"), ("tf_static", "/tf_static")]
-
-    node = Node(
-        package="explore_lite",
-        name="explore_node",
-        namespace=namespace,
-        executable="explore",
-        parameters=[config, {"use_sim_time": use_sim_time}],
-        output="screen",
-        remappings=remappings,
-    )
-    ld.add_action(declare_use_sim_time_argument)
-    ld.add_action(declare_namespace_argument)
-    ld.add_action(node)
-    return ld
+    return LaunchDescription([
+        declare_namespace,
+        OpaqueFunction(function=launch_setup)
+    ])

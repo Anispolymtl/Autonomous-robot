@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 
 type ModeType = 'simulation' | 'real';
 
