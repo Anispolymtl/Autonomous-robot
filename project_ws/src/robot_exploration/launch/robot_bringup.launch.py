@@ -55,6 +55,13 @@ def launch_with_namespace(context, *args, **kwargs):
         output='screen'
     )
 
+    base_srv = Node(
+        package='robot_exploration',
+        executable='base_manager',
+        name='base_manager',
+        output='screen'
+    )
+
     mission_action = Node(
         package='robot_exploration',
         executable='mission_server',
@@ -72,6 +79,7 @@ def launch_with_namespace(context, *args, **kwargs):
         PushRosNamespace(namespace),
         limo_launch,
         id_srv,
+        base_srv,
         mission_action,
         cartographer_launch,
         nav2_launch,

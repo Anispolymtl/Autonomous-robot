@@ -62,7 +62,7 @@ class BaseManager(Node):
         # ---- TF LOOKUP ----
         try:
             transform = self.tf_buffer.lookup_transform(
-                "map",
+                f"{self.namespace}/map",
                 f"{self.namespace}/odom",
                 rclpy.time.Time(),
                 timeout=Duration(seconds=1.0)
@@ -84,7 +84,7 @@ class BaseManager(Node):
 
         # Reconstruire un PoseStamped en frame 'map'
         base_map_stamped = PoseStamped()
-        base_map_stamped.header.frame_id = "map"
+        base_map_stamped.header.frame_id = f"{self.namespace}/map"
         base_map_stamped.header.stamp = self.get_clock().now().to_msg()
         base_map_stamped.pose = base_map_pose
 
