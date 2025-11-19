@@ -18,7 +18,7 @@
         <section class="map-card mode-card mode-card--map">
             <h1>Carte d'exploration</h1>
             <div class="robot-selector">
-                <span>Robot sélectionné :</span>
+                <span>Robot sélectionné : <strong>{{selectedRobotId}}</strong></span>
                 <button class="btn" [disabled]="selectedRobotId === 'limo1'" (click)="setSelectedRobot('limo1')">limo1</button>
                 <button class="btn" [disabled]="selectedRobotId === 'limo2'" (click)="setSelectedRobot('limo2')">limo2</button>
             </div>
