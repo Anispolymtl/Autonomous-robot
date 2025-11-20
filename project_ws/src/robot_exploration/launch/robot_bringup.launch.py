@@ -2,9 +2,10 @@ import os
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import PushRosNamespace, Node
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, OpaqueFunction, ExecuteProcess
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.conditions import IfCondition
 
 def launch_with_namespace(context, *args, **kwargs):
     namespace = LaunchConfiguration('namespace').perform(context)
@@ -19,7 +20,22 @@ def launch_with_namespace(context, *args, **kwargs):
     cartographer_file = f'{namespace}_cartographer_2d.lua'
 
     nav2_params = os.path.join(pkg_robot, 'param', f'{namespace}_nav.yaml')
+    
+    # zenoh_config = os.path.join(pkg_robot, 'config', 'zenoh_peer.json5')
+    
+    # zenoh_bridge = ExecuteProcess(
+    #     cmd=[
+    #         "zenoh-bridge-ros2dds",
+    #         "-c",
+    #         zenoh_config],
+    #     name="zenoh_bridge",
+    #     output="screen",
+    #     shell=False
+    # )
 
+    only_if_limo1 = IfCondition(
+        PythonExpression(['"', LaunchConfiguration("namespace"), '" == "limo1"'])
+    )
 
     limo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -68,6 +84,44 @@ def launch_with_namespace(context, *args, **kwargs):
             os.path.join(explore_pkg, 'launch', 'explore.launch.py')
         ))
 
+    merge_map_node = Node(
+        package='robot_exploration',
+        executable='map_merge',
+        name='merge_map_node',
+        output='screen',
+        parameters=[{'use_sim_time': False}],
+        remappings=[
+            ("/map1", "/limo1/map"),
+            ("/map2", "/limo2/map"),
+            ("/merge_map", "/merged_map"),   # topic fusionné
+        ],
+        condition=only_if_limo1
+    )
+
+    static_tf_limo1 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo1',
+        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo1/map'],
+        condition=only_if_limo1
+    )
+
+    static_tf_limo2 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo2',
+        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo2/map'],
+        condition=only_if_limo1
+    )
+
+    static_merge_map_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_merge_map',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map'],
+        condition=only_if_limo1
+    )
+
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
         limo_launch,
@@ -78,7 +132,11 @@ def launch_with_namespace(context, *args, **kwargs):
         explore_launch
     ])
 
-    return [group]
+    return [group,
+            merge_map_node,
+            static_tf_limo1,
+            static_tf_limo2,
+            static_merge_map_tf]
 
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
