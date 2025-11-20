@@ -133,10 +133,10 @@ def launch_with_namespace(context, *args, **kwargs):
     ])
 
     return [group,
-            merge_map_node,
-            static_tf_limo1,
-            static_tf_limo2,
-            static_merge_map_tf]
+            merge_map_node]
+            # static_tf_limo1,
+            # static_tf_limo2,
+            # static_merge_map_tf]
 
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
