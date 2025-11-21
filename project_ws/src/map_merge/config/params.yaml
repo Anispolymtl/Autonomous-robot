@@ -1,0 +1,47 @@
+map_merge:
+  ros__parameters:
+
+    # ————————————————————————————————
+    #    PARAMÈTRES GÉNÉRAUX DU MERGEUR
+    # ————————————————————————————————
+    world_frame: "map"               # frame globale unique
+    merged_map_topic: "merged_map"   # carte fusionnée
+    merging_rate: 4.0                # Hz – fréquence de fusion
+    estimation_rate: 1.0             # Hz – estimation relative des robots
+    discovery_rate: 0.05             # Hz – découverte des robots
+    estimation_confidence: 0.6
+    known_init_poses: false          # ICP auto si false, valeur init_* si true
+    publish_tf: true                 # publie TF map→robot_map
+
+    # Résolution de la carte fusionnée
+    resolution: 0.05
+
+    # ————————————————————————————————
+    #      LISTE DES ROBOTS À FUSIONNER
+    # ————————————————————————————————
+    robots:
+
+      # ————————————————
+      #        ROBOT 1
+      # ————————————————
+      - name: "limo1"
+        map_topic:   "/limo1/map"    
+
+        # Position initiale (si known_init_poses: true)
+        init_pose_x: 0.0
+        init_pose_y: 0.0
+        init_pose_z: 0.0
+        init_pose_yaw: 0.0
+
+
+      # ————————————————
+      #        ROBOT 2
+      # ————————————————
+      - name: "limo2"
+        map_topic:   "/limo2/map"
+
+        # Position initiale estimée par rapport à limo1
+        init_pose_x: -3.0        # à ajuster selon ton test
+        init_pose_y: 1.0
+        init_pose_z: 0.0
+        init_pose_yaw: 0.0
