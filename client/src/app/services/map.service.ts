@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MapObject } from '@app/components/map/map.component';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
-import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
+import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { SocketService } from '@app/services/socket.service';
 import { MissionSessionService } from '@app/services/mission-session.service';
@@ -23,6 +23,17 @@ export class MapService {
 
         const { data, width, height } = mapObj.map;
         if (!data.length || !width || !height) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        this.generateBareMap(canvas, mapObj.map, ctx)
+        this.drawMarkers(ctx, mapObj);
+        this.drawRobotPoses(ctx, mapObj);
+    }
+
+    generateBareMap(canvas: HTMLCanvasElement, map: OccupancyGrid, ctx: CanvasRenderingContext2D) {
+        // Logique separee pour laffichage des maps de DB
+        const { data, width, height } = map;
+        if (!data.length || !width || !height) return;
 
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
@@ -32,8 +43,6 @@ export class MapService {
         canvas.style.width = '100%';
         canvas.style.height = 'auto';
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
         ctx.imageSmoothingEnabled = false;
 
         const imageData = ctx.createImageData(width, height);
@@ -56,11 +65,6 @@ export class MapService {
         }
 
         ctx.putImageData(imageData, 0, 0);
-        mapObj.originCanvasPosition = {x: 0.5, y: height - 0.5};
-
-        this.drawOriginMarker(ctx, mapObj);
-        this.drawMarkers(ctx, mapObj);
-        this.drawRobotPoses(ctx, mapObj);
     }
 
     getOriginInWorld(map: OccupancyGrid): { x: number; y: number } | undefined {
@@ -160,17 +164,7 @@ export class MapService {
             waypoints: serializedWaypoints,
         });
     }
-    
-    private drawOriginMarker(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
-        if (!mapObj.originCanvasPosition) return;
-        ctx.save();
-        ctx.fillStyle = '#e53935';
-        const size = 6;
-        const x = Math.max(size / 2, Math.round(mapObj.originCanvasPosition.x));
-        const y = Math.min(ctx.canvas.height - size / 2, Math.round(mapObj.originCanvasPosition.y));
-        ctx.fillRect(x - size / 2, y - size / 2, size, size);
-        ctx.restore();
-    }
+
 
     private gridToWorld(gridX: number, gridY: number, mapObj: MapObject): { x: number; y: number } {
         if (!mapObj.map) return { x: 0, y: 0 };

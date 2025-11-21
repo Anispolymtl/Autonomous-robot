@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
-import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
+import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { PoseData } from '@app/interfaces/pose-data';
 import { MapEvent } from '@common/enums/sockets-events';
@@ -18,7 +18,6 @@ type RobotId = 'limo1' | 'limo2';
 export interface MapObject {
   frame: string,
   map: OccupancyGrid | undefined;
-  originCanvasPosition: Point2D | undefined;
   selectedCanvasCoord: Point2D | undefined;
   pointCanvasCoords: Point2D[];
   pointList: MapCoordinate[];
@@ -147,7 +146,6 @@ ngOnInit(): void {
     return {
       frame: this.robotId,
       map: undefined,
-      originCanvasPosition: undefined,
       selectedCanvasCoord: undefined,
       pointCanvasCoords: [],
       pointList: [],
