@@ -9,7 +9,7 @@ export class MissionService implements OnModuleInit {
     private DoMission: any;
 
     /** Robots disponibles — adapter selon ton contexte */
-    private robots: string[] = ['limo1', 'limo2']; // ⚙️ mets ['limo1', 'limo2'] pour la simulation
+    private robots: string[] = ['limo1', 'limo2']; // mets ['limo1', 'limo2'] pour la simulation
 
     async onModuleInit() {
         this.DoMission = (rclnodejs.require('limo_interfaces') as any).action.DoMission;
@@ -31,7 +31,7 @@ export class MissionService implements OnModuleInit {
             const client = this.missionClients[ns];
             if (!client) continue;
 
-            console.log(`⏳ Attente du serveur d'action pour ${ns}...`);
+            console.log(`Attente du serveur d'action pour ${ns}...`);
             const ready = await client.waitForServer(5000);
             if (!ready) {
                 console.error(`Serveur d'action non disponible pour ${ns}`);

@@ -7,6 +7,7 @@ import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
 import { MissionSessionService } from '@app/services/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { SocketService } from '@app/services/socket.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -29,7 +30,8 @@ export class SimulationPageComponent implements OnInit {
     private router: Router,
     private missonService: MissionService,
     private missionSessionService: MissionSessionService,
-    private missionDatabaseService: MissionDatabaseService
+    private missionDatabaseService: MissionDatabaseService,
+    private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
@@ -100,5 +102,9 @@ export class SimulationPageComponent implements OnInit {
 
   setSelectedRobot(robotId: RobotId): void {
     this.selectedRobotId = robotId;
+  }
+
+  returnToBase(): void {
+    this.socketService.send('nav:return-to-base');
   }
 }
