@@ -88,7 +88,8 @@ def launch_with_namespace(context, *args, **kwargs):
     map_merge = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(merge_pkg, 'launch', 'map_merge.launch.py')
-        )
+        ),
+        condition=only_if_limo1
     )
 
     group = GroupAction(actions=[
