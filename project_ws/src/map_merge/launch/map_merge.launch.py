@@ -35,7 +35,7 @@ def generate_launch_description():
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
     # https://github.com/ros/geometry2/issues/32
     # https://github.com/ros/robot_state_publisher/pull/30
-    remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
+    remappings = [("tf", "/tf"), ("tf_static", "/tf_static")]
 
     node = Node(
         package="multirobot_map_merge",
@@ -45,7 +45,7 @@ def generate_launch_description():
         parameters=[
             config,
             {"use_sim_time": use_sim_time},
-            {"known_init_poses": known_init_poses},
+            #{"known_init_poses": known_init_poses},
         ],
         output="screen",
         remappings=remappings,

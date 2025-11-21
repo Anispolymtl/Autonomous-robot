@@ -14,6 +14,7 @@ def launch_with_namespace(context, *args, **kwargs):
 
     pkg_robot = get_package_share_directory('robot_exploration')
     explore_pkg = get_package_share_directory('explore_lite')
+    merge_pkg = get_package_share_directory('multirobot_map_merge')
 
     # slam_config = os.path.join(pkg_robot, 'config', f'{namespace}_slam_config.yaml')
 
@@ -84,42 +85,10 @@ def launch_with_namespace(context, *args, **kwargs):
             os.path.join(explore_pkg, 'launch', 'explore.launch.py')
         ))
 
-    merge_map_node = Node(
-        package='robot_exploration',
-        executable='map_merge',
-        name='merge_map_node',
-        output='screen',
-        parameters=[{'use_sim_time': False}],
-        remappings=[
-            ("/map1", "/limo1/map"),
-            ("/map2", "/limo2/map"),
-            ("/merge_map", "/merged_map"),   # topic fusionné
-        ],
-        condition=only_if_limo1
-    )
-
-    static_tf_limo1 = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf_limo1',
-        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo1/map'],
-        condition=only_if_limo1
-    )
-
-    static_tf_limo2 = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf_limo2',
-        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo2/map'],
-        condition=only_if_limo1
-    )
-
-    static_merge_map_tf = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf_merge_map',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map'],
-        condition=only_if_limo1
+    map_merge = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(merge_pkg, 'launch', 'map_merge.launch.py')
+        )
     )
 
     group = GroupAction(actions=[
@@ -133,10 +102,7 @@ def launch_with_namespace(context, *args, **kwargs):
     ])
 
     return [group,
-            merge_map_node]
-            # static_tf_limo1,
-            # static_tf_limo2,
-            # static_merge_map_tf]
+            map_merge]
 
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
