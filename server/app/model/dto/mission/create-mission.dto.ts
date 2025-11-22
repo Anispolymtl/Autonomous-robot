@@ -1,3 +1,4 @@
+import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
@@ -34,5 +35,5 @@ export class CreateMissionDto {
 
     @ApiProperty({ required: false, type: [Object] })
     @IsOptional()
-    logs?: Record<string, unknown>[];
+    logs?: MissionLogEntry[];
 }
