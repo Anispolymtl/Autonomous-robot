@@ -337,15 +337,35 @@ def generate_launch_description():
         output='screen'
     )
 
-    robot_position_monitor = Node(
+    base_limo2 = Node(
         package='robot_exploration',
-        executable='robot_position_monitor',
-        name='robot_position_monitor',
-        parameters=[{
-            "robot_namespaces": ["limo1", "limo2"]
-        }],
+        executable='base_manager',
+        name='base_manager',
+        namespace='limo2',
         output='screen'
     )
+
+    robot_position_monitor_limo1 = GroupAction([
+        PushRosNamespace('limo1'),
+        Node(
+            package="robot_exploration",
+            executable="robot_position_monitor",
+            name="robot_position_monitor",
+            output="screen",
+            parameters=[{"rate": 10.0}]
+        )
+    ])
+
+    robot_position_monitor_limo2 = GroupAction([
+        PushRosNamespace('limo2'),
+        Node(
+            package="robot_exploration",
+            executable="robot_position_monitor",
+            name="robot_position_monitor",
+            output="screen",
+            parameters=[{"rate": 10.0}]
+        )
+    ])
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
@@ -382,8 +402,10 @@ def generate_launch_description():
         explorer_1,
         explorer_2,
 
-        robot_position_monitor,
-        battery_limo1,
-        base_limo1
+        # battery_limo1,
+        base_limo1,
+        base_limo2,
+        robot_position_monitor_limo1, 
+        robot_position_monitor_limo2
 
     ])

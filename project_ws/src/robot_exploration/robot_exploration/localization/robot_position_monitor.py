@@ -2,79 +2,81 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
-from std_msgs.msg import String
-import json
 
 
 class RobotPositionMonitor(Node):
+
     def __init__(self):
-        super().__init__("robot_position_monitor")
+        super().__init__("robot_pose_monitor")
 
-        # Declare list of robot namespaces (limo1, limo2, etc.)
-        self.declare_parameter("robot_namespaces", ["limo1", "limo2"])
+        # Paramètres
+        self.declare_parameter("robot_id", "")
+        self.declare_parameter("rate", 10.0)
 
-        self.namespaces = (
-            self.get_parameter("robot_namespaces")
-            .get_parameter_value()
-            .string_array_value
+        self.robot_id = self.get_parameter("robot_id").get_parameter_value().string_value
+        self.rate = float(self.get_parameter("rate").value)
+
+        # Si aucun robot_id donné, on utilise le namespace
+        namespace = self.get_namespace().strip("/")
+        if self.robot_id == "":
+            self.robot_id = namespace
+
+        if self.robot_id == "":
+            self.get_logger().fatal("❌ Donne un namespace OU un robot_id.")
+            raise RuntimeError("robot_id manquant")
+
+        # Topics
+        self.odom_topic = f"/{self.robot_id}/odom"
+        self.output_topic = f"/{self.robot_id}/current_pose"
+
+        self.get_logger().info(f"✅ Subscribing to: {self.odom_topic}")
+        self.get_logger().info(f"✅ Publishing to: {self.output_topic}")
+
+        # Subscriber odom
+        self.odom_sub = self.create_subscription(
+            Odometry,
+            self.odom_topic,
+            self.odom_callback,
+            10
         )
 
-        self.robot_positions = {}
-
-        # Publisher that outputs all robot positions as a JSON string
-        self.positions_pub = self.create_publisher(
-            String, "/robot_positions", 10
+        # Publisher pose
+        self.pose_pub = self.create_publisher(
+            PoseStamped,
+            self.output_topic,
+            10
         )
 
-        # Create all subscriptions dynamically
-        for ns in self.namespaces:
-            topic = f"/{ns}/odom"
-            self.create_subscription(
-                Odometry,
-                topic,
-                lambda msg, ns=ns: self.odom_callback(msg, ns),
-                10,
-            )
-            self.get_logger().info(f"Subscribed to {topic}")
+        self.last_odom = None
+        self.timer = self.create_timer(1.0 / self.rate, self.timer_callback)
 
-        # Timer to publish combined position data
-        self.create_timer(0.2, self.publish_positions)
+    def odom_callback(self, msg: Odometry):
+        self.last_odom = msg
 
-        self.get_logger().info(
-            f"RobotPositionMonitor started for robots: {self.namespaces}"
-        )
-
-    def odom_callback(self, msg: Odometry, robot_ns: str):
-        position = msg.pose.pose.position
-        orientation = msg.pose.pose.orientation
-
-        # Store robot position
-        self.robot_positions[robot_ns] = {
-            "x": round(position.x, 3),
-            "y": round(position.y, 3),
-            "z": round(position.z, 3),
-            "orientation": {
-                "x": round(orientation.x, 4),
-                "y": round(orientation.y, 4),
-                "z": round(orientation.z, 4),
-                "w": round(orientation.w, 4),
-            },
-        }
-
-    def publish_positions(self):
-        """Publish combined robot positions as JSON for the UI or P2P logic."""
-        if not self.robot_positions:
+    def timer_callback(self):
+        if self.last_odom is None:
             return
 
-        msg = String()
-        msg.data = json.dumps(self.robot_positions)
-        self.positions_pub.publish(msg)
+        pose_stamped = PoseStamped()
+        pose_stamped.header.stamp = self.get_clock().now().to_msg()
+        pose_stamped.header.frame_id = self.last_odom.header.frame_id
+
+        pose_stamped.pose = self.last_odom.pose.pose
+
+        self.pose_pub.publish(pose_stamped)
+
+        # self.get_logger().info(
+        #     f"[{self.robot_id}] Pose from odom → x: {pose_stamped.pose.position.x:.2f}, "
+        #     f"y: {pose_stamped.pose.position.y:.2f}",
+        #     throttle_duration_sec=2.0   # 1 message max toutes les 2 secondes
+        # )
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = RobotPositionMonitor()
     rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 
