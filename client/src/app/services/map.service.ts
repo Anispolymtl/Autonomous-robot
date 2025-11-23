@@ -189,8 +189,29 @@ export class MapService {
             return new Int8Array(view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength));
         }
         if (Array.isArray(rawData)) return Int8Array.from(rawData);
+        if (rawData && typeof rawData === 'object') {
+            const entries = Object.entries(rawData)
+                .filter(([k]) => !Number.isNaN(Number(k)))
+                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                .map(([, v]) => Number(v) || 0);
+            if (entries.length) return Int8Array.from(entries);
+        }
         console.warn('Unsupported map data format received from socket');
         return new Int8Array();
+    }
+
+    generateOccupancyGrid(rawMap: any): OccupancyGrid {
+        console.log(rawMap)
+        return {
+        data: this.normaliseMapData(rawMap.data),
+        height: rawMap?.info?.height ?? 0,
+        width: rawMap?.info?.width ?? 0,
+        resolution: rawMap?.info?.resolution ?? 1,
+        origin: rawMap?.info?.origin ?? {
+          position: { x: 0, y: 0, z: 0 },
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+        },
+      }
     }
 
     updateOrientationCache(map: OccupancyGrid, orientation: Orientation): void {

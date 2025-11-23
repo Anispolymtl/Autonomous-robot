@@ -6,6 +6,18 @@ import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 
 type RobotId = 'limo1' | 'limo2';
 
+class MapPayloadDto {
+  @ApiProperty()
+  header: any;
+
+  @ApiProperty()
+  info: any;
+
+  @ApiProperty({ type: [Number] })
+  @IsArray()
+  data: number[];
+};
+
 export class CreateMissionDto {
     @ApiProperty()
     @IsNumber()
@@ -42,5 +54,6 @@ export class CreateMissionDto {
     logs?: MissionLogEntry[];
 
     @ApiProperty({ required: false})
-    maps: Record<RobotId, any>;
+    @IsOptional()
+    maps: Record<RobotId, MapPayloadDto>;
 }
