@@ -2,10 +2,11 @@ process.env.ROS_DOMAIN_ID = '66';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
-import { SocketService } from '../socket/socket.service';
-import { NavService } from '../nav/nav.service';
-import { MappingSerivce } from '../mapping/mapping.service';
+import { SocketService } from '@app/services/socket/socket.service';
+import { NavService } from '@app/services/nav/nav.service';
+import { MappingSerivce } from '@app/services/mapping/mapping.service';
 import { StateService } from '@app/services/state/state.service';
+import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -18,7 +19,8 @@ export class RosService implements OnModuleInit {
   constructor(
     private navService: NavService,
     private stateService: StateService,
-    private mappingService: MappingSerivce
+    private mappingService: MappingSerivce,
+    private codeEditor: CodeEditorService
   ) {}
 
   async onModuleInit() {
@@ -35,9 +37,11 @@ export class RosService implements OnModuleInit {
     this.navService.initNavService(nodeLimo1, nodeLimo2);
     this.stateService.initStateService();
     this.mappingService.initialiseMappingService();
+    this.codeEditor.initCodeEditorService();
     nodeLimo1.spin();
     nodeLimo2.spin();
     this.logger.log('ROS2 client prêt !');
+    this.testFetchMissionLogic()
   }
 
   async identifyRobot(id: number): Promise<{ success: boolean; message: string }> {
@@ -54,5 +58,17 @@ export class RosService implements OnModuleInit {
         else resolve({ success: false, message: 'Échec de l’appel ROS2' });
       });
     });
+  }
+  private async testFetchMissionLogic() {
+    this.logger.log("🚀 Test de récupération du code de mission...");
+
+    const result = await this.codeEditor.getCode();
+
+    if (result.success) {
+      this.logger.log("📄 Code reçu avec succès !");
+      this.logger.debug("Aperçu : " + result.code.substring(0, 200) + "...");
+    } else {
+      this.logger.error("❌ Échec de récupération du code : " + result.message);
+    }
   }
 }

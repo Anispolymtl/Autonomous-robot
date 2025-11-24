@@ -190,6 +190,13 @@ def generate_launch_description():
         output='screen',
     )
 
+    code_editor = Node(
+        package='robot_exploration',
+        executable = 'code_editor_server',
+        name = 'code_editor',
+        output='screen',
+    )
+
     slam_1 = GroupAction([
         PushRosNamespace('limo1'),
         IncludeLaunchDescription(
@@ -338,6 +345,9 @@ def generate_launch_description():
         mission_action_1,
         mission_action_2,
 
+        # Code Editeur
+        code_editor,
+        
         # Slam toolbox
         slam_1,
         slam_2,
