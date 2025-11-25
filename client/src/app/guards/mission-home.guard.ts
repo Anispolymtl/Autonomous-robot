@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { MissionModeService } from '@app/services/mission-mode.service';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
 
 export const missionHomeGuard: CanActivateFn = () => {
     const missionModeService = inject(MissionModeService);

@@ -2,9 +2,9 @@ process.env.ROS_DOMAIN_ID = '66';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
-import { SocketService } from './socket/socket.service';
-import { NavService } from './nav/nav.service';
-import { MappingSerivce } from './mapping/mapping.service';
+import { SocketService } from '../socket/socket.service';
+import { NavService } from '../nav/nav.service';
+import { MappingSerivce } from '../mapping/mapping.service';
 import { StateService } from '@app/services/state/state.service';
 
 type RobotId = 'limo1' | 'limo2';

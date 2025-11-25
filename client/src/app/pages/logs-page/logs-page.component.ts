@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { MissionListComponent } from '@app/components/mission-list/mission-list.component';
 import { ActivatedRoute } from '@angular/router';
 import { Mission, MissionLogEntry } from '@app/interfaces/mission';
-import { MissionModeService } from '@app/services/mission-mode.service';
-import { SocketService } from '@app/services/socket.service';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
+import { SocketService } from '@app/services/socket/socket.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 
 interface MissionEventPayload {

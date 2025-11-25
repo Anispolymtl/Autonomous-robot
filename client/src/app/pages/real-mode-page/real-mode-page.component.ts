@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IdentifyService } from '@app/services/identify.service';
-import { MissionService } from '@app/services/mission.service';
+import { IdentifyService } from '@app/services/identify/identify.service';
+import { MissionService } from '@app/services/mission/mission.service';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
@@ -91,15 +91,6 @@ export class RealPageComponent implements OnInit {
         this.finalizeMission();
       },
     });
-  }
-
-  onSubmit(): void {
-    if (this.form.valid) {
-      this.message = `Connexion réussie pour l’équipe ${this.form.value.teamName} avec le robot ${this.form.value.robotName}.`;
-      console.log('Connexion envoyée', this.form.value);
-    } else {
-      this.message = 'Veuillez remplir tous les champs.';
-    }
   }
 
   setSelectedRobot(robotId: RobotId): void {

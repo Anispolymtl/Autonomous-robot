@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { RosService } from '@app/services/ros.service';
+import { RosService } from '@app/services/ros/ros.service';
 
 @Controller('identify')
 export class RosController {

@@ -7,7 +7,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SocketService } from '@app/services/socket/socket.service';
-import { RosService } from '@app/services/ros.service';
 import { MissionCreatePayload, MissionRuntimeService } from '@app/services/mission-runtime/mission-runtime.service';
 import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 import { Mission } from '@app/model/database/mission';

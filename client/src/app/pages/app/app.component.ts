@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { GlobalNavbarComponent } from '@app/components/global-navbar/global-navbar.component';
-import { MissionModeService } from '@app/services/mission-mode.service';
-import { MissionSessionService } from '@app/services/mission-session.service';
+import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
+import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { filter } from 'rxjs/operators';
-import { TelemetryLoggingService } from '@app/services/telemetry-logging.service';
+import { TelemetryLoggingService } from '@app/services/telemetry-logging/telemetry-logging.service';
 
 @Component({
     selector: 'app-root',
