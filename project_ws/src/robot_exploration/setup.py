@@ -30,6 +30,7 @@ setup(
         'mission_real = robot_exploration.mission.mission_server_real:main',
         'explorer_node = robot_exploration.autonomous_exploration.autonomous_exploration:main',
         'map_merge = robot_exploration.map_merge.map_merge:main',
+        'adjustable_static_tf = robot_exploration.map_merge.adjustable_static_tf:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
         'base_manager = robot_exploration.localization.base_manager:main',
         'battery_manager = robot_exploration.localization.battery_manager:main',
