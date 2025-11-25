@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Mission } from '@app/interfaces/mission';
-import { MapService } from '@app/services/map.service';
+import { MapService } from '@app/services/map/map.service';
 import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 
 @Component({
