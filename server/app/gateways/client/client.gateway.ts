@@ -11,6 +11,7 @@ import { MissionCreatePayload, MissionRuntimeService } from '@app/services/missi
 import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 import { Mission } from '@app/model/database/mission';
 import { NavService } from '@app/services/nav/nav.service';
+import { RosService } from '@app/services/ros/ros.service';
 
 type RobotId = 'limo1' | 'limo2';
 type Point2D = { x: number; y: number };
