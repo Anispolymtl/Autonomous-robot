@@ -102,7 +102,6 @@ def launch_with_namespace(context, *args, **kwargs):
         mission_action,
         cartographer_launch,
         nav2_launch,
-        localization_launch,
         explore_launch
     ])
 
