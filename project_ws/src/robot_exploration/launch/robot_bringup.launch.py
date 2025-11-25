@@ -48,6 +48,16 @@ def launch_with_namespace(context, *args, **kwargs):
         }.items(),
     )
 
+    localization_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_robot, 'launch', 'robot_localization.launch.py')
+        ),
+        launch_arguments={
+            'namespace': namespace,
+            'params_file': nav2_params,
+            'use_sim_time': 'false'
+        }.items(),
+    )
     robot_position_monitor = Node(
             package="robot_exploration",
             executable="robot_position_monitor",
@@ -78,13 +88,6 @@ def launch_with_namespace(context, *args, **kwargs):
         parameters=[{'use_sim_time': False}],
     )
 
-    adjust_tf = Node(
-        package='robot_exploration',
-        executable='adjutable_static_tf',
-        name='adjust_tf',
-        output='screen'
-    ) 
-
     explore_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(explore_pkg, 'launch', 'explore.launch.py')
@@ -99,7 +102,7 @@ def launch_with_namespace(context, *args, **kwargs):
         mission_action,
         cartographer_launch,
         nav2_launch,
-        adjust_tf,
+        localization_launch,
         explore_launch
     ])
 
