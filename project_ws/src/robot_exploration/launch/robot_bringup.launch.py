@@ -47,6 +47,17 @@ def launch_with_namespace(context, *args, **kwargs):
             'use_sim_time': 'false'
         }.items(),
     )
+
+    localization_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_robot, 'launch', 'robot_localization.launch.py')
+        ),
+        launch_arguments={
+            'namespace': namespace,
+            'params_file': nav2_params,
+            'use_sim_time': 'false'
+        }.items(),
+    )
     robot_position_monitor = Node(
             package="robot_exploration",
             executable="robot_position_monitor",
