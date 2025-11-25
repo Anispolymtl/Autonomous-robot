@@ -31,6 +31,9 @@ setup(
         'explorer_node = robot_exploration.autonomous_exploration.autonomous_exploration:main',
         'map_merge = robot_exploration.map_merge.map_merge:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
+        'base_manager = robot_exploration.localization.base_manager:main',
+        'battery_manager = robot_exploration.localization.battery_manager:main',
+        'robot_position_monitor = robot_exploration.localization.robot_position_monitor:main',
     ],
     },
 )

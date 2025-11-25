@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MapObject } from '@app/components/map/map.component';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
-import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
+import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { SocketService } from '@app/services/socket/socket.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
@@ -23,6 +23,17 @@ export class MapService {
 
         const { data, width, height } = mapObj.map;
         if (!data.length || !width || !height) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        this.generateBareMap(canvas, mapObj.map, ctx)
+        this.drawMarkers(ctx, mapObj);
+        this.drawRobotPoses(ctx, mapObj);
+    }
+
+    generateBareMap(canvas: HTMLCanvasElement, map: OccupancyGrid, ctx: CanvasRenderingContext2D) {
+        // Logique separee pour laffichage des maps de DB
+        const { data, width, height } = map;
+        if (!data.length || !width || !height) return;
 
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
@@ -32,8 +43,6 @@ export class MapService {
         canvas.style.width = '100%';
         canvas.style.height = 'auto';
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
         ctx.imageSmoothingEnabled = false;
 
         const imageData = ctx.createImageData(width, height);
@@ -56,11 +65,6 @@ export class MapService {
         }
 
         ctx.putImageData(imageData, 0, 0);
-        mapObj.originCanvasPosition = {x: 0.5, y: height - 0.5};
-
-        this.drawOriginMarker(ctx, mapObj);
-        this.drawMarkers(ctx, mapObj);
-        this.drawRobotPoses(ctx, mapObj);
     }
 
     getOriginInWorld(map: OccupancyGrid): { x: number; y: number } | undefined {
@@ -160,17 +164,7 @@ export class MapService {
             waypoints: serializedWaypoints,
         });
     }
-    
-    private drawOriginMarker(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
-        if (!mapObj.originCanvasPosition) return;
-        ctx.save();
-        ctx.fillStyle = '#e53935';
-        const size = 6;
-        const x = Math.max(size / 2, Math.round(mapObj.originCanvasPosition.x));
-        const y = Math.min(ctx.canvas.height - size / 2, Math.round(mapObj.originCanvasPosition.y));
-        ctx.fillRect(x - size / 2, y - size / 2, size, size);
-        ctx.restore();
-    }
+
 
     private gridToWorld(gridX: number, gridY: number, mapObj: MapObject): { x: number; y: number } {
         if (!mapObj.map) return { x: 0, y: 0 };
@@ -195,8 +189,29 @@ export class MapService {
             return new Int8Array(view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength));
         }
         if (Array.isArray(rawData)) return Int8Array.from(rawData);
+        if (rawData && typeof rawData === 'object') {
+            const entries = Object.entries(rawData)
+                .filter(([k]) => !Number.isNaN(Number(k)))
+                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                .map(([, v]) => Number(v) || 0);
+            if (entries.length) return Int8Array.from(entries);
+        }
         console.warn('Unsupported map data format received from socket');
         return new Int8Array();
+    }
+
+    generateOccupancyGrid(rawMap: any): OccupancyGrid {
+        console.log(rawMap)
+        return {
+        data: this.normaliseMapData(rawMap.data),
+        height: rawMap?.info?.height ?? 0,
+        width: rawMap?.info?.width ?? 0,
+        resolution: rawMap?.info?.resolution ?? 1,
+        origin: rawMap?.info?.origin ?? {
+          position: { x: 0, y: 0, z: 0 },
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+        },
+      }
     }
 
     updateOrientationCache(map: OccupancyGrid, orientation: Orientation): void {

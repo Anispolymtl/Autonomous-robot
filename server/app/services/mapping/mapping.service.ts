@@ -38,23 +38,12 @@ private setupMappingListner(robotId: RobotId) {
   private setupPoseListners(robotId: RobotId) {
     this.poseNode = new rclnodejs.Node('pose_listener_backend', robotId);
     this.poseNode.createSubscription(
-      'geometry_msgs/msg/PoseWithCovarianceStamped',
-      `pose`,
+      'geometry_msgs/msg/PoseStamped',
+      `current_pose`,
       (msg) => {
-        const payload = this.extractPosePayload(msg);
-        this.socketService.sendPoseToAllSockets(robotId, payload);
+        this.socketService.sendPoseToAllSockets(robotId, msg);
       }
     );
     this.poseNode.spin();
-  }
-
-  private extractPosePayload(msg: any) {
-    if (msg?.pose?.pose) {
-      return {
-        header: msg.header,
-        pose: msg.pose.pose,
-      };
-    }
-    return msg;
   }
 }

@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MissionLogsDialogComponent } from '@app/components/mission-logs-dialog/mission-logs-dialog.component';
+import { MissionMapsDialogComponent } from '@app/components/mission-maps-dialog/mission-maps-dialog.component';
 
 @Component({
     selector: 'app-mission-list',
@@ -141,6 +142,15 @@ export class MissionListComponent implements OnInit {
             width: '760px',
             panelClass: 'mission-logs-dialog-panel',
             data: { mission, logs }
+        });
+    }
+
+    openMapsDialog(mission: Mission): void {
+        if (!mission.maps) return;
+        this.dialog.open(MissionMapsDialogComponent, {
+            width: '760px',
+            panelClass: 'mission-logs-dialog-panel',
+            data: { mission }
         });
     }
 

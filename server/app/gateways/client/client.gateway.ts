@@ -36,7 +36,8 @@ export class ClientGateway {
     constructor(
         private socketService: SocketService,
         private missionRuntimeService: MissionRuntimeService,
-        private navService: NavService
+        private navService: NavService,
+        private rosService: RosService
     ) {}
 
     handleConnection(socket: Socket) {
@@ -62,6 +63,11 @@ export class ClientGateway {
     @SubscribeMessage('startNavGoal')
     onGoalGet(socket: Socket, payload: {robot: RobotId}) {
         this.navService.startGoal(payload.robot);
+    }
+
+    @SubscribeMessage('nav:return-to-base')
+    onReturnRequest(socket: Socket) {
+        this.rosService.returnToBase();
     }
 
     @SubscribeMessage('mission:create')

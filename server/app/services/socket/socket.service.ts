@@ -71,4 +71,13 @@ export class SocketService{
             socket.emit('newPoints', {robot, points});
         });
     }
+
+    getMaps(): Record<RobotId, any> {
+        const limo1Map = this.payloads.limo1.mapData;
+        const limo2Map = this.payloads.limo2.mapData;
+        return {
+            limo1: limo1Map,
+            limo2: limo2Map
+        };
+    }
 }

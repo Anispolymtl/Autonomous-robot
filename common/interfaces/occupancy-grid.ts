@@ -1,4 +1,4 @@
-import { MapOrientation } from "@app/interfaces/map-orientation";
+import { MapOrientation } from "./map-orientation";
 
 export interface OccupancyGrid {
     data: Int8Array;

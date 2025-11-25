@@ -5,8 +5,10 @@ import { MissionService } from '@app/services/mission/mission.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
+// import { MissionSessionService } from '@app/services/mission-session.service';
+import { SocketService } from '@app/services/socket.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
-import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+// import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -29,7 +31,7 @@ export class SimulationPageComponent implements OnInit {
     private router: Router,
     private missonService: MissionService,
     private missionSessionService: MissionSessionService,
-    private missionDatabaseService: MissionDatabaseService
+    private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
@@ -69,28 +71,30 @@ export class SimulationPageComponent implements OnInit {
     this.missionSessionService.completeMission()
       .then((mission) => {
         if (!mission) {
+          console.log('storing error')
           this.router.navigate(['/home']);
-          return;
+        } else {
+          this.router.navigate(['/home']);
         }
 
-        this.missionDatabaseService.createMission({
-          missionName: mission.missionName,
-          robots: mission.robots,
-          mode: mission.mode,
-          distance: mission.distance ?? 0,
-          durationSec: mission.durationSec ?? 0,
-          status: mission.status,
-          logs: mission.logs ?? []
-        }).subscribe({
-          next: () => {
-            console.log('Mission persistée en base de données');
-            this.router.navigate(['/home']);
-          },
-          error: (err) => {
-            console.error('Erreur lors de la sauvegarde de la mission:', err);
-            this.router.navigate(['/home']);
-          }
-        });
+        // this.missionDatabaseService.createMission({
+        //   missionName: mission.missionName,
+        //   robots: mission.robots,
+        //   mode: mission.mode,
+        //   distance: mission.distance ?? 0,
+        //   durationSec: mission.durationSec ?? 0,
+        //   status: mission.status,
+        //   logs: mission.logs ?? []
+        // }).subscribe({
+        //   next: () => {
+        //     console.log('Mission persistée en base de données');
+        //     this.router.navigate(['/home']);
+        //   },
+        //   error: (err) => {
+        //     console.error('Erreur lors de la sauvegarde de la mission:', err);
+        //     this.router.navigate(['/home']);
+        //   }
+        // });
       })
       .catch((error) => {
         console.error('Erreur lors de la finalisation de la mission:', error);
@@ -100,5 +104,9 @@ export class SimulationPageComponent implements OnInit {
 
   setSelectedRobot(robotId: RobotId): void {
     this.selectedRobotId = robotId;
+  }
+
+  returnToBase(): void {
+    this.socketService.send('nav:return-to-base');
   }
 }

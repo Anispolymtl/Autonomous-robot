@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Mission } from '@app/model/database/mission';
 import { randomUUID } from 'crypto';
 import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
+import { MissionDatabaseService } from '../mission-database/mission-database.service';
+import { CreateMissionDto } from '@app/model/dto/mission/create-mission.dto';
+import { SocketService } from '../socket/socket.service';
 
 export interface MissionRuntimeSnapshot extends Mission {
     missionId: string;
@@ -23,6 +26,10 @@ export interface MissionCreatePayload {
 
 @Injectable()
 export class MissionRuntimeService {
+    constructor(
+        private databaseService: MissionDatabaseService,
+        private socketService: SocketService
+    ){}
     private activeMission: MissionRuntimeSnapshot | null = null;
     private currentMode: 'SIMULATION' | 'REAL' | null = null;
 
@@ -94,6 +101,18 @@ export class MissionRuntimeService {
         mission.updatedAt = new Date();
         this.activeMission = null;
         this.currentMode = null;
+        const missionCreateObj: CreateMissionDto = {
+            missionName: mission.missionName,
+            robots: mission.robots,
+            mode: mission.mode,
+            distance: mission.distance ?? 0,
+            durationSec: mission.durationSec ?? 0,
+            status: mission.status,
+            logs: mission.logs ?? [],
+            maps: this.socketService.getMaps()
+        }
+        const missionDBObj = this.databaseService.createMission(missionCreateObj);
+        console.log(missionDBObj)
         return mission;
     }
 
