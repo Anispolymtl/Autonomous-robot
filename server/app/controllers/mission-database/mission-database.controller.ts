@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, HttpStatus, Res } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, HttpStatus, Res, Query } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiCreatedResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
@@ -10,6 +10,12 @@ import { UpdateMissionDto } from '@app/model/dto/mission/update-mission.dto';
 @Controller('missions')
 export class MissionDatabaseController {
     constructor(private readonly missionDatabaseService: MissionDatabaseService) {}
+    private parseNumberParam(value?: string): number | undefined {
+        if (value === undefined) return undefined;
+        const parsed = parseInt(value, 10);
+        if (Number.isNaN(parsed) || parsed < 0) return undefined;
+        return parsed;
+    }
 
     @ApiOkResponse({
         description: 'Returns all missions',
@@ -17,10 +23,16 @@ export class MissionDatabaseController {
         isArray: true,
     })
     @Get('/')
-    async getAllMissions(@Res() response: Response) {
+    async getAllMissions(
+        @Res() response: Response,
+        @Query('limit') limit?: string,
+        @Query('skip') skip?: string
+    ) {
         try {
             console.log('GET /api/missions - Fetching all missions');
-            const missions = await this.missionDatabaseService.getAllMissions();
+            const parsedLimit = this.parseNumberParam(limit);
+            const parsedSkip = this.parseNumberParam(skip);
+            const missions = await this.missionDatabaseService.getAllMissions(parsedLimit, parsedSkip);
             console.log(`Returning ${missions.length} missions`);
             response.status(HttpStatus.OK).json(missions);
         } catch (error) {
@@ -56,9 +68,16 @@ export class MissionDatabaseController {
         isArray: true,
     })
     @Get('/robot/:robotName')
-    async getMissionsByRobot(@Param('robotName') robotName: string, @Res() response: Response) {
+    async getMissionsByRobot(
+        @Param('robotName') robotName: string,
+        @Res() response: Response,
+        @Query('limit') limit?: string,
+        @Query('skip') skip?: string
+    ) {
         try {
-            const missions = await this.missionDatabaseService.getMissionsByRobot(robotName);
+            const parsedLimit = this.parseNumberParam(limit);
+            const parsedSkip = this.parseNumberParam(skip);
+            const missions = await this.missionDatabaseService.getMissionsByRobot(robotName, parsedLimit, parsedSkip);
             response.status(HttpStatus.OK).json(missions);
         } catch (error) {
             response.status(HttpStatus.INTERNAL_SERVER_ERROR).send(error.message);
@@ -71,9 +90,16 @@ export class MissionDatabaseController {
         isArray: true,
     })
     @Get('/mode/:mode')
-    async getMissionsByMode(@Param('mode') mode: string, @Res() response: Response) {
+    async getMissionsByMode(
+        @Param('mode') mode: string,
+        @Res() response: Response,
+        @Query('limit') limit?: string,
+        @Query('skip') skip?: string
+    ) {
         try {
-            const missions = await this.missionDatabaseService.getMissionsByMode(mode);
+            const parsedLimit = this.parseNumberParam(limit);
+            const parsedSkip = this.parseNumberParam(skip);
+            const missions = await this.missionDatabaseService.getMissionsByMode(mode, parsedLimit, parsedSkip);
             response.status(HttpStatus.OK).json(missions);
         } catch (error) {
             response.status(HttpStatus.INTERNAL_SERVER_ERROR).send(error.message);

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Mission, CreateMissionDto, UpdateMissionDto, MissionStats } from '@app/interfaces/mission';
@@ -15,8 +15,9 @@ export class MissionDatabaseService {
     /**
      * Récupère toutes les missions de la base de données
      */
-    getAllMissions(): Observable<Mission[]> {
-        return this.http.get<Mission[]>(`${this.missionsUrl}/`);
+    getAllMissions(limit?: number, skip?: number): Observable<Mission[]> {
+        const params = this.buildPaginationParams(limit, skip);
+        return this.http.get<Mission[]>(`${this.missionsUrl}/`, { params });
     }
 
     /**
@@ -29,15 +30,17 @@ export class MissionDatabaseService {
     /**
      * Récupère toutes les missions d'un robot spécifique
      */
-    getMissionsByRobot(robotName: string): Observable<Mission[]> {
-        return this.http.get<Mission[]>(`${this.missionsUrl}/robot/${robotName}`);
+    getMissionsByRobot(robotName: string, limit?: number, skip?: number): Observable<Mission[]> {
+        const params = this.buildPaginationParams(limit, skip);
+        return this.http.get<Mission[]>(`${this.missionsUrl}/robot/${robotName}`, { params });
     }
 
     /**
      * Récupère toutes les missions d'un mode spécifique (SIMULATION ou REAL)
      */
-    getMissionsByMode(mode: 'SIMULATION' | 'REAL'): Observable<Mission[]> {
-        return this.http.get<Mission[]>(`${this.missionsUrl}/mode/${mode}`);
+    getMissionsByMode(mode: 'SIMULATION' | 'REAL', limit?: number, skip?: number): Observable<Mission[]> {
+        const params = this.buildPaginationParams(limit, skip);
+        return this.http.get<Mission[]>(`${this.missionsUrl}/mode/${mode}`, { params });
     }
 
     /**
@@ -66,6 +69,13 @@ export class MissionDatabaseService {
      */
     deleteMission(id: string): Observable<{ message: string }> {
         return this.http.delete<{ message: string }>(`${this.missionsUrl}/${id}`);
+    }
+
+    private buildPaginationParams(limit?: number, skip?: number): HttpParams {
+        let params = new HttpParams();
+        if (limit !== undefined) params = params.set('limit', limit.toString());
+        if (skip !== undefined) params = params.set('skip', skip.toString());
+        return params;
     }
 
 }
