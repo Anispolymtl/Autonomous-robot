@@ -1,9 +1,20 @@
 
-FROM osrf/ros:humble-ros-core
+FROM osrf/ros:humble-desktop-full
 
-# Outils système + Node.js 20
+ARG APP_ENV=development
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates gnupg build-essential \
+    git curl wget ca-certificates \
+    build-essential cmake \
+    python3-pip python3-colcon-common-extensions python3-vcstool \
+    ros-humble-cartographer ros-humble-cartographer-ros \
+    ros-humble-navigation2 ros-humble-nav2-bringup \
+    ros-humble-ros-gz-bridge ros-humble-ros-gz-sim ros-humble-ros-gz-image \
+    ros-humble-xacro ros-humble-robot-state-publisher ros-humble-joint-state-publisher-gui \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer Node.js 20
@@ -12,15 +23,42 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && rm -rf /var/lib/apt/lists/*
 
 ENV ROS_DISTRO=humble
-WORKDIR /app
+ENV WS=/project_ws
+ENV APP_HOME=/app
+ENV RCLNODEJS_ROS_DISTRO=${ROS_DISTRO}
+ENV RCLNODEJS_ROS_VERSION=2
 
+WORKDIR ${WS}
+COPY ./project_ws ./
+
+RUN rosdep update && \
+    rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y --skip-keys="my_robot_interfaces ros_gz"
+
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    colcon build --merge-install --symlink-install
+
+WORKDIR ${APP_HOME}
 COPY server/package*.json ./
-RUN npm ci
+RUN /bin/bash -lc "source /opt/ros/${ROS_DISTRO}/setup.bash && source ${WS}/install/setup.bash && npm ci"
 
+COPY common /common
 COPY server/ .
+RUN /bin/bash -lc "source /opt/ros/${ROS_DISTRO}/setup.bash && source ${WS}/install/setup.bash && npm run build"
+RUN /bin/bash -lc "source /opt/ros/${ROS_DISTRO}/setup.bash && source ${WS}/install/setup.bash && npm rebuild rclnodejs --build-from-source"
 
-RUN npm run build
+RUN if ! getent group ${GROUP_ID} >/dev/null; then groupadd -g ${GROUP_ID} appuser; fi && \
+    useradd -m -u ${USER_ID} -g ${GROUP_ID} appuser && \
+    chown -R appuser:${GROUP_ID} ${WS} ${APP_HOME} /common /home/appuser
 
-EXPOSE 8080
+ENV APP_ENV=${APP_ENV}
+ENV NODE_ENV=${APP_ENV}
 
-CMD ["/bin/bash", "-lc", "source /opt/ros/$ROS_DISTRO/setup.bash && node out/app/index.js"]
+COPY docker/start-server-sim.sh /usr/local/bin/start-server-sim.sh
+RUN chmod +x /usr/local/bin/start-server-sim.sh
+
+USER appuser
+WORKDIR ${APP_HOME}
+
+EXPOSE 3000
+
+CMD ["/usr/local/bin/start-server-sim.sh"]
