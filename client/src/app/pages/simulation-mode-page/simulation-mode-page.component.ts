@@ -8,6 +8,8 @@ import { RobotStatusComponent } from '@app/components/robot-status/robot-status.
 // import { MissionSessionService } from '@app/services/mission-session.service';
 import { SocketService } from '@app/services/socket/socket.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CodeEditorDialogComponent } from '@app/components/code-editor-dialog/code-editor-dialog.component';
 // import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
@@ -31,7 +33,8 @@ export class SimulationPageComponent implements OnInit {
     private router: Router,
     private missonService: MissionService,
     private missionSessionService: MissionSessionService,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -67,8 +70,13 @@ export class SimulationPageComponent implements OnInit {
     });
   }
 
+  /** ➤ Ouvre le dialog d’édition de code */
   navigateToEditPage(): void {
-    this.router.navigate(['/code-editor'])
+    this.dialog.open(CodeEditorDialogComponent, {
+      width: '85vw',
+      height: '85vh',
+      panelClass: 'code-editor-dialog'
+    });
   }
 
   private finalizeMission(): void {

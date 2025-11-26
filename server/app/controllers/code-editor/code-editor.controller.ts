@@ -1,18 +1,18 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
 
-@Controller('api/code-editor')
+@Controller('/code-editor')
 export class CodeEditorController {
   constructor(private readonly codeEditorService: CodeEditorService) {}
 
   @Get('get')
-  getCode() {
-    return this.codeEditorService.getCode();
+  async getCode() {
+    return await this.codeEditorService.getCode();
   }
 
   @Post('save')
-  saveCode(@Body('code') code: string) {
-    return this.codeEditorService.saveCode(code);
+  async saveCode(@Body('code') code: string) {
+    return await this.codeEditorService.saveCode(code);
   }
 }
 

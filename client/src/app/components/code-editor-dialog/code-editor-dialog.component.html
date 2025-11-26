@@ -1,0 +1,26 @@
+<h2>✏️ Modifier la mission</h2>
+@if (loading){
+  <div>Chargement du code...</div>
+}
+
+<div class="editor-container">
+  <app-code-editor
+    [content]="code"
+    (contentChange)="code = $event"
+    language="python">
+  </app-code-editor>
+</div>
+
+<div class="buttons">
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
+    💾 Sauvegarder
+  </button>
+  <button mat-raised-button color="warn" (click)="close()">
+    ✖ Fermer
+  </button>
+</div>
+@if (successMessage) {
+  <div class="msg success">{{ successMessage }}</div>
+} @else if (errorMessage) {
+  <div class="msg error">{{ errorMessage }}</div>
+}

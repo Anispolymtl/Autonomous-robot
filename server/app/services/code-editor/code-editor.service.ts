@@ -23,12 +23,12 @@ export class CodeEditorService {
 
         this.getCodeClient = this.node.createClient(
         this.srv.GetScript,
-        'get_robot_script'
+        '/get_robot_script'
         );
 
         this.saveCodeClient = this.node.createClient(
         this.srv.SaveScript,
-        'save_robot_script'
+        '/save_robot_script'
         );
 
         this.logger.log('Clients ROS2 du Code Editor initialisés');
@@ -38,7 +38,9 @@ export class CodeEditorService {
     //                     GET SCRIPT
     // ============================================================
     async getCode(): Promise<{ success: boolean; message: string; code?: string }> {
-        if (!this.getCodeClient || !this.getCodeClient.isServiceServerAvailable()) {
+        console.log('Get code')
+        await this.getCodeClient.waitForService(2000).catch(() => {});
+        if (!this.getCodeClient.isServiceServerAvailable()) {
             this.logger.error('Client ROS2 GetScript non prêt');
             return { success: false, message: 'Service ROS2 non disponible' };
         }
@@ -47,6 +49,7 @@ export class CodeEditorService {
             const request = new this.srv.GetScript.Request();
 
             this.getCodeClient.sendRequest(request, (response) => {
+                console.log(response.code)
                 if (!response) {
                     resolve({
                         success: false,

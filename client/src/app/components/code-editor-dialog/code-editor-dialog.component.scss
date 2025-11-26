@@ -1,0 +1,18 @@
+.editor-container {
+  height: 500px;
+  margin-bottom: 20px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.msg.success {
+  color: #28ff72;
+}
+
+.msg.error {
+  color: #ff5757;
+}

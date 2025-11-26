@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CodeEditorPageComponent } from './code-editor-page.component';
+import { CodeEditorDialogComponent } from './code-editor-dialog.component';
 
 describe('CodeEditorPageComponent', () => {
-  let component: CodeEditorPageComponent;
-  let fixture: ComponentFixture<CodeEditorPageComponent>;
+  let component: CodeEditorDialogComponent;
+  let fixture: ComponentFixture<CodeEditorDialogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CodeEditorPageComponent]
+      imports: [CodeEditorDialogComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CodeEditorPageComponent);
+    fixture = TestBed.createComponent(CodeEditorDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

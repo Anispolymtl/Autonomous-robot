@@ -1,0 +1,60 @@
+import { Component, ViewChild } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
+import { CodeEditorComponent } from '@app/components/code-editor/code-editor.component';
+import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
+
+@Component({
+  selector: 'app-code-editor-dialog',
+  templateUrl: './code-editor-dialog.component.html',
+  styleUrls: ['./code-editor-dialog.component.scss'],
+  standalone: true,
+  imports: [CodeEditorComponent]
+})
+export class CodeEditorDialogComponent {
+  @ViewChild(CodeEditorComponent) editor!: CodeEditorComponent;
+  code: string = '';
+  loading = false;
+  saving = false;
+  errorMessage = '';
+  successMessage = '';
+
+  constructor(
+    private dialogRef: MatDialogRef<CodeEditorDialogComponent>,
+    private codeEditorService: CodeEditorService
+  ) {}
+
+  ngOnInit() {
+    this.loadCode();
+  }
+
+  loadCode() {
+    this.loading = true;
+    this.codeEditorService.getCode().subscribe({
+      next: (res) => {
+        this.code = res.code;
+        this.editor?.setValue(this.code);
+      },
+      error: () => {
+        this.errorMessage = 'Erreur de chargement du code.';
+      },
+      complete: () => (this.loading = false)
+    });
+  }
+
+  save() {
+    this.saving = true;
+    this.codeEditorService.saveCode(this.code).subscribe({
+      next: () => {
+        this.successMessage = 'Code sauvegardé !';
+      },
+      error: () => {
+        this.errorMessage = 'Erreur de sauvegarde.';
+      },
+      complete: () => (this.saving = false)
+    });
+  }
+
+  close() {
+    this.dialogRef.close();
+  }
+}

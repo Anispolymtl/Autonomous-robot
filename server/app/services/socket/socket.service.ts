@@ -56,7 +56,6 @@ export class SocketService{
     }
 
     sendPoseToAllSockets(robot: RobotId, poseData: any) {
-        console.log(`Sending pose data for ${robot} to all sockets`);
         this.payloads[robot].poseData = poseData;
         this.sockets.forEach((socket) => {
             socket.emit('poseUpdate', { robot, poseData });
