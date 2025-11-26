@@ -10,6 +10,8 @@ ROS_DISTRO="${ROS_DISTRO:-humble}"
 WS="${WS:-/project_ws}"
 export RCLNODEJS_ROS_DISTRO="${ROS_DISTRO}"
 export RCLNODEJS_ROS_VERSION=2
+export RCUTILS_LOGGING_SEVERITY_THRESHOLD="${RCUTILS_LOGGING_SEVERITY_THRESHOLD:-ERROR}"
+export RCL_LOG_LEVEL="${RCL_LOG_LEVEL:-error}"
 export ROS_PACKAGE_PATH="${WS}/install:${ROS_PACKAGE_PATH:-}"
 # Avoid unbound variables when sourcing ROS setup files with `set -u`
 : "${AMENT_TRACE_SETUP_FILES:=}"
@@ -39,7 +41,7 @@ else
 fi
 
 cd "${WS}"
-ros2 launch simulation_bringup diff_drive.launch.py &
+ros2 launch simulation_bringup diff_drive.launch.py >> /tmp/ros_launch.log 2>&1 &
 SIM_PID=$!
 
 cd /app
@@ -80,7 +82,6 @@ if [ -z "${SERVER_MAIN}" ]; then
 fi
 
 # Regenerate rclnodejs interfaces against the current ROS workspace (covers limo_interfaces)
-echo "Rebuilding rclnodejs interfaces..." >&2
 source "/opt/ros/${ROS_DISTRO}/setup.bash"
 source "${WS}/install/setup.bash"
 npm rebuild rclnodejs --build-from-source
