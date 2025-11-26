@@ -323,26 +323,28 @@ def generate_launch_description():
         )
     ])
 
-    explore_limo1 = GroupAction([
+    explore_limo1 = GroupAction(actions=[
+        PushRosNamespace('limo1'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(explore_pkg, 'launch', 'explore.launch.py')
             ),
             launch_arguments={
                 "namespace": "limo1",
-                "use_sim_time": "true"
+                "use_sim_time": 'true'
             }.items()
         )
     ])
 
-    explore_limo2 = GroupAction([
+    explore_limo2 = GroupAction(actions=[
+        PushRosNamespace('limo2'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(explore_pkg, 'launch', 'explore.launch.py')
             ),
             launch_arguments={
                 "namespace": "limo2",
-                "use_sim_time": "true"
+                "use_sim_time": 'true'
             }.items()
         )
     ])

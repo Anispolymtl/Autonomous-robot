@@ -9,9 +9,14 @@ from launch_ros.parameter_descriptions import ParameterFile
 
 def launch_setup(context, *args, **kwargs):
     namespace = LaunchConfiguration('namespace').perform(context)
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context)
     pkg_explore = get_package_share_directory('explore_lite')
+    use_sim = str(use_sim_time).lower() == "true"
+    if use_sim:
+        config_path = os.path.join(pkg_explore, 'config', f'{namespace}_params_sim.yaml')
+    else:
+        config_path = os.path.join(pkg_explore, 'config', f'{namespace}_params.yaml')
 
-    config_path = os.path.join(pkg_explore, 'config', f'{namespace}_params.yaml')
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Le fichier de configuration '{config_path}' est introuvable !")
     
@@ -21,7 +26,7 @@ def launch_setup(context, *args, **kwargs):
             executable='explore',
             name='explore_node',
             parameters=[ParameterFile(config_path, allow_substs=True),
-                        {'use_sim_time': False}],
+                        {'use_sim_time': use_sim_time}],
             output='screen',
             remappings=[('tf', '/tf'), ('tf_static', '/tf_static')],
         )
@@ -34,8 +39,14 @@ def generate_launch_description():
         default_value='',
         description="Namespace obligatoire (limo1 ou limo2)"
     )
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description="Est ce que le temps de la simulation est utilise"
+    )
 
     return LaunchDescription([
         declare_namespace,
+        declare_use_sim_time,
         OpaqueFunction(function=launch_setup)
     ])
