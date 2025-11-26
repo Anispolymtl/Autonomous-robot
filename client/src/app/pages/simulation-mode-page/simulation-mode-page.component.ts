@@ -8,6 +8,7 @@ import { RobotStatusComponent } from '@app/components/robot-status/robot-status.
 // import { MissionSessionService } from '@app/services/mission-session.service';
 import { SocketService } from '@app/services/socket/socket.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
+import { MergedMapComponent } from '@app/components/merged-map/merged-map.component';
 // import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 
 type RobotId = 'limo1' | 'limo2';
@@ -18,7 +19,8 @@ type RobotId = 'limo1' | 'limo2';
   imports: [
       MapComponent,
       CommonModule,
-      RobotStatusComponent
+      RobotStatusComponent,
+      MergedMapComponent
   ],
   templateUrl: './simulation-mode-page.component.html',
   styleUrls: ['./simulation-mode-page.component.scss'],
