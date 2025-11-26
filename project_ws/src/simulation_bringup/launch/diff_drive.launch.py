@@ -23,62 +23,18 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.substitutions import Command
-# import os, tempfile, random, textwrap, xml.etree.ElementTree as ET
 
 from launch_ros.actions import Node
 
-# # -------------------- RANDOM BOXES GENERATOR --------------------
-# def _random_boxes_sdf(num=5, limit=5.5, size=0.6, min_dist=1.0, robot_start=(0,0)):
-#     boxes = []
-#     parts = []
-
-#     for i in range(num):
-#         while True:
-#             x = random.uniform(-limit, limit)
-#             y = random.uniform(-limit, limit)
-
-#             # Distance from robot start
-#             if ((x - robot_start[0])**2 + (y - robot_start[1])**2)**0.5 < min_dist:
-#                 continue
-
-#             # Distance from existing boxes
-#             ok = True
-#             for (bx, by) in boxes:
-#                 if ((x - bx)**2 + (y - by)**2)**0.5 < min_dist:
-#                     ok = False
-#                     break
-
-#             if ok:
-#                 boxes.append((x, y))
-#                 break
-
-#         parts.append(textwrap.dedent(f"""
-#         <model name="rand_box_{i}">
-#           <static>true</static>
-#           <pose>{x:.3f} {y:.3f} 0 0 0 0</pose>
-#           <link name="link">
-#             <collision name="collision">
-#               <geometry><box><size>{size} {size} {size}</size></box></geometry>
-#             </collision>
-#             <visual name="visual">
-#               <geometry><box><size>{size} {size} {size}</size></box></geometry>
-#               <material><ambient>1 0 0 1</ambient></material>
-#             </visual>
-#           </link>
-#         </model>
-#         """).strip())
-
-#     return "\n".join(parts) + "\n"
-
-
 def generate_launch_description():
-    # Configure ROS nodes for launch
 
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('simulation_bringup')
     pkg_project_gazebo = get_package_share_directory('simulation_gazebo')
     pkg_project_description = get_package_share_directory('simulation_description')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    explore_pkg = get_package_share_directory('explore_lite')
+
 
     limo1_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
                                    'config', 'limo1_slam_sim_config.yaml')
@@ -367,6 +323,30 @@ def generate_launch_description():
         )
     ])
 
+    explore_limo1 = GroupAction([
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(explore_pkg, 'launch', 'explore.launch.py')
+            ),
+            launch_arguments={
+                "namespace": "limo1",
+                "use_sim_time": "true"
+            }.items()
+        )
+    ])
+
+    explore_limo2 = GroupAction([
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(explore_pkg, 'launch', 'explore.launch.py')
+            ),
+            launch_arguments={
+                "namespace": "limo2",
+                "use_sim_time": "true"
+            }.items()
+        )
+    ])
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -399,8 +379,10 @@ def generate_launch_description():
         nav2_2,
 
         # Exploration
-        explorer_1,
-        explorer_2,
+        # explorer_1,
+        # explorer_2,
+        explore_limo1,
+        explore_limo2,
 
         # battery_limo1,
         base_limo1,
