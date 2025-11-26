@@ -17,6 +17,7 @@ constructor (
 initialiseMappingService() {
     this.setupMappingListner('limo1');
     this.setupMappingListner('limo2');
+    this.setupMergedMapListner();
     this.setupPoseListners('limo1');
     this.setupPoseListners('limo2');
     console.log('mapping started')
@@ -45,5 +46,20 @@ private setupMappingListner(robotId: RobotId) {
       }
     );
     this.poseNode.spin();
+  }
+
+  private setupMergedMapListner() {
+    console.log('setup merged map listner')
+    this.mappingNode = new rclnodejs.Node('merged_mapping_listner_backend');
+    this.mappingNode.createSubscription(
+      'nav_msgs/msg/OccupancyGrid',
+      `/merged_map`,
+      (msg) => {
+        console.log(msg);
+        this.socketService.sendMergedMapToAllSockets(msg);
+      }
+    );
+
+    this.mappingNode.spin();
   }
 }

@@ -1,3 +1,4 @@
+import { OccupancyGrid } from "@common/interfaces/occupancy-grid";
 import { Injectable } from "@nestjs/common";
 import { Socket } from 'socket.io';
 
@@ -11,6 +12,7 @@ export class SocketService{
         limo1: {poseData: null, mapData: null, points: []},
         limo2: {poseData: null, mapData: null, points: []}
     };
+    private mergedMap: any;
     private broadcastInterval?: NodeJS.Timeout;
 
 
@@ -56,15 +58,27 @@ export class SocketService{
     }
 
     sendPoseToAllSockets(robot: RobotId, poseData: any) {
-        console.log(`Sending pose data for ${robot} to all sockets`);
         this.payloads[robot].poseData = poseData;
         this.sockets.forEach((socket) => {
             socket.emit('poseUpdate', { robot, poseData });
         });
     }
 
+    sendMergedMapToAllSockets(mapData?: any) {
+        if (mapData) {
+            this.mergedMap = mapData;
+            console.log(mapData);
+            this.sockets.forEach((socket) => {
+                socket.emit('mergedMapUpdate', { map: mapData });
+            });
+        } else if (this.mergedMap) {
+            this.sockets.forEach((socket) => {
+                socket.emit('mergedMapUpdate', { map: this.mergedMap });
+            });
+        }
+    }
+
     sendPointsToAllSockets(robot: RobotId, points: Point2D[]) {
-        console.log(`Sending new points for robot ${robot} to all sockets`);
         this.payloads[robot].points = points;
         console.log(this.payloads[robot].points);
         this.sockets.forEach(socket => {
@@ -79,5 +93,9 @@ export class SocketService{
             limo1: limo1Map,
             limo2: limo2Map
         };
+    }
+
+    getMergedMap(): any {
+        return this.mergedMap;
     }
 }
