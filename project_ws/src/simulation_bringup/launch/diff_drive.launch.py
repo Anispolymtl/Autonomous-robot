@@ -41,6 +41,13 @@ def generate_launch_description():
     limo2_slam_sim_config = os.path.join(get_package_share_directory("simulation_bringup"),
                                    'config', 'limo2_slam_sim_config.yaml')
 
+    explore_limo1_params = os.path.join(
+        explore_pkg, 'config', 'limo1_params_sim.yaml'
+    )
+    explore_limo2_params = os.path.join(
+        explore_pkg, 'config', 'limo2_params_sim.yaml'
+    )
+
     # Load the SDF file from "description" package
     sdf_file_limo1 = os.path.join(pkg_project_description, 'models', 'limo_diff_drive1', 'model.sdf')
     with open(sdf_file_limo1, 'r') as infp:
@@ -323,31 +330,29 @@ def generate_launch_description():
         )
     ])
 
-    explore_limo1 = GroupAction(actions=[
-        PushRosNamespace('limo1'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(explore_pkg, 'launch', 'explore.launch.py')
-            ),
-            launch_arguments={
-                "namespace": "limo1",
-                "use_sim_time": 'true'
-            }.items()
-        )
-    ])
+    explore_limo1 = Node(
+        package='explore_lite',
+        executable='explore',
+        name='explore_node',
+        namespace='limo1',
+        parameters=[
+            explore_limo1_params,       # <-- ICI on charge le YAML
+            {'use_sim_time': True}
+        ],
+        output='screen'
+    )
 
-    explore_limo2 = GroupAction(actions=[
-        PushRosNamespace('limo2'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(explore_pkg, 'launch', 'explore.launch.py')
-            ),
-            launch_arguments={
-                "namespace": "limo2",
-                "use_sim_time": 'true'
-            }.items()
-        )
-    ])
+    explore_limo2 = Node(
+        package='explore_lite',
+        executable='explore',
+        name='explore_node',
+        namespace='limo2',
+        parameters=[
+            explore_limo2_params,       # <-- ICI aussi
+            {'use_sim_time': True}
+        ],
+        output='screen'
+    )
 
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
