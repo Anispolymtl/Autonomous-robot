@@ -43,16 +43,24 @@ export class CodeEditorDialogComponent {
 
   save() {
     this.saving = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
     this.codeEditorService.saveCode(this.code).subscribe({
-      next: () => {
-        this.successMessage = 'Code sauvegardé !';
+      next: (res) => {
+        if (res.success) {
+          this.successMessage = res.message || 'Code sauvegardé !';
+        } else {
+          this.errorMessage = res.message || 'Erreur lors de la sauvegarde.';
+        }
       },
-      error: () => {
-        this.errorMessage = 'Erreur de sauvegarde.';
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Erreur lors de la sauvegarde.';
       },
       complete: () => (this.saving = false)
     });
   }
+
 
   close() {
     this.dialogRef.close();

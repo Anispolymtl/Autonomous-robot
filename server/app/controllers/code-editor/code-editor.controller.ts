@@ -12,6 +12,7 @@ export class CodeEditorController {
 
   @Post('save')
   async saveCode(@Body('code') code: string) {
+    console.log('Save Controller')
     return await this.codeEditorService.saveCode(code);
   }
 }

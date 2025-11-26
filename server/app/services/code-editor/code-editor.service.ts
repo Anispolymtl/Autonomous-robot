@@ -70,7 +70,8 @@ export class CodeEditorService {
     //                     SAVE SCRIPT
     // ============================================================
     async saveCode(newCode: string): Promise<{ success: boolean; message: string }> {
-        if (!this.saveCodeClient || !this.saveCodeClient.isServiceServerAvailable()) {
+        await this.saveCodeClient.waitForService(3000).catch(() => {});
+        if (!this.saveCodeClient.isServiceServerAvailable()) {
             this.logger.error('Client ROS2 SaveScript non prêt');
             return { success: false, message: 'Service ROS2 non disponible' };
         }
