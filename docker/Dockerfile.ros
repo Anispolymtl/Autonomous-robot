@@ -4,20 +4,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget ca-certificates \
     build-essential cmake \
     python3-pip python3-colcon-common-extensions python3-vcstool \
+    ros-humble-cartographer ros-humble-cartographer-ros \
+    ros-humble-navigation2 ros-humble-nav2-bringup \
     ros-humble-ros-gz-bridge ros-humble-ros-gz-sim ros-humble-ros-gz-image \
     ros-humble-xacro ros-humble-robot-state-publisher ros-humble-joint-state-publisher-gui \
     && rm -rf /var/lib/apt/lists/*
 
 ENV ROS_DISTRO=humble
-ENV WS=/ws
-WORKDIR $WS
+WORKDIR /project_ws
 
 COPY ./project_ws ./   
 
 RUN rosdep update && \
-    rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y
+    rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y --skip-keys="ros_gz"
 
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build --merge-install --symlink-install
 
-CMD ["/bin/bash", "-lc", "source $WS/install/setup.bash && bash"]
+CMD ["/bin/bash", "-lc", "source /project_ws/install/setup.bash && bash"]

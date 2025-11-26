@@ -1,0 +1,34 @@
+FROM node:20-bullseye
+
+ARG APP_ENV=development
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+# Découple la configuration Angular pour pouvoir forcer un build dev si les budgets prod échouent
+ARG CLIENT_BUILD_CONFIGURATION=${APP_ENV}
+
+ENV APP_HOME=/usr/src/app
+WORKDIR ${APP_HOME}
+
+COPY ./client/package*.json ./
+RUN npm ci
+
+COPY ./common /usr/src/common
+COPY ./client ./
+
+RUN npm run build -- --configuration ${CLIENT_BUILD_CONFIGURATION:-development}
+RUN npm install -g http-server
+
+RUN chown -R node:node ${APP_HOME} /usr/src/common /home/node
+
+ENV APP_ENV=${APP_ENV}
+ENV NODE_ENV=${APP_ENV}
+ENV CLIENT_PORT=4200
+ENV CLIENT_BUILD_CONFIGURATION=${CLIENT_BUILD_CONFIGURATION}
+
+COPY docker/start-client.sh /usr/local/bin/start-client.sh
+RUN chmod +x /usr/local/bin/start-client.sh
+
+EXPOSE 4200
+USER node
+
+CMD ["/usr/local/bin/start-client.sh"]
