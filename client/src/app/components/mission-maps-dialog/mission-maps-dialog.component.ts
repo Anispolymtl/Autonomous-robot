@@ -49,8 +49,6 @@ export class MissionMapsDialogComponent implements AfterViewInit {
         const grid = this.mapService.generateOccupancyGrid(rawMap);
         if (!grid.data?.length || !grid.width || !grid.height) return undefined;
         this.mapService.generateBareMap(canvas, grid, ctx);
-        console.log(grid);
-        console.log(grid.data);
         return grid;
     }
 }
