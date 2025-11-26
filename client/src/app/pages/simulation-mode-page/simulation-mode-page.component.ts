@@ -65,6 +65,10 @@ export class SimulationPageComponent implements OnInit {
     });
   }
 
+  navigateToEditPage(): void {
+    this.router.navigate(['/code-editor'])
+  }
+
   private finalizeMission(): void {
     this.missionSessionService.completeMission()
       .then((mission) => {
