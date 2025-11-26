@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
-import { OccupancyGrid } from '@app/interfaces/occupancy-grid';
+import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
 import { PoseData } from '@app/interfaces/pose-data';
 import { MapEvent } from '@common/enums/sockets-events';
@@ -18,7 +18,6 @@ type RobotId = 'limo1' | 'limo2';
 export interface MapObject {
   frame: string,
   map: OccupancyGrid | undefined;
-  originCanvasPosition: Point2D | undefined;
   selectedCanvasCoord: Point2D | undefined;
   pointCanvasCoords: Point2D[];
   pointList: MapCoordinate[];
@@ -103,16 +102,7 @@ ngOnInit(): void {
   private configureMapSocketFeatures(): void {
     this.socketService.on(`/${this.robotId}/${MapEvent.RecoverMap}`, (recoveredMap: any) => {
       console.log(MapEvent.RecoverMap)
-      this.mapObj.map = {
-        data: this.mapService.normaliseMapData(recoveredMap?.data),
-        height: recoveredMap?.info?.height ?? 0,
-        width: recoveredMap?.info?.width ?? 0,
-        resolution: recoveredMap?.info?.resolution ?? 1,
-        origin: recoveredMap?.info?.origin ?? {
-          position: { x: 0, y: 0, z: 0 },
-          orientation: { x: 0, y: 0, z: 0, w: 1 },
-        },
-      };
+      this.mapObj.map = this.mapService.generateOccupancyGrid(recoveredMap);
       this.mapService.updateOrientationCache(this.mapObj.map, this.mapObj.orientation);
       if (!this.mapObj.robotPoses[this.robotId]) {
         this.mapObj.robotPoses[this.robotId] = {
@@ -147,7 +137,6 @@ ngOnInit(): void {
     return {
       frame: this.robotId,
       map: undefined,
-      originCanvasPosition: undefined,
       selectedCanvasCoord: undefined,
       pointCanvasCoords: [],
       pointList: [],

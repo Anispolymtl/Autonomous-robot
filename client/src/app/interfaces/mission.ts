@@ -12,6 +12,7 @@ export interface Mission {
     missionName: string;
     logs?: MissionLogEntry[];
     status?: string;
+    maps?: Record<'limo1' | 'limo2', any>
 }
 
 export interface CreateMissionDto {

@@ -6,6 +6,8 @@
 
             <button class="btn" (click)="startMission()">Lancer la mission</button>
             <button class="btn" (click)="stopMission()">Arrêter la mission</button>
+            <button class="btn" (click)="returnToBase()">retour a la base</button>
+            <button class="btn" (click)="navigateToEditPage()">Modifier la mission</button>
             @if (message) {
             <div class="message-box">{{ message }}</div> }
         </section>

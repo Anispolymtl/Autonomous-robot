@@ -47,11 +47,25 @@ def launch_with_namespace(context, *args, **kwargs):
             'use_sim_time': 'false'
         }.items(),
     )
+    robot_position_monitor = Node(
+            package="robot_exploration",
+            executable="robot_position_monitor",
+            name="robot_position_monitor",
+            output="screen",
+            parameters=[{"rate": 10.0}]
+    )
 
     id_srv = Node(
         package='robot_exploration',
         executable='identify_service',
         name='identify_robot_service',
+        output='screen'
+    )
+
+    base_srv = Node(
+        package='robot_exploration',
+        executable='base_manager',
+        name='base_manager',
         output='screen'
     )
 
@@ -71,7 +85,9 @@ def launch_with_namespace(context, *args, **kwargs):
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
         limo_launch,
+        robot_position_monitor,
         id_srv,
+        base_srv,
         mission_action,
         cartographer_launch,
         nav2_launch,

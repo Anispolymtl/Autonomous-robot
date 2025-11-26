@@ -1,0 +1,30 @@
+<div class="maps-dialog">
+    <header class="dialog-header">
+        <div>
+            <p class="eyebrow">Mission</p>
+            <h2>{{ data.mission.missionName }}</h2>
+            <p class="meta">
+                Robots {{ data.mission.robots.length ? (data.mission.robots.join(' & ')) : 'N/A' }} • Mode {{ data.mission.mode }} •
+                {{ data.mission.createdAt ? (data.mission.createdAt | date : 'medium') : 'Date inconnue' }}
+            </p>
+        </div>
+        <button type="button" class="close-btn" (click)="close()">✕</button>
+    </header>
+
+    <section class="mission-summary">
+        <div class="summary-card placeholder"></div>
+        <div class="summary-card placeholder"></div>
+        <div class="summary-card placeholder"></div>
+    </section>
+
+    <section class="maps-section">
+        <div class="maps-stack">
+            <div class="map-container">
+                <canvas #mapCanvasPrimary id="mapsDialogPrimaryCanvas"></canvas>
+            </div>
+            <div class="map-container">
+                <canvas #mapCanvasSecondary id="mapsDialogSecondaryCanvas"></canvas>
+            </div>
+        </div>
+    </section>
+</div>

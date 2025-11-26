@@ -1,5 +1,22 @@
+import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
+
+
+type RobotId = 'limo1' | 'limo2';
+
+class MapPayloadDto {
+  @ApiProperty()
+  header: any;
+
+  @ApiProperty()
+  info: any;
+
+  @ApiProperty({ type: [Number] })
+  @IsArray()
+  data: number[];
+};
 
 export class CreateMissionDto {
     @ApiProperty()
@@ -14,7 +31,7 @@ export class CreateMissionDto {
     @IsString({ each: true })
     robots: string[];
 
-    @ApiProperty({ enum: ['SIMULATION', 'REAL'] })
+    @ApiProperty({ enum: ['SIMULATION', 'RlogsEAL'] })
     @IsEnum(['SIMULATION', 'REAL'])
     mode: string;
 
@@ -34,5 +51,9 @@ export class CreateMissionDto {
 
     @ApiProperty({ required: false, type: [Object] })
     @IsOptional()
-    logs?: Record<string, unknown>[];
+    logs?: MissionLogEntry[];
+
+    @ApiProperty({ required: false})
+    @IsOptional()
+    maps: Record<RobotId, MapPayloadDto>;
 }
