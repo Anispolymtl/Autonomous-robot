@@ -2,6 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from limo_interfaces.srv import GetScript, SaveScript
+from std_srvs.srv import Trigger
 import pathlib
 import subprocess
 import threading
@@ -16,8 +17,6 @@ class CodeEditorNode(Node):
     def __init__(self):
         super().__init__("code_editor")
 
-        self.get_logger().info(f"[CodeEditor] Editing file: {SCRIPT_PATH}")
-
         self.get_service = self.create_service(
             GetScript,
             "get_robot_script",
@@ -28,6 +27,12 @@ class CodeEditorNode(Node):
             SaveScript,
             "save_robot_script",
             self.save_script_callback
+        )
+
+        self.restore_service = self.create_service(
+            Trigger,
+            "restore_default_mission",
+            self.restore_default_callback
         )
 
 
@@ -103,6 +108,30 @@ class CodeEditorNode(Node):
             self.get_logger().info("🔄 Restarting MissionServers...")
             self.restart_mission_servers()
 
+        return response
+    
+    def restore_default_callback(self, request, response):
+        self.get_logger().info("🔄 Restauration du mode mission par défaut demandée.")
+
+        # Kill les mission_server
+        subprocess.run(["pkill", "-f", "mission_server"], check=False)
+        time.sleep(0.4)
+
+        self.get_logger().info("🧱 Redémarrage en mode PAR DÉFAUT...")
+
+        def launch(namespace):
+            subprocess.Popen([
+                "ros2", "run", "robot_exploration", "mission_server",
+                "--ros-args",
+                "-p", "use_custom_logic:=false",
+                "-r", f"__ns:=/{namespace}"
+            ])
+
+        threading.Thread(target=launch, args=("limo1",), daemon=True).start()
+        threading.Thread(target=launch, args=("limo2",), daemon=True).start()
+
+        response.success = True
+        response.message = "Mission par défaut restaurée et mission_server redémarrés."
         return response
 
 

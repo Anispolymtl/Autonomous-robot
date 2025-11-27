@@ -5,6 +5,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CodeEditorComponent } from '@app/components/code-editor/code-editor.component';
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
+import { MissionStateService } from '@app/services/state/state.service';
 
 @Component({
   selector: 'app-code-editor-dialog',
@@ -25,17 +26,19 @@ export class CodeEditorDialogComponent implements AfterViewInit {
   code: string = '';
   loading = false;
   saving = false;
-
   editorReady = false;
+  customMissionActive = false;
 
   constructor(
     private dialogRef: MatDialogRef<CodeEditorDialogComponent>,
     private codeEditorService: CodeEditorService,
+    private missionStateService: MissionStateService, 
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
     this.loadCode();
+    this.subscribeToMissionState();
   }
 
   ngAfterViewInit() {
@@ -44,6 +47,20 @@ export class CodeEditorDialogComponent implements AfterViewInit {
     if (this.code) {
       this.editor.setValue(this.code);
     }
+  }
+
+  private subscribeToMissionState() {
+    this.missionStateService.getLimo1State$().subscribe(state => {
+      if (state === 'Mission personnalisée') {
+        this.customMissionActive = true;
+      }
+    });
+
+    this.missionStateService.getLimo2State$().subscribe(state => {
+      if (state === 'Mission personnalisée') {
+        this.customMissionActive = true;
+      }
+    });
   }
 
   // --- SNACKBAR HELPERS ---
@@ -89,10 +106,11 @@ export class CodeEditorDialogComponent implements AfterViewInit {
     this.codeEditorService.saveCode(this.code).subscribe({
       next: (res) => {
         if (res.success) {
+          this.customMissionActive = true;
           this.showSuccess(res.message || 'Code sauvegardé !');
 
           // ⏳ Fermeture automatique après feedback
-          setTimeout(() => this.dialogRef.close(true), 300);
+          setTimeout(() => this.dialogRef.close(true), 3000);
         } else {
           this.showError(res.message || 'Erreur lors de la sauvegarde.');
         }
@@ -117,6 +135,23 @@ export class CodeEditorDialogComponent implements AfterViewInit {
       }
     });
   }
+
+  restoreDefault() {
+  this.codeEditorService.restoreDefaultMission().subscribe({
+    next: (res) => {
+      if (res.success) {
+        this.showSuccess(res.message);
+        this.customMissionActive = false;
+
+        setTimeout(() => this.dialogRef.close(true), 300);
+      } else {
+        this.showError(res.message);
+      }
+    },
+    error: () => this.showError('Erreur lors du retour mission par défaut.')
+  });
+}
+
 
   close() {
     this.dialogRef.close();

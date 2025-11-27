@@ -12,8 +12,13 @@ export class CodeEditorController {
 
   @Post('save')
   async saveCode(@Body('code') code: string) {
-    console.log('Save Controller')
     return await this.codeEditorService.saveCode(code);
+  }
+
+  @Post('restore-default')
+  async restoreDefaultMission() {
+    console.log('Restore Default Mission')
+    return await this.codeEditorService.restoreMission();
   }
 }
 

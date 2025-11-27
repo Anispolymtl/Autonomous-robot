@@ -9,9 +9,12 @@ export class CodeEditorService {
     private node: rclnodejs.Node;
 
     private readonly srv = (rclnodejs.require('limo_interfaces') as any).srv;
+    private readonly Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
 
     private getCodeClient: rclnodejs.Client<any>;
     private saveCodeClient: rclnodejs.Client<any>;
+    private restoreMissionClient: rclnodejs.Client<any>;
+    private statusClient: rclnodejs.Client<any>;
 
     // ============================================================
     //              INITIALISATION DES CLIENTS ROS2
@@ -22,14 +25,25 @@ export class CodeEditorService {
         this.node.spin();
 
         this.getCodeClient = this.node.createClient(
-        this.srv.GetScript,
-        '/get_robot_script'
+            this.srv.GetScript,
+            '/get_robot_script'
         );
 
         this.saveCodeClient = this.node.createClient(
-        this.srv.SaveScript,
-        '/save_robot_script'
+            this.srv.SaveScript,
+            '/save_robot_script'
         );
+
+        this.restoreMissionClient = this.node.createClient(
+            this.Trigger,
+            '/restore_default_mission'
+        );
+
+        this.statusClient = this.node.createClient(
+            this.Trigger,
+            '/get_custom_status'
+        );
+
 
         this.logger.log('Clients ROS2 du Code Editor initialisés');
     }
@@ -38,7 +52,6 @@ export class CodeEditorService {
     //                     GET SCRIPT
     // ============================================================
     async getCode(): Promise<{ success: boolean; message: string; code?: string }> {
-        console.log('Get code')
         await this.getCodeClient.waitForService(2000).catch(() => {});
         if (!this.getCodeClient.isServiceServerAvailable()) {
             this.logger.error('Client ROS2 GetScript non prêt');
@@ -80,6 +93,31 @@ export class CodeEditorService {
             request.new_code = newCode;
 
             this.saveCodeClient.sendRequest(request, (response) => {
+                if (!response) {
+                    resolve({
+                        success: false,
+                        message: 'Aucune réponse du service ROS2',
+                    });
+                } else {
+                    resolve({
+                        success: response.success,
+                        message: response.message,
+                    });
+                }
+            });
+        });
+    }
+
+    async restoreMission(): Promise<{ success: boolean; message: string }> {
+        await this.restoreMissionClient.waitForService(3000).catch(() => {});
+        if (!this.restoreMissionClient.isServiceServerAvailable()) {
+            this.logger.error('Client ROS2 RestoreMission non prêt');
+            return { success: false, message: 'Service ROS2 non disponible' };
+        }
+
+        return new Promise((resolve) => {
+            const request = new this.Trigger.Request();
+            this.restoreMissionClient.sendRequest(request, (response) => {
                 if (!response) {
                     resolve({
                         success: false,

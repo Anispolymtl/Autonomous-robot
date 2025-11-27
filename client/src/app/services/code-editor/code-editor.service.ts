@@ -9,7 +9,7 @@ export interface GetCodeResponse {
   message: string;
 }
 
-export interface SaveCodeResponse {
+export interface RosServiceResponse {
   success: boolean;
   message: string;
 }
@@ -19,7 +19,6 @@ export interface SaveCodeResponse {
 })
 export class CodeEditorService {
 
-  // EXACTEMENT comme IdentifyService
   private apiUrl = `${environment.serverUrl}/api/code-editor`;
 
   constructor(private http: HttpClient) { }
@@ -34,7 +33,14 @@ export class CodeEditorService {
   /**
    * Sauvegarder un nouveau code dans mission_logic.py
    */
-  saveCode(code: string): Observable<SaveCodeResponse> {
-    return this.http.post<SaveCodeResponse>(`${this.apiUrl}/save`, { code });
+  saveCode(code: string): Observable<RosServiceResponse> {
+    return this.http.post<RosServiceResponse>(`${this.apiUrl}/save`, { code });
+  }
+
+  /**
+   * Restorer la mission par defaut
+   */
+  restoreDefaultMission(): Observable<RosServiceResponse> {
+    return this.http.post<RosServiceResponse>(`${this.apiUrl}/restore-default`, {});
   }
 }

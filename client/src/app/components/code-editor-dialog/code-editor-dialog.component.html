@@ -26,12 +26,17 @@
 
   <!-- BOUTONS FLOTTANTS SUR L'ÉDITEUR -->
   <div class="floating-buttons">
+    @if (customMissionActive) {
+      <button mat-raised-button color="warn" (click)="restoreDefault()">
+        <mat-icon>undo</mat-icon> Mission par défaut
+      </button>
+    }
     <button mat-stroked-button color="accent" (click)="reset()">
       <mat-icon>refresh</mat-icon> Réinitialiser
     </button>
 
     <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
-      <mat-icon>save</mat-icon> Sauvegarder
+      <mat-icon>save</mat-icon> Commencer la Mission
     </button>
   </div>
 

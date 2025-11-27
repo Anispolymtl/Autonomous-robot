@@ -46,13 +46,14 @@ class MissionServer(Node):
         self.use_custom_logic = self.get_parameter("use_custom_logic") \
                                         .get_parameter_value().bool_value
 
+        # État initial
         if self.use_custom_logic:
             self.get_logger().info("🧩 Logique custom ACTIVÉE")
+            self.state = MissionState.CUSTOM
         else:
             self.get_logger().info("🧱 Logique par défaut utilisée")
+            self.state = MissionState.WAIT
 
-        # État initial
-        self.state = MissionState.WAIT
         self.get_logger().info(f"Mission Server initialisé (état={self.state.value})")
 
         # Action Server
@@ -164,11 +165,17 @@ class MissionServer(Node):
 
     # --------------------------------------------------------
     def start_exploration(self):
+        if self.use_custom_logic:
+            self.state = MissionState.CUSTOM
+            return
         self.resume_pub.publish(Bool(data=True))
         self.state = MissionState.EXPLORATION
         self.get_logger().info("🟢 Exploration activée (/explore/resume=True)")
 
     def stop_exploration(self):
+        if self.use_custom_logic:
+            self.state = MissionState.CUSTOM
+            return
         self.resume_pub.publish(Bool(data=False))
         self.get_logger().info("⛔ Exploration stoppée (/explore/resume=False)")
 
