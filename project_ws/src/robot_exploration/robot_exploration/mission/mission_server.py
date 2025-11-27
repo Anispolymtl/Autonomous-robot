@@ -31,6 +31,7 @@ class MissionState(Enum):
     WAIT = "En attente"
     EXPLORATION = "Exploration"
     NAVIGATION = "Navigation"
+    CUSTOM = "Mission personnalisée"
 
 
 # ==========================================================
@@ -110,6 +111,11 @@ class MissionServer(Node):
         Service pour passer en mode exploration (True)
         ou navigation (False) en publiant sur /explore/resume
         """
+        if self.use_custom_logic:
+            response.success = False
+            response.message = "Impossible de changer de mode en mission personnalisée"
+            return response
+        
         msg = Bool()
 
         if request.data:  # True = Exploration
@@ -178,6 +184,7 @@ class MissionServer(Node):
         #     MODE CUSTOM ACTIVÉ ?
         # ===============================
         if self.use_custom_logic and CUSTOM_LOGIC_AVAILABLE:
+            self.state = MissionState.CUSTOM 
             self.get_logger().info("🧩 Exécution avec logique custom")
 
             # Hook custom start
@@ -188,6 +195,7 @@ class MissionServer(Node):
 
             # Boucle custom
             while rclpy.ok():
+                self.state = MissionState.CUSTOM 
                 # Annulation
                 if goal_handle.is_cancel_requested:
                     result = DoMission.Result()
