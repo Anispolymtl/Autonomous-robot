@@ -8,77 +8,115 @@ from std_msgs.msg import String, Bool
 from enum import Enum
 import time
 
+# ==========================================================
+#  Import optionnel : custom_mission.py
+# ==========================================================
+try:
+    from robot_exploration.code_editor.custom_mission import (
+        on_mission_start,
+        on_mission_step,
+        on_mission_cancel,
+        on_mission_end,
+    )
+    CUSTOM_LOGIC_AVAILABLE = True
+except Exception as e:
+    CUSTOM_LOGIC_AVAILABLE = False
+    print(f"[MissionServer] Aucune logique custom chargée : {e}")
 
-# -----------------------------
-#   Enumération des états
-# -----------------------------
+
+# ==========================================================
+#               ENUM - États de mission
+# ==========================================================
 class MissionState(Enum):
     WAIT = "En attente"
     EXPLORATION = "Exploration"
     NAVIGATION = "Navigation"
+    CUSTOM = "Mission personnalisée"
 
 
-# -----------------------------
-#   Mission Server principal
-# -----------------------------
+# ==========================================================
+#                Mission Server principal
+# ==========================================================
 class MissionServer(Node):
     def __init__(self):
         super().__init__("mission_server")
 
+        # Paramètre ROS2
+        self.declare_parameter("use_custom_logic", False)
+        self.use_custom_logic = self.get_parameter("use_custom_logic") \
+                                        .get_parameter_value().bool_value
+
         # État initial
-        self.state = MissionState.WAIT
+        if self.use_custom_logic:
+            self.get_logger().info("🧩 Logique custom ACTIVÉE")
+            self.state = MissionState.CUSTOM
+        else:
+            self.get_logger().info("🧱 Logique par défaut utilisée")
+            self.state = MissionState.WAIT
+
         self.get_logger().info(f"Mission Server initialisé (état={self.state.value})")
 
-        # Serveur d’action principale
+        # Action Server
         self._action_server = ActionServer(
-            self,
-            DoMission,
-            "do_mission",
+            self, DoMission, "do_mission",
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback,
         )
 
-        # Publisher d’état
+        # Publishers
         self.state_pub = self.create_publisher(String, "mission_state", 10)
         self.state_timer = self.create_timer(1.0, self.publish_state)
 
-        # Publisher ROS2 commun à explore_lite & ExplorerNode
-        self.resume_topic = "explore/resume"
-        # Juste après la création du publisher explore/resume
         self.resume_pub = self.create_publisher(Bool, "explore/resume", 10)
-        self.get_logger().info(f"🛰️ Publication vers {self.resume_topic}")
+        self.get_logger().info("🛰️ Publication vers /explore/resume")
 
-        # Désactive exploration dès le départ
-        self.get_logger().info("⏳ Attente de /explore/resume...")
-        start_time = time.time()
-        while self.count_subscribers(self.resume_topic) == 0:
-            if time.time() - start_time > 10.0:
-                self.get_logger().warn("⚠️ Aucun subscriber /explore/resume détecté (timeout 10s)")
-                break
-            rclpy.spin_once(self, timeout_sec=0.5)
+        # Blocage exploration au démarrage
+        self._disable_exploration_startup()
 
-        # --- Envoi répété de False pour bloquer exploration ---
-        msg = Bool()
-        msg.data = False
-        for _ in range(5):  # plusieurs publications espacées
-            self.resume_pub.publish(msg)
-            self.get_logger().info("🔒 Exploration désactivée (False publié sur /explore/resume)")
-            time.sleep(0.5)
-        
-        # Service pour changer de mode
+        # Service de mode
         self.mode_srv = self.create_service(SetBool, "change_mode", self.change_mode_callback)
 
         self.get_logger().info(f"Mission Server prêt (ns='{self.get_namespace()}') ✅")
 
     # --------------------------------------------------------
-    #   Changement de mode Exploration / Navigation
+    def _disable_exploration_startup(self):
+        """Empêche l’exploration de démarrer automatiquement."""
+        self.get_logger().info("⏳ Attente de /explore/resume...")
+        start_time = time.time()
+
+        while self.count_subscribers("explore/resume") == 0:
+            if time.time() - start_time > 10.0:
+                self.get_logger().warn("⚠️ Aucun subscriber /explore/resume (timeout)")
+                break
+            rclpy.spin_once(self, timeout_sec=0.5)
+
+        msg = Bool(data=False)
+        for _ in range(5):
+            self.resume_pub.publish(msg)
+            time.sleep(0.5)
+            self.get_logger().info("🔒 Exploration désactivée au lancement")
+
+    # --------------------------------------------------------
+    def publish_state(self):
+        msg = String()
+        msg.data = self.state.value
+        self.state_pub.publish(msg)
+
+    # --------------------------------------------------------
+    #                 CALL BACKS PRINCIPAUX
+    # --------------------------------------------------------
     # --------------------------------------------------------
     def change_mode_callback(self, request, response):
         """
-        Service pour passer en mode exploration (True) ou navigation (False)
-        Compatible explore_lite & ExplorerNode via /explore/resume
+        Service pour passer en mode exploration (True)
+        ou navigation (False) en publiant sur /explore/resume
         """
+        if self.use_custom_logic:
+            response.success = False
+            response.message = "Impossible de changer de mode en mission personnalisée"
+            return response
+        
         msg = Bool()
 
         if request.data:  # True = Exploration
@@ -88,7 +126,7 @@ class MissionServer(Node):
                 self.state = MissionState.EXPLORATION
                 response.success = True
                 response.message = "Exploration relancée"
-                self.get_logger().info("🔄 Passage en mode Exploration (publié sur /explore/resume)")
+                self.get_logger().info("🔄 Passage en mode Exploration")
             else:
                 response.success = True
                 response.message = "Déjà en mode Exploration"
@@ -99,107 +137,142 @@ class MissionServer(Node):
                 self.resume_pub.publish(msg)
                 self.state = MissionState.NAVIGATION
                 response.success = True
-                response.message = "Exploration arrêtée, mode Navigation actif"
-                self.get_logger().info("🛑 Passage en mode Navigation (exploration stoppée)")
+                response.message = "Mode Navigation activé"
+                self.get_logger().info("🛑 Passage en mode Navigation")
             else:
                 response.success = True
                 response.message = "Déjà en mode Navigation"
 
         return response
 
-    # ---------------------------------------------------------
-    #   Publication de l'état
-    # ---------------------------------------------------------
-    def publish_state(self):
-        msg = String()
-        msg.data = self.state.value
-        self.state_pub.publish(msg)
-
-    # ---------------------------------------------------------
-    #   Callbacks ActionServer
-    # ---------------------------------------------------------
     def goal_callback(self, goal_request):
-        self.get_logger().info("🎯 Goal reçu → lancement de la mission d’exploration")
+        self.get_logger().info("🎯 Goal reçu → lancement mission")
         return GoalResponse.ACCEPT
 
     def cancel_callback(self, goal_handle):
-        self.get_logger().info("🟥 Annulation reçue → arrêt exploration")
+        self.get_logger().info("🟥 Annulation reçue")
         self.stop_exploration()
         self.state = MissionState.WAIT
+
+        # --- Custom cancel ---
+        if self.use_custom_logic and CUSTOM_LOGIC_AVAILABLE:
+            try:
+                on_mission_cancel(self)
+            except Exception as e:
+                self.get_logger().error(f"[custom] Erreur on_mission_cancel: {e}")
+
         return CancelResponse.ACCEPT
 
-    # ---------------------------------------------------------
-    #   Commandes d'exploration
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
     def start_exploration(self):
-        msg = Bool()
-        msg.data = True
-        self.resume_pub.publish(msg)
+        if self.use_custom_logic:
+            self.state = MissionState.CUSTOM
+            return
+        self.resume_pub.publish(Bool(data=True))
         self.state = MissionState.EXPLORATION
-        self.get_logger().info("🟢 Exploration activée (topic /explore/resume=True)")
+        self.get_logger().info("🟢 Exploration activée (/explore/resume=True)")
 
     def stop_exploration(self):
-        msg = Bool()
-        msg.data = False
-        self.resume_pub.publish(msg)
-        self.get_logger().info("⛔ Exploration stoppée (topic /explore/resume=False)")
+        if self.use_custom_logic:
+            self.state = MissionState.CUSTOM
+            return
+        self.resume_pub.publish(Bool(data=False))
+        self.get_logger().info("⛔ Exploration stoppée (/explore/resume=False)")
 
-    # ---------------------------------------------------------
-    #   Exécution principale de mission
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    #                  EXECUTION PRINCIPALE
+    # --------------------------------------------------------
     async def execute_callback(self, goal_handle):
-        self.get_logger().info("🚀 Mission START (indefinite exploration mode)")
-        self.start_exploration()
         t0 = time.time()
 
-        try:
-            while rclpy.ok():
-                # Gestion annulation
-                if goal_handle.is_cancel_requested:
-                    self.get_logger().info("🟥 Mission annulée par l'utilisateur")
-                    self.stop_exploration()
-                    self.state = MissionState.WAIT
+        self.get_logger().info("🚀 Mission START")
 
+        # ===============================
+        #     MODE CUSTOM ACTIVÉ ?
+        # ===============================
+        if self.use_custom_logic and CUSTOM_LOGIC_AVAILABLE:
+            self.state = MissionState.CUSTOM 
+            self.get_logger().info("🧩 Exécution avec logique custom")
+
+            # Hook custom start
+            try:
+                on_mission_start(self)
+            except Exception as e:
+                self.get_logger().error(f"[custom] Erreur on_mission_start: {e}")
+
+            # Boucle custom
+            while rclpy.ok():
+                self.state = MissionState.CUSTOM 
+                # Annulation
+                if goal_handle.is_cancel_requested:
                     result = DoMission.Result()
                     result.result_code = 1
-                    result.result_message = "Mission annulée par l'utilisateur"
+                    result.result_message = "Mission annulée"
                     goal_handle.canceled()
                     return result
 
-                # Feedback
+                elapsed = int(time.time() - t0)
+
+                # Hook step
+                try:
+                    end_msg = on_mission_step(self, elapsed)
+                    if end_msg is not None:
+                        # Fin personnalisée
+                        try:
+                            on_mission_end(self)
+                        except:
+                            pass
+
+                        result = DoMission.Result()
+                        result.result_code = 0
+                        result.result_message = end_msg
+                        goal_handle.succeed()
+                        return result
+
+                except Exception as e:
+                    self.get_logger().error(f"[custom] Erreur on_mission_step: {e}")
+
+                time.sleep(1)
+
+        # ===============================
+        #     MODE PAR DÉFAUT
+        # ===============================
+        else:
+            self.get_logger().info("🧱 Exécution en mode par défaut")
+            self.start_exploration()
+
+            while rclpy.ok():
+                # Annulation ?
+                if goal_handle.is_cancel_requested:
+                    self.get_logger().info("🟥 Mission annulée (default)")
+                    self.stop_exploration()
+                    self.state = MissionState.WAIT
+                    result = DoMission.Result()
+                    result.result_code = 1
+                    result.result_message = "Mission annulée"
+                    goal_handle.canceled()
+                    return result
+
+                # Feedback standard
                 fb = DoMission.Feedback()
                 fb.time_elapsed = int(time.time() - t0)
-                fb.percent_complete = 0.0  # placeholder
+                fb.percent_complete = 0.0
                 goal_handle.publish_feedback(fb)
 
                 time.sleep(1.0)
 
-        except Exception as e:
-            self.get_logger().error(f"Erreur pendant la mission: {e}")
-            self.stop_exploration()
-            self.state = MissionState.WAIT
-
-            result = DoMission.Result()
-            result.result_code = -1
-            result.result_message = f"Erreur: {e}"
-            goal_handle.abort()
-            return result
-
-        # Fin normale
+        # Fin par défaut
         self.stop_exploration()
         self.state = MissionState.WAIT
 
         result = DoMission.Result()
         result.result_code = 0
         result.result_message = "Mission terminée avec succès"
-        self.get_logger().info("✅ Mission SUCCESS")
         goal_handle.succeed()
         return result
 
 
-# --------------------------------------------------------
-#   Main ROS2
-# --------------------------------------------------------
+# ==========================================================
 def main(args=None):
     rclpy.init(args=args)
     node = MissionServer()
@@ -209,12 +282,8 @@ def main(args=None):
     try:
         rclpy.spin(node, executor=executor)
     except KeyboardInterrupt:
-        node.get_logger().info("Mission Server interrompu par l'utilisateur")
+        node.get_logger().info("Mission Server interrompu")
         node.stop_exploration()
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
