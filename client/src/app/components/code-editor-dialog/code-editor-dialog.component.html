@@ -1,0 +1,43 @@
+<div class="dialog-header">
+  <h2>✏️ Modifier la mission</h2>
+  <button class="close-btn" (click)="close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+@if (loading){
+  <div class="loading">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Chargement du code...</p>
+  </div>
+}
+
+<!-- CONTAINER POUR L'ÉDITEUR -->
+<div class="editor-wrapper-overlay">
+
+  <!-- L'ÉDITEUR FULL-SIZE -->
+  <div class="editor-overlay-content">
+    <app-code-editor
+      [content]="code"
+      (contentChange)="code = $event"
+      language="python">
+    </app-code-editor>
+  </div>
+
+  <!-- BOUTONS FLOTTANTS SUR L'ÉDITEUR -->
+  <div class="floating-buttons">
+    @if (customMissionActive) {
+      <button mat-raised-button color="warn" (click)="restoreDefault()">
+        <mat-icon>undo</mat-icon> Mission par défaut
+      </button>
+    }
+    <button mat-stroked-button color="accent" (click)="reset()">
+      <mat-icon>refresh</mat-icon> Réinitialiser
+    </button>
+
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
+      <mat-icon>save</mat-icon> Commencer la Mission
+    </button>
+  </div>
+
+</div>

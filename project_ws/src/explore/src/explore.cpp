@@ -62,6 +62,7 @@ Explore::Explore()
 {
   double timeout;
   double min_frontier_size;
+  bool start_paused_;
   this->declare_parameter<float>("planner_frequency", 1.0);
   this->declare_parameter<float>("progress_timeout", 30.0);
   this->declare_parameter<bool>("visualize", false);
@@ -70,6 +71,7 @@ Explore::Explore()
   this->declare_parameter<float>("gain_scale", 1.0);
   this->declare_parameter<float>("min_frontier_size", 0.5);
   this->declare_parameter<bool>("return_to_init", false);
+  this->declare_parameter<bool>("start_paused", false);
 
   this->get_parameter("planner_frequency", planner_frequency_);
   this->get_parameter("progress_timeout", timeout);
@@ -80,6 +82,7 @@ Explore::Explore()
   this->get_parameter("min_frontier_size", min_frontier_size);
   this->get_parameter("return_to_init", return_to_init_);
   this->get_parameter("robot_base_frame", robot_base_frame_);
+  this->get_parameter("start_paused", start_paused_);
 
   progress_timeout_ = timeout;
   move_base_client_ =
@@ -125,10 +128,16 @@ Explore::Explore()
   }
 
   exploring_timer_ = this->create_wall_timer(
-      std::chrono::milliseconds((uint16_t)(1000.0 / planner_frequency_)),
-      [this]() { makePlan(); });
-  // Start exploration right away
-  makePlan();
+    std::chrono::milliseconds((uint16_t)(1000.0 / planner_frequency_)),
+    [this]() { makePlan(); });
+
+  if (!start_paused_) {
+    RCLCPP_INFO(logger_, "Exploration starting immediately (start_paused=false)");
+    makePlan();
+  } else {
+    RCLCPP_INFO(logger_, "Exploration paused at startup (waiting for /explore/resume)");
+    exploring_timer_->cancel();
+  }
 }
 
 Explore::~Explore()

@@ -27,10 +27,11 @@ setup(
     'console_scripts': [
         'identify_service = robot_exploration.service.identify_robot_service:main',
         'mission_server = robot_exploration.mission.mission_server:main',
-        'mission_real = robot_exploration.mission.mission_server_real:main',
+        'mission_logic = robot_exploration.mission.mission_logic:main',
         'explorer_node = robot_exploration.autonomous_exploration.autonomous_exploration:main',
         'map_merge = robot_exploration.map_merge.map_merge:main',
         'imu_frame_remapper = robot_exploration.tf_remapping.imu_frame_remapper:main',
+        'code_editor_server = robot_exploration.code_editor.code_editor_server:main',
         'base_manager = robot_exploration.localization.base_manager:main',
         'battery_manager = robot_exploration.localization.battery_manager:main',
         'robot_position_monitor = robot_exploration.localization.robot_position_monitor:main',
