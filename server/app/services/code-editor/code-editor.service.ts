@@ -49,7 +49,6 @@ export class CodeEditorService {
             const request = new this.srv.GetScript.Request();
 
             this.getCodeClient.sendRequest(request, (response) => {
-                console.log(response.code)
                 if (!response) {
                     resolve({
                         success: false,

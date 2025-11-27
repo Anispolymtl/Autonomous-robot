@@ -1,18 +1,85 @@
-.editor-container {
-  height: 500px;
+.dialog-header {
+  position: relative;
+  margin-bottom: 10px;
+  padding-right: 40px;
+}
+
+.dialog-header h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #ccc;
+  padding: 4px;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+.close-btn:hover {
+  background: #333;
+  color: white;
+}
+
+.loading {
+  text-align: center;
   margin-bottom: 20px;
 }
 
-.buttons {
+/* --- FULL EDITOR AREA --- */
+.editor-wrapper-overlay {
+  position: relative;
+  height: 70vh;
+  background: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.editor-overlay-content {
+  height: 100%;
+}
+
+/* --- FLOATING BUTTONS ABOVE THE EDITOR --- */
+.floating-buttons {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 20px;
+
+  padding: 10px 20px;
+  border-radius: 50px;
+
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(6px);
+
+  border: 1px solid #333;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+
+  z-index: 10;
 }
 
-.msg.success {
-  color: #28ff72;
+.floating-buttons button mat-icon {
+  margin-right: 6px;
 }
 
-.msg.error {
-  color: #ff5757;
+/* Snackbars */
+.snackbar-success {
+  background-color: #1e4620 !important;
+  color: #b6ffb7 !important;
+  border: 1px solid #2e7d32 !important;
+}
+
+.snackbar-error {
+  background-color: #5c1d1d !important;
+  color: #ffb3b3 !important;
+  border: 1px solid #b71c1c !important;
 }

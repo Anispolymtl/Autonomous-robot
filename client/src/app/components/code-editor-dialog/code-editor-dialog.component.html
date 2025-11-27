@@ -1,26 +1,38 @@
-<h2>✏️ Modifier la mission</h2>
+<div class="dialog-header">
+  <h2>✏️ Modifier la mission</h2>
+  <button class="close-btn" (click)="close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
 @if (loading){
-  <div>Chargement du code...</div>
+  <div class="loading">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Chargement du code...</p>
+  </div>
 }
 
-<div class="editor-container">
-  <app-code-editor
-    [content]="code"
-    (contentChange)="code = $event"
-    language="python">
-  </app-code-editor>
-</div>
+<!-- CONTAINER POUR L'ÉDITEUR -->
+<div class="editor-wrapper-overlay">
 
-<div class="buttons">
-  <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
-    💾 Sauvegarder
-  </button>
-  <button mat-raised-button color="warn" (click)="close()">
-    ✖ Fermer
-  </button>
+  <!-- L'ÉDITEUR FULL-SIZE -->
+  <div class="editor-overlay-content">
+    <app-code-editor
+      [content]="code"
+      (contentChange)="code = $event"
+      language="python">
+    </app-code-editor>
+  </div>
+
+  <!-- BOUTONS FLOTTANTS SUR L'ÉDITEUR -->
+  <div class="floating-buttons">
+    <button mat-stroked-button color="accent" (click)="reset()">
+      <mat-icon>refresh</mat-icon> Réinitialiser
+    </button>
+
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
+      <mat-icon>save</mat-icon> Sauvegarder
+    </button>
+  </div>
+
 </div>
-@if (successMessage) {
-  <div class="msg success">{{ successMessage }}</div>
-} @else if (errorMessage) {
-  <div class="msg error">{{ errorMessage }}</div>
-}
