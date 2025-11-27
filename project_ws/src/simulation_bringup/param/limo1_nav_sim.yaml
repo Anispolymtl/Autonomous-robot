@@ -217,6 +217,7 @@ global_costmap:
       robot_base_frame: limo1
       # rolling_window: true
       robot_radius: 0.22
+      track_unknown_space: True
       # static_layer removed because there was an error 
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
