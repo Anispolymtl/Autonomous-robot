@@ -83,10 +83,11 @@ def launch_with_namespace(context, *args, **kwargs):
         package='explore_lite',
         executable='explore',
         name='explore_node',
-        parameters=[ParameterFile(explore_params, allow_substs=True),
-                    {'use_sim_time': use_sim_time}],
-        output='screen',
-        remappings=[('tf', '/tf'), ('tf_static', '/tf_static')],
+        parameters=[
+            explore_params,       # <-- ICI aussi
+            {'use_sim_time': True}
+        ],
+        output='screen'
     )
 
     # explore_launch = IncludeLaunchDescription(
