@@ -20,6 +20,8 @@ def launch_with_namespace(context, *args, **kwargs):
 
     nav2_params = os.path.join(pkg_robot, 'param', f'{namespace}_nav.yaml')
 
+    explore_params = os.path.join(explore_pkg, 'config', f'{namespace}_params.yaml')
+
 
     limo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -77,10 +79,21 @@ def launch_with_namespace(context, *args, **kwargs):
         parameters=[{'use_sim_time': False}],
     )
 
-    explore_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(explore_pkg, 'launch', 'explore.launch.py')
-        ))
+    explore = Node(
+        package='explore_lite',
+        executable='explore',
+        name='explore_node',
+        parameters=[
+            explore_params,       # <-- ICI on charge le YAML
+            {'use_sim_time': False}
+        ],
+        output='screen'
+    )
+
+    # explore_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(explore_pkg, 'launch', 'explore.launch.py')
+    #     ))
 
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
@@ -91,7 +104,7 @@ def launch_with_namespace(context, *args, **kwargs):
         mission_action,
         cartographer_launch,
         nav2_launch,
-        explore_launch
+        explore
     ])
 
     return [group]
