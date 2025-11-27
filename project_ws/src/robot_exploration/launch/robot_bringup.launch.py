@@ -83,11 +83,10 @@ def launch_with_namespace(context, *args, **kwargs):
         package='explore_lite',
         executable='explore',
         name='explore_node',
-        parameters=[
-            explore_params,       # <-- ICI on charge le YAML
-            {'use_sim_time': False}
-        ],
-        output='screen'
+        parameters=[ParameterFile(explore_params, allow_substs=True),
+                    {'use_sim_time': use_sim_time}],
+        output='screen',
+        remappings=[('tf', '/tf'), ('tf_static', '/tf_static')],
     )
 
     # explore_launch = IncludeLaunchDescription(
