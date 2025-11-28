@@ -6,6 +6,16 @@ import { Mission } from '@app/model/database/mission';
 import { CreateMissionDto } from '@app/model/dto/mission/create-mission.dto';
 import { UpdateMissionDto } from '@app/model/dto/mission/update-mission.dto';
 
+const createQueryMock = (result: any) => {
+  const exec = jest.fn().mockResolvedValue(result);
+  return {
+    sort: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    exec,
+  };
+};
+
 describe('MissionDatabaseService', () => {
   let service: MissionDatabaseService;
   let model: Partial<Record<keyof Model<Mission>, jest.Mock>>;
@@ -38,15 +48,30 @@ describe('MissionDatabaseService', () => {
     it('should return all missions', async () => {
       const missions = [{ missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 }];
       model.countDocuments.mockResolvedValue(1);
-      model.find.mockReturnValue({ sort: () => ({ exec: () => Promise.resolve(missions) }) });
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
 
-      const result = await service.getAllMissions();
+      const result = await service.getAllMissions(2, 3);
       expect(result).toEqual(missions);
+      expect(query.skip).toHaveBeenCalledWith(3);
+      expect(query.limit).toHaveBeenCalledWith(2);
     });
 
     it('should throw error if database fails', async () => {
       model.countDocuments.mockRejectedValue(new Error('DB fail'));
       await expect(service.getAllMissions()).rejects.toThrow('DB fail');
+    });
+
+    it('should skip pagination when parameters are not provided', async () => {
+      const missions = [{ missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 }];
+      model.countDocuments.mockResolvedValue(1);
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
+
+      await service.getAllMissions();
+
+      expect(query.skip).not.toHaveBeenCalled();
+      expect(query.limit).not.toHaveBeenCalled();
     });
   });
 
@@ -63,20 +88,48 @@ describe('MissionDatabaseService', () => {
   describe('getMissionsByRobot', () => {
     it('should return missions for a robot', async () => {
       const missions = [{ missionName: 'M1', robots: ['r1'] }] as Mission[];
-      model.find.mockReturnValue({ sort: () => ({ exec: () => Promise.resolve(missions) }) });
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
 
-      const result = await service.getMissionsByRobot('r1');
+      const result = await service.getMissionsByRobot('r1', 1, 0);
       expect(result).toEqual(missions);
+      expect(query.skip).toHaveBeenCalledWith(0);
+      expect(query.limit).toHaveBeenCalledWith(1);
+    });
+
+    it('should allow fetching by robot without pagination', async () => {
+      const missions = [{ missionName: 'M1', robots: ['r1'] }] as Mission[];
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
+
+      await service.getMissionsByRobot('r1');
+
+      expect(query.skip).not.toHaveBeenCalled();
+      expect(query.limit).not.toHaveBeenCalled();
     });
   });
 
   describe('getMissionsByMode', () => {
     it('should return missions by mode', async () => {
       const missions = [{ missionName: 'M1', mode: 'REAL' }] as Mission[];
-      model.find.mockReturnValue({ sort: () => ({ exec: () => Promise.resolve(missions) }) });
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
 
-      const result = await service.getMissionsByMode('REAL');
+      const result = await service.getMissionsByMode('REAL', 5, 2);
       expect(result).toEqual(missions);
+      expect(query.skip).toHaveBeenCalledWith(2);
+      expect(query.limit).toHaveBeenCalledWith(5);
+    });
+
+    it('should allow fetching by mode without pagination', async () => {
+      const missions = [{ missionName: 'M1', mode: 'REAL' }] as Mission[];
+      const query = createQueryMock(missions);
+      model.find.mockReturnValue(query);
+
+      await service.getMissionsByMode('REAL');
+
+      expect(query.skip).not.toHaveBeenCalled();
+      expect(query.limit).not.toHaveBeenCalled();
     });
   });
 

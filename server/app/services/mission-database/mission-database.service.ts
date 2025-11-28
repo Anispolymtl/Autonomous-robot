@@ -13,13 +13,17 @@ export class MissionDatabaseService {
         @InjectModel(Mission.name, 'robot_ops') public missionModel: Model<MissionDocument>,
     ) {}
 
-    async getAllMissions(): Promise<Mission[]> {
+    async getAllMissions(limit?: number, skip?: number): Promise<Mission[]> {
         try {
             this.logger.log('Attempting to fetch missions from database...');
             const count = await this.missionModel.countDocuments({});
             this.logger.log(`Total documents in collection: ${count}`);
-            
-            const missions = await this.missionModel.find({}).sort({ createdAt: -1 }).exec();
+
+            const query = this.missionModel.find({}, { maps: 0 }).sort({ createdAt: -1 });
+            if (typeof skip === 'number') query.skip(skip);
+            if (typeof limit === 'number') query.limit(limit);
+
+            const missions = await query.exec();
             this.logger.log(`Found ${missions.length} missions`);
             
             if (missions.length > 0) {
@@ -38,12 +42,18 @@ export class MissionDatabaseService {
         return await this.missionModel.findById(id).exec();
     }
 
-    async getMissionsByRobot(robotName: string): Promise<Mission[]> {
-        return await this.missionModel.find({ robots: robotName }).sort({ createdAt: -1 }).exec();
+    async getMissionsByRobot(robotName: string, limit?: number, skip?: number): Promise<Mission[]> {
+        const query = this.missionModel.find({ robots: robotName }, { maps: 0 }).sort({ createdAt: -1 });
+        if (typeof skip === 'number') query.skip(skip);
+        if (typeof limit === 'number') query.limit(limit);
+        return await query.exec();
     }
 
-    async getMissionsByMode(mode: string): Promise<Mission[]> {
-        return await this.missionModel.find({ mode }).sort({ createdAt: -1 }).exec();
+    async getMissionsByMode(mode: string, limit?: number, skip?: number): Promise<Mission[]> {
+        const query = this.missionModel.find({ mode }, { maps: 0 }).sort({ createdAt: -1 });
+        if (typeof skip === 'number') query.skip(skip);
+        if (typeof limit === 'number') query.limit(limit);
+        return await query.exec();
     }
 
     async createMission(mission: CreateMissionDto): Promise<Mission> {
@@ -88,7 +98,7 @@ export class MissionDatabaseService {
         totalDistance: number;
         averageDuration: number;
     }> {
-        const missions = await this.missionModel.find({}).exec();
+        const missions = await this.missionModel.find({}, { maps: 0 }).exec();
         
         const stats = {
             total: missions.length,

@@ -20,8 +20,12 @@ export class MissionListComponent implements OnInit {
     missions: Mission[] = [];
     stats: MissionStats | null = null;
     loading = false;
+    loadingMore = false;
+    allLoaded = false;
     error: string | null = null;
+    mapsLoadingId: string | null = null;
     selectedMode: 'SIMULATION' | 'REAL' | null = null;
+    readonly pageSize = 6;
 
     constructor(
         private missionDatabaseService: MissionDatabaseService,
@@ -29,20 +33,28 @@ export class MissionListComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.loadMissions();
+        this.loadMissions(true);
         this.loadStats();
     }
 
-    loadMissions(): void {
-        this.loading = true;
+    loadMissions(reset = false): void {
+        if (reset) {
+            this.missions = [];
+            this.allLoaded = false;
+        }
+
+        const skip = this.missions.length;
+        const isInitialLoad = reset || skip === 0;
+        this.loading = isInitialLoad;
+        this.loadingMore = !isInitialLoad;
         this.error = null;
         
         let request: Observable<Mission[]>;
         
         if (this.selectedMode) {
-            request = this.missionDatabaseService.getMissionsByMode(this.selectedMode);
+            request = this.missionDatabaseService.getMissionsByMode(this.selectedMode, this.pageSize, skip);
         } else {
-            request = this.missionDatabaseService.getAllMissions();
+            request = this.missionDatabaseService.getAllMissions(this.pageSize, skip);
         }
 
         console.log('Loading missions...');
@@ -50,14 +62,19 @@ export class MissionListComponent implements OnInit {
             next: (missions: Mission[]) => {
                 console.log('Missions received:', missions);
                 console.log('Number of missions:', missions.length);
-                this.missions = missions;
-                this.loading = false;
+                this.missions = reset ? missions : [...this.missions, ...missions];
+                this.updateLoadedState(missions.length);
             },
             error: (error: HttpErrorResponse) => {
                 console.error('Error loading missions:', error);
                 console.error('Error details:', error.error);
                 this.error = `Erreur lors du chargement des missions: ${error.message || error.statusText || 'Erreur inconnue'}`;
                 this.loading = false;
+                this.loadingMore = false;
+            },
+            complete: () => {
+                this.loading = false;
+                this.loadingMore = false;
             }
         });
     }
@@ -66,6 +83,7 @@ export class MissionListComponent implements OnInit {
         this.missionDatabaseService.getMissionStats().subscribe({
             next: (stats: MissionStats) => {
                 this.stats = stats;
+                this.syncLoadedStateWithStats();
             },
             error: (error: HttpErrorResponse) => {
                 console.error('Erreur lors du chargement des statistiques:', error);
@@ -75,12 +93,12 @@ export class MissionListComponent implements OnInit {
 
     filterByMode(mode: 'SIMULATION' | 'REAL' | null): void {
         this.selectedMode = mode;
-        this.loadMissions();
+        this.loadMissions(true);
     }
 
     clearFilters(): void {
         this.selectedMode = null;
-        this.loadMissions();
+        this.loadMissions(true);
     }
 
     deleteMission(id: string): void {
@@ -88,14 +106,14 @@ export class MissionListComponent implements OnInit {
             this.missionDatabaseService.deleteMission(id).subscribe({
                 next: () => {
                     console.log('Mission deleted successfully');
-                    this.loadMissions();
+                    this.loadMissions(true);
                     this.loadStats();
                 },
                 error: (error: HttpErrorResponse) => {
                     console.error('Error deleting mission:', error);
                     // La suppression a probablement réussi même si le parsing échoue
                     // Recharger quand même les missions
-                    this.loadMissions();
+                    this.loadMissions(true);
                     this.loadStats();
                 }
             });
@@ -146,12 +164,40 @@ export class MissionListComponent implements OnInit {
     }
 
     openMapsDialog(mission: Mission): void {
-        if (!mission.maps) return;
-        this.dialog.open(MissionMapsDialogComponent, {
-            width: '760px',
-            panelClass: 'mission-logs-dialog-panel',
-            data: { mission }
+        if (!mission._id) {
+            console.warn('Impossible de charger les cartes: identifiant de mission manquant.');
+            return;
+        }
+
+        this.mapsLoadingId = mission._id;
+
+        this.missionDatabaseService.getMissionById(mission._id).subscribe({
+            next: (missionWithMaps: Mission) => {
+                if (!missionWithMaps.maps) {
+                    alert('Aucune carte disponible pour cette mission.');
+                    return;
+                }
+
+                this.dialog.open(MissionMapsDialogComponent, {
+                    width: '760px',
+                    panelClass: 'mission-logs-dialog-panel',
+                    data: { mission: missionWithMaps }
+                });
+            },
+            error: (error: HttpErrorResponse) => {
+                console.error('Error loading mission maps:', error);
+                alert('Erreur lors du chargement des cartes.');
+                this.mapsLoadingId = null;
+            },
+            complete: () => {
+                this.mapsLoadingId = null;
+            }
         });
+    }
+
+    loadMore(): void {
+        if (this.loading || this.loadingMore || this.allLoaded) return;
+        this.loadMissions();
     }
 
     private extractLogsFromMission(mission: Mission): MissionLogEntry[] {
@@ -170,5 +216,21 @@ export class MissionListComponent implements OnInit {
         }
 
         return [];
+    }
+
+    private updateLoadedState(lastBatchSize: number): void {
+        const total = this.stats?.total;
+        const canUseStats = !this.selectedMode && typeof total === 'number';
+        if (canUseStats && this.missions.length >= total) {
+            this.allLoaded = true;
+            return;
+        }
+        this.allLoaded = lastBatchSize < this.pageSize;
+    }
+
+    private syncLoadedStateWithStats(): void {
+        const total = this.stats?.total;
+        if (this.selectedMode || typeof total !== 'number') return;
+        this.allLoaded = this.missions.length >= total;
     }
 }

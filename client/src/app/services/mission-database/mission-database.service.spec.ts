@@ -41,6 +41,16 @@ describe('MissionDatabaseService', () => {
     req.flush([sampleMission]);
   });
 
+  it('ajoute les paramètres de pagination pour les missions', () => {
+    service.getAllMissions(6, 6).subscribe();
+
+    const req = httpMock.expectOne(`${baseUrl}/`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('6');
+    expect(req.request.params.get('skip')).toBe('6');
+    req.flush([]);
+  });
+
   it('récupère une mission par identifiant', () => {
     service.getMissionById('abc').subscribe((mission) => expect(mission).toEqual(sampleMission));
 
@@ -63,6 +73,16 @@ describe('MissionDatabaseService', () => {
     const req = httpMock.expectOne(`${baseUrl}/mode/SIMULATION`);
     expect(req.request.method).toBe('GET');
     req.flush([sampleMission]);
+  });
+
+  it('ajoute les paramètres de pagination pour les missions par mode', () => {
+    service.getMissionsByMode('SIMULATION', 3, 3).subscribe();
+
+    const req = httpMock.expectOne(`${baseUrl}/mode/SIMULATION`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('3');
+    expect(req.request.params.get('skip')).toBe('3');
+    req.flush([]);
   });
 
   it('récupère les statistiques', () => {

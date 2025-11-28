@@ -16,6 +16,7 @@ describe('MissionListComponent', () => {
         missionServiceSpy = jasmine.createSpyObj('MissionDatabaseService', [
             'getAllMissions',
             'getMissionsByMode',
+            'getMissionById',
             'getMissionStats',
             'deleteMission'
         ]);
@@ -31,6 +32,9 @@ describe('MissionListComponent', () => {
 
         fixture = TestBed.createComponent(MissionListComponent);
         component = fixture.componentInstance;
+        missionServiceSpy.getAllMissions.and.returnValue(of([]));
+        missionServiceSpy.getMissionsByMode.and.returnValue(of([]));
+        missionServiceSpy.getMissionStats.and.returnValue(of({} as MissionStats));
     });
 
     it('should create', () => {
@@ -48,20 +52,18 @@ describe('MissionListComponent', () => {
     });
 
     it('should filter missions by mode', () => {
-        missionServiceSpy.getMissionsByMode.and.returnValue(of([]));
         component.filterByMode('REAL');
 
         expect(component.selectedMode).toBe('REAL');
-        expect(missionServiceSpy.getMissionsByMode).toHaveBeenCalledWith('REAL');
+        expect(missionServiceSpy.getMissionsByMode).toHaveBeenCalledWith('REAL', component.pageSize, 0);
     });
 
     it('should clear filters and load all missions', () => {
-        missionServiceSpy.getAllMissions.and.returnValue(of([]));
         component.selectedMode = 'SIMULATION';
         component.clearFilters();
 
         expect(component.selectedMode).toBeNull();
-        expect(missionServiceSpy.getAllMissions).toHaveBeenCalled();
+        expect(missionServiceSpy.getAllMissions).toHaveBeenCalledWith(component.pageSize, 0);
     });
 
     it('should reload data even if delete mission returns error', () => {
@@ -74,8 +76,56 @@ describe('MissionListComponent', () => {
         component.deleteMission('456');
 
         expect(missionServiceSpy.deleteMission).toHaveBeenCalled();
-        expect(missionServiceSpy.getAllMissions).toHaveBeenCalled();
+        expect(missionServiceSpy.getAllMissions).toHaveBeenCalledWith(component.pageSize, 0);
         expect(missionServiceSpy.getMissionStats).toHaveBeenCalled();
+    });
+
+    it('should load more missions with pagination', () => {
+        const baseMission = {
+            missionName: 'M',
+            robots: [],
+            mode: 'SIMULATION',
+            distance: 0,
+            durationSec: 0
+        } as Mission;
+        const firstBatch = Array(component.pageSize).fill(baseMission);
+        const secondBatch = [{ ...baseMission, missionName: 'M7' }];
+
+        missionServiceSpy.getAllMissions.and.returnValues(of(firstBatch), of(secondBatch));
+
+        component.loadMissions(true);
+        component.loadMore();
+
+        expect(missionServiceSpy.getAllMissions.calls.argsFor(0)).toEqual([component.pageSize, 0]);
+        expect(missionServiceSpy.getAllMissions.calls.argsFor(1)).toEqual([component.pageSize, firstBatch.length]);
+        expect(component.missions.length).toBe(firstBatch.length + secondBatch.length);
+        expect(component.allLoaded).toBeTrue();
+    });
+
+    it('should mark all missions loaded when total count is reached', () => {
+        const missions = Array(component.pageSize).fill({
+            missionName: 'M',
+            robots: [],
+            mode: 'SIMULATION',
+            distance: 0,
+            durationSec: 0
+        } as Mission);
+        const stats: MissionStats = {
+            total: component.pageSize,
+            byRobot: {},
+            byMode: {},
+            totalDistance: 0,
+            averageDuration: 0
+        };
+
+        missionServiceSpy.getAllMissions.and.returnValue(of(missions));
+        missionServiceSpy.getMissionStats.and.returnValue(of(stats));
+
+        component.loadMissions(true);
+        component.loadStats();
+
+        expect(component.missions.length).toBe(component.pageSize);
+        expect(component.allLoaded).toBeTrue();
     });
 
     it('should not delete mission if user cancels', () => {

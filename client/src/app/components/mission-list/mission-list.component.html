@@ -87,8 +87,9 @@
                     </div>
                 </div>
                 <div class="mission-actions">
-                    <button (click)="openMapsDialog(mission)" class="missions-btn">
-                        🗺️ Show maps
+                    <button (click)="openMapsDialog(mission)" class="missions-btn" [disabled]="mapsLoadingId === mission._id">
+                        <ng-container *ngIf="mapsLoadingId === mission._id">Chargement...</ng-container>
+                        <ng-container *ngIf="mapsLoadingId !== mission._id">🗺️ Show maps</ng-container>
                     </button>
                     <button (click)="openLogsDialog(mission)" class="logs-btn">
                         📄 Show Logs
@@ -98,6 +99,12 @@
                     </button>
                 </div>
             </div>
+        </div>
+        <div *ngIf="missions.length >= pageSize && !allLoaded && !loading" class="load-more-container">
+            <button class="missions-btn" (click)="loadMore()" [disabled]="loadingMore">
+                <ng-container *ngIf="loadingMore">Chargement...</ng-container>
+                <ng-container *ngIf="!loadingMore">Load more</ng-container>
+            </button>
         </div>
     </div>
 </div>
