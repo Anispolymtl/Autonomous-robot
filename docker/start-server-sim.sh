@@ -104,5 +104,5 @@ cleanup() {
 }
 
 trap cleanup SIGINT SIGTERM
-wait -n "${SERVER_PID}" "${SIM_PID}"
+wait -n "${SERVER_PID}"
 cleanup
