@@ -84,11 +84,14 @@ export class MapComponent implements OnInit, OnDestroy {
     const canvas = this.canvas;
     if (!canvas) return;
     
-    // Stocker les coordonnées canvas pour le popup
+    // Stocker les coordonnées affichées (corrigées par rapport au conteneur) pour le popup
     const rect = canvas.getBoundingClientRect();
+    const containerRect = canvas.parentElement?.getBoundingClientRect();
+    const offsetX = containerRect ? rect.left - containerRect.left : 0;
+    const offsetY = containerRect ? rect.top - containerRect.top : 0;
     this.selectedCanvasCoords = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+      x: event.clientX - rect.left + offsetX,
+      y: event.clientY - rect.top + offsetY
     };
     
     this.mapService.onCanvasClick(event, this.mapObj, canvas);
@@ -109,7 +112,10 @@ export class MapComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.hoverCoords = { x: canvasX, y: canvasY };
+    const containerRect = canvas.parentElement?.getBoundingClientRect();
+    const offsetX = containerRect ? rect.left - containerRect.left : 0;
+    const offsetY = containerRect ? rect.top - containerRect.top : 0;
+    this.hoverCoords = { x: canvasX + offsetX, y: canvasY + offsetY };
 
     // Calculer les coordonnées du point survolé
     const scaleX = canvas.width / rect.width;
