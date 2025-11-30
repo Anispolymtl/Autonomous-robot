@@ -1,5 +1,6 @@
 limo2/explore_node:
   ros__parameters:
+    start_paused: true
     robot_base_frame: limo2/base_link
     costmap_topic: /limo2/global_costmap/costmap
     costmap_updates_topic: /limo2/global_costmap/costmap_updates
