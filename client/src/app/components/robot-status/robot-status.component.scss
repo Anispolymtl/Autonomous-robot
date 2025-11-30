@@ -259,6 +259,63 @@
   color: #1f2937;
 }
 
+.global-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+
+  .action-btn {
+    width: 100%;
+    max-width: 340px;
+  }
+}
+
+.action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: #e2e8f0;
+  color: #0f172a;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+.btn-return {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 5px 18px rgba(99, 102, 241, 0.4);
+  }
+}
+
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
   .robot-card {
