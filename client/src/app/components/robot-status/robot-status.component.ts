@@ -1,6 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { MissionStateService } from '@app/services/state/state.service';
 import { Subscription } from 'rxjs';
+
+type RobotId = 'limo1' | 'limo2';
 
 @Component({
   selector: 'app-robot-status',
@@ -9,6 +11,10 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./robot-status.component.scss'],
 })
 export class RobotStatusComponent implements OnInit, OnDestroy {
+  @Input() mode: 'simulation' | 'real' = 'simulation';
+  @Output() onReturnToBase = new EventEmitter<void>();
+  @Output() onIdentifyRobot = new EventEmitter<RobotId>();
+
   robot1Status = 'En attente';
   robot2Status = 'En attente';
   robot1Battery = 21;
@@ -21,7 +27,7 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.missionStateService.connectToSocket();
-    
+
     this.sub1 = this.missionStateService.getLimo1State$().subscribe((state) => {
       this.robot1Status = state;
     });
@@ -35,5 +41,13 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
     if (this.sub1) this.sub1.unsubscribe();
     if (this.sub2) this.sub2.unsubscribe();
     this.missionStateService.disconnect();
+  }
+
+  returnToBase(): void {
+    this.onReturnToBase.emit();
+  }
+
+  identifyRobot(robotId: RobotId): void {
+    this.onIdentifyRobot.emit(robotId);
   }
 }
