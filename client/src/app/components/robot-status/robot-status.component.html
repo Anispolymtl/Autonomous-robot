@@ -1,6 +1,17 @@
 <div class="robots-grid">
   <!-- Robot 1 -->
   <div class="robot-card">
+    <!-- Bouton Identifier avec texte - coin supérieur droit -->
+    <button class="identify-btn identify-btn-limo1" title="Identifier Limo 1" (click)="identifyRobot('limo1')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="M12 4v4m0 4v4" stroke-linecap="round"></path>
+        <path d="M4 12h4m4 0h4" stroke-linecap="round"></path>
+      </svg>
+      <span class="btn-text">Identifier</span>
+    </button>
+
     <div class="robot-header">
       <div class="robot-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,36 +35,46 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
           <line x1="23" y1="13" x2="23" y2="11"></line>
-        </svg>
-        <span class="battery-label">Batterie</span>
-        <span class="battery-value">{{ robot1Battery }}%</span>
-      </div>
-      <div class="battery-bar">
-        <div 
-          class="battery-fill" 
-          [style.width.%]="robot1Battery"
-          [class.battery-low]="robot1Battery < 20"
-          [class.battery-medium]="robot1Battery >= 20 && robot1Battery < 50"
-          [class.battery-high]="robot1Battery >= 50">
-        </div>
+      </svg>
+      <span class="battery-label">Batterie</span>
+      <span class="battery-value">{{ robot1Battery }}%</span>
+    </div>
+    <div class="battery-bar">
+      <div 
+        class="battery-fill" 
+        [class.battery-low]="robot1Battery < 20"
+        [class.battery-medium]="robot1Battery >= 20 && robot1Battery < 50"
+        [class.battery-high]="robot1Battery >= 50"
+        [style.width.%]="robot1Battery">
       </div>
     </div>
+    </div>
 
-    <div class="robot-actions">
-      @if (mode === 'real') {
-        <button class="action-btn btn-identify" (click)="identifyRobot('limo1')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-          Identifier
-        </button>
-      }
+    <div class="robot-stats">
+      <div class="stat">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value">23.5 m</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Temps</span>
+        <span class="stat-value">2m 14s</span>
+      </div>
     </div>
   </div>
 
   <!-- Robot 2 -->
   <div class="robot-card">
+    <!-- Bouton Identifier avec texte - coin supérieur droit -->
+    <button class="identify-btn identify-btn-limo2"  title="Identifier Limo 2" (click)="identifyRobot('limo2')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="M12 4v4m0 4v4" stroke-linecap="round"></path>
+        <path d="M4 12h4m4 0h4" stroke-linecap="round"></path>
+      </svg>
+      <span class="btn-text">Identifier</span>
+    </button>
+
     <div class="robot-header">
       <div class="robot-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,36 +98,35 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
           <line x1="23" y1="13" x2="23" y2="11"></line>
-        </svg>
-        <span class="battery-label">Batterie</span>
-        <span class="battery-value">{{ robot2Battery }}%</span>
-      </div>
-      <div class="battery-bar">
-        <div 
-          class="battery-fill" 
-          [style.width.%]="robot2Battery"
-          [class.battery-low]="robot2Battery < 20"
-          [class.battery-medium]="robot2Battery >= 20 && robot2Battery < 50"
-          [class.battery-high]="robot2Battery >= 50">
-        </div>
+      </svg>
+      <span class="battery-label">Batterie</span>
+      <span class="battery-value">{{ robot2Battery }}%</span>
+    </div>
+    <div class="battery-bar">
+      <div 
+        class="battery-fill" 
+        [class.battery-low]="robot2Battery < 20"
+        [class.battery-medium]="robot2Battery >= 20 && robot2Battery < 50"
+        [class.battery-high]="robot2Battery >= 50"
+        [style.width.%]="robot2Battery">
       </div>
     </div>
+    </div>
 
-    <div class="robot-actions">
-      @if (mode === 'real') {
-        <button class="action-btn btn-identify" (click)="identifyRobot('limo2')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-          Identifier
-        </button>
-      }
+    <div class="robot-stats">
+      <div class="stat">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value">0 m</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Temps</span>
+        <span class="stat-value">0s</span>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="global-actions">
+<div class="global-actions" *ngIf="mode === 'simulation'">
   <button class="action-btn btn-return" (click)="returnToBase()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
