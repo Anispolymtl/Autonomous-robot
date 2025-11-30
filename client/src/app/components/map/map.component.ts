@@ -190,6 +190,34 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   private configureMapSocketFeatures(): void {
+    const handlePoints = (payload: Point2D[] | { robot?: RobotId; points?: Point2D[] }) => {
+      const targetRobot = (payload as any)?.robot ?? this.robotId;
+      if (targetRobot !== this.robotId) return;
+
+      const points: Point2D[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray((payload as any)?.points)
+          ? (payload as any)?.points
+          : [];
+
+      if (!points.length) {
+        this.mapObj.pointList = [];
+        this.mapObj.pointCanvasCoords = [];
+      } else {
+        this.mapObj.pointList = points.map(
+          (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
+        ).filter((point) => point != undefined) as MapCoordinate[];
+
+        this.mapObj.pointCanvasCoords = this.mapObj.pointList
+          .map(coord => this.mapService.worldToCanvasPublic(coord.world.x, coord.world.y, this.mapObj))
+          .filter(coord => coord != undefined) as Point2D[];
+      }
+
+      if (this.canvas && this.mapObj.map) {
+        this.mapService.renderMap(this.canvas, this.mapObj);
+      }
+    };
+
     this.socketService.on(`/${this.robotId}/${MapEvent.RecoverMap}`, (recoveredMap: any) => {
       console.log(MapEvent.RecoverMap)
       this.mapObj.map = this.mapService.generateOccupancyGrid(recoveredMap);
@@ -210,32 +238,9 @@ export class MapComponent implements OnInit, OnDestroy {
       if (this.canvas && this.mapObj.map) this.mapService.renderMap(this.canvas, this.mapObj);
     });
 
-    this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, (points: Point2D[]) => {
-      console.log(`[${this.robotId}] Received newPoints:`, points);
-      
-      if (points.length === 0) {
-        console.log('empty array', points);
-        this.mapObj.pointList = [];
-        this.mapObj.pointCanvasCoords = [];
-      } else {
-        // Convertir les points monde en coordonnées carte
-        this.mapObj.pointList = points.map(
-          (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
-        ).filter((point) => point != undefined) as MapCoordinate[];
-        
-        // Mettre à jour les coordonnées canvas pour le rendu
-        this.mapObj.pointCanvasCoords = this.mapObj.pointList
-          .map(coord => this.mapService.worldToCanvasPublic(coord.world.x, coord.world.y, this.mapObj))
-          .filter(coord => coord != undefined) as Point2D[];
-        
-        console.log(`[${this.robotId}] Updated pointList:`, this.mapObj.pointList.length, 'points');
-        console.log(`[${this.robotId}] Updated canvasCoords:`, this.mapObj.pointCanvasCoords.length, 'coords');
-      }
-      
-      if (this.canvas && this.mapObj.map) {
-        this.mapService.renderMap(this.canvas, this.mapObj);
-      }
-    });
+    // Écoute les points sur l'événement namespaced et l'événement global (payload {robot, points})
+    this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, handlePoints);
+    this.socketService.on('newPoints', handlePoints);
   }
 
   private resetMap(): void {
