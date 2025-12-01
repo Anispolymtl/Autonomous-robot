@@ -13,7 +13,10 @@
         <h1 class="app-title">Mission de Simulation</h1>
       </div>
       <div class="navbar-right">
-        <button class="icon-btn logs-toggle-btn" (click)="toggleLogsSidebar()" title="Afficher/Masquer les Logs">
+        <button
+          class="icon-btn logs-toggle-btn"
+          (click)="toggleLogsSidebar()"
+          title="Ouvrir les fichiers de logs pour consulter les événements de mission en direct">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
@@ -31,7 +34,10 @@
     <!-- Sidebar gauche - Contrôles -->
     <aside class="sidebar sidebar-left">
       <div class="editor-fab-block">
-        <button class="editor-fab" (click)="navigateToEditPage()" title="Modifier le code">
+        <button
+          class="editor-fab"
+          (click)="navigateToEditPage()"
+          title="Ajustez les contrôleurs robots et redémarrez le simulateur après vos modifications">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -52,6 +58,7 @@
           <h2>État des Robots</h2>
         </div>
         <app-robot-status
+          title="Rapproche chaque robot à son point de départ"
           [mode]="'simulation'"
           (onReturnToBase)="returnToBase()"
           (onIdentifyRobot)="identifyRobot($event)">
@@ -82,11 +89,14 @@
             <h3>Choisissez votre mode d'exploration</h3>
           </div>
           <div class="mode-card-actions">
-            <button class="btn btn-danger btn-sm" (click)="stopMission()">
+            <button
+              class="btn btn-danger btn-sm"
+              (click)="stopMission()"
+              title="Terminer la mission immédiatement et arrêter tous les robots">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12"></rect>
               </svg>
-              Arrêter la mission
+              Terminer la mission
             </button>
           </div>
         </div>
@@ -102,7 +112,7 @@
               <p>Exploration automatique par les robots</p>
             </div>
             <button class="mode-option-action btn-primary" (click)="startMission()">
-              Démarrer
+              Lancer la mission
             </button>
           </div>
           <div class="mode-divider">
