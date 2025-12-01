@@ -1,161 +1,300 @@
 """
 ===========================================================
-      Exemple de mission personnalisée (custom mission)
+      Template de mission personnalisée (custom mission)
 ===========================================================
 
-Ce fichier contient une logique de mission entièrement
-personnalisée, utilisée lorsque le MissionServer est lancé
-avec le paramètre :
+Ce fichier permet de définir une logique de mission personnalisée
+pour le MissionServer lorsqu'il est lancé avec :
 
     use_custom_logic := true
 
-L’objectif de cet exemple est de montrer comment réaliser
-une mission simple : le robot alterne entre avancer et
-reculer toutes les 2 secondes.
-
-Le comportement est ainsi contrôlé par 4 fonctions :
+Le comportement est contrôlé par 4 fonctions principales :
 -----------------------------------------------------------
- 1. on_mission_start()  → appelée au début de la mission
- 2. on_mission_step()   → appelée régulièrement (1 Hz)
- 3. on_mission_cancel() → appelée lors d'une annulation
- 4. on_mission_end()    → appelée à la fin normale
+ 1. on_mission_start(node)        → Appelée au début
+ 2. on_mission_step(node, elapsed) → Appelée chaque seconde
+ 3. on_mission_end(node)           → Appelée en fin normale
+ 4. on_mission_cancel(node)        → Appelée si annulée
 -----------------------------------------------------------
 
-L’utilisateur peut modifier :
-- les vitesses
-- la durée des cycles
-- la logique d’alternance
-- la publication des commandes
-- les actions à la fin/annulation
+IMPORTANT:
+- on_mission_step() doit retourner None pour continuer
+- on_mission_step() retourne une string pour terminer
+- Utilisez node.get_logger().info() pour les logs
+- Accédez aux services/topics via node.create_*()
 
 """
 
-import time
 from geometry_msgs.msg import Twist
 
 
-# ============================================================
-#                 PARAMÈTRES GÉNÉRAUX DU COMPORTEMENT
-# ============================================================
+# ===========================================================
+#               VARIABLES GLOBALES (optionnel)
+# ===========================================================
 
-# Vitesse linéaire avant (m/s)
-FORWARD_SPEED = 0.20
+# Publishers initialisés dans on_mission_start
+_cmd_pub = None
 
-# Vitesse linéaire arrière (m/s)
-BACKWARD_SPEED = -0.20
-
-# Durée d’un cycle avant → arrière (en secondes)
-CYCLE_DURATION = 2.0
-
-# Publisher (initialisé dans on_mission_start)
-cmd_pub = None
+# Variables de mission
+_mission_data = {}
 
 
+# ===========================================================
+#            1. DÉBUT DE LA MISSION
+# ===========================================================
 
-# ============================================================
-#                1.   DÉBUT DE LA MISSION
-# ============================================================
 def on_mission_start(node):
     """
-    Appelée une seule fois lors du démarrage de la mission.
-
-    Le rôle principal est :
-    - initialiser les publishers nécessaires
-    - préparer les variables
-    - envoyer un message de démarrage
+    Appelée UNE SEULE FOIS au démarrage de la mission.
+    
+    Utilisez cette fonction pour :
+    - Créer des publishers/subscribers
+    - Initialiser des variables
+    - Configurer l'état initial
+    
+    NOTE: L'état du robot reste en CUSTOM_MISSION durant toute la mission.
+    
+    Args:
+        node: Instance du MissionServer
     """
+    global _cmd_pub, _mission_data
+    
+    # Créer le publisher pour contrôler le robot
+    _cmd_pub = node.create_publisher(Twist, "cmd_vel", 10)
+    
+    # Initialiser les données de mission
+    _mission_data = {
+        'phase': 0,
+        'counter': 0,
+        'max_duration': 60  # Durée max en secondes
+    }
+    
+    node.get_logger().info("🚀 [Custom] Mission démarrée")
+    
+    # Exemple : Arrêter le robot au départ
+    _stop_robot()
 
-    global cmd_pub
-    cmd_pub = node.create_publisher(Twist, "cmd_vel", 10)
 
-    node.get_logger().info(
-        "🚀 [custom_mission] Mission personnalisée démarrée : "
-        "le robot va alterner avancer/reculer toutes les 2 sec."
-    )
+# ===========================================================
+#            2. BOUCLE PRINCIPALE (STEP)
+# ===========================================================
 
-
-
-# ============================================================
-#                2.   BOUCLE PRINCIPALE (STEP)
-# ============================================================
 def on_mission_step(node, elapsed_time):
     """
-    Appelée en continu (environ toutes les secondes) pendant la mission.
-
-    Paramètres
-    ----------
-    node : MissionServer
-        Le nœud principal.
-    elapsed_time : int
-        Temps écoulé depuis le début (en secondes)
-
-    Retour attendu
-    --------------
-    - None → continuer la mission
-    - str  → terminer la mission immédiatement avec un message
+    Appelée RÉGULIÈREMENT (environ 1 Hz) pendant la mission.
+    
+    C'est ici que vous implémentez votre logique principale.
+    
+    Args:
+        node: Instance du MissionServer
+        elapsed_time: Temps écoulé depuis le début (secondes)
+    
+    Returns:
+        None: Continue la mission
+        str: Termine la mission avec ce message
     """
-
-    global cmd_pub
-    msg = Twist()
-
-    # Phase du cycle : 0 = avance, 1 = recule
-    cycle_phase = int(elapsed_time / CYCLE_DURATION) % 2
-
-    if cycle_phase == 0:
-        msg.linear.x = FORWARD_SPEED
-        node.get_logger().info("➡️ Avance")
-    else:
-        msg.linear.x = BACKWARD_SPEED
-        node.get_logger().info("⬅️ Recule")
-
-    # Publication de la commande sur /cmd_vel
-    cmd_pub.publish(msg)
-
-    # Pas de fin automatique → la mission continue
+    global _mission_data
+    
+    # Exemple : Terminer après une durée max
+    if elapsed_time >= _mission_data['max_duration']:
+        return f"Mission terminée après {elapsed_time}s"
+    
+    # Exemple : Alterner entre avancer et reculer
+    cycle_duration = 5  # secondes
+    phase = int(elapsed_time / cycle_duration) % 2
+    
+    if phase != _mission_data['phase']:
+        _mission_data['phase'] = phase
+        _mission_data['counter'] += 1
+        
+        if phase == 0:
+            node.get_logger().info(f"➡️ [Custom] Phase AVANT (cycle {_mission_data['counter']})")
+            _move_forward(speed=0.2)
+        else:
+            node.get_logger().info(f"⬅️ [Custom] Phase ARRIÈRE (cycle {_mission_data['counter']})")
+            _move_backward(speed=0.2)
+    
+    # Continuer la mission
     return None
 
 
+# ===========================================================
+#            3. FIN NORMALE DE LA MISSION
+# ===========================================================
 
-# ============================================================
-#                3.   ANNULATION DE LA MISSION
-# ============================================================
-def on_mission_cancel(node):
-    """
-    Appelée lorsque l’utilisateur demande une annulation.
-
-    Permet d'arrêter proprement le robot.
-    """
-
-    stop = Twist()  # msg vide = arrêt moteur
-    node.create_publisher(Twist, "cmd_vel", 10).publish(stop)
-
-    node.get_logger().info(
-        "🟥 [custom_mission] Mission annulée : robot immobilisé."
-    )
-
-    time.sleep(0.2)
-
-
-
-# ============================================================
-#                4.   FIN NORMALE DE LA MISSION
-# ============================================================
 def on_mission_end(node):
     """
-    Appelée uniquement lorsque la mission termine normalement
-    (pas une annulation).
-
-    Utile pour :
-    - arrêter définitivement le robot
-    - envoyer un message de fin
-    - réaliser une action finale
+    Appelée lorsque la mission se termine NORMALEMENT.
+    (on_mission_step a retourné une string)
+    
+    Utilisez cette fonction pour :
+    - Arrêter proprement le robot
+    - Nettoyer les ressources
+    - Enregistrer des données
+    
+    Args:
+        node: Instance du MissionServer
     """
+    node.get_logger().info("🏁 [Custom] Mission terminée normalement")
+    
+    # Arrêter le robot
+    _stop_robot()
+    
+    # Nettoyer les variables globales
+    global _mission_data
+    _mission_data.clear()
 
-    stop = Twist()
-    node.create_publisher(Twist, "cmd_vel", 10).publish(stop)
 
-    node.get_logger().info(
-        "🏁 [custom_mission] Mission terminée : robot arrêté proprement."
-    )
+# ===========================================================
+#            4. ANNULATION DE LA MISSION
+# ===========================================================
 
-    time.sleep(0.2)
+def on_mission_cancel(node):
+    """
+    Appelée lorsque la mission est ANNULÉE par l'utilisateur.
+    
+    Utilisez cette fonction pour :
+    - Arrêter d'urgence le robot
+    - Nettoyer les ressources
+    - Sauvegarder l'état si nécessaire
+    
+    Args:
+        node: Instance du MissionServer
+    """
+    node.get_logger().info("🟥 [Custom] Mission annulée")
+    
+    # Arrêter immédiatement le robot
+    _stop_robot()
+    
+    # Nettoyer
+    global _mission_data
+    _mission_data.clear()
+
+
+# ===========================================================
+#               FONCTIONS UTILITAIRES
+# ===========================================================
+
+def _stop_robot():
+    """Arrête complètement le robot"""
+    global _cmd_pub
+    if _cmd_pub:
+        msg = Twist()  # Toutes les vitesses à 0
+        _cmd_pub.publish(msg)
+
+
+def _move_forward(speed=0.2):
+    """Fait avancer le robot"""
+    global _cmd_pub
+    if _cmd_pub:
+        msg = Twist()
+        msg.linear.x = speed
+        _cmd_pub.publish(msg)
+
+
+def _move_backward(speed=0.2):
+    """Fait reculer le robot"""
+    global _cmd_pub
+    if _cmd_pub:
+        msg = Twist()
+        msg.linear.x = -speed
+        _cmd_pub.publish(msg)
+
+
+def _turn_left(angular_speed=0.5):
+    """Fait tourner le robot à gauche"""
+    global _cmd_pub
+    if _cmd_pub:
+        msg = Twist()
+        msg.angular.z = angular_speed
+        _cmd_pub.publish(msg)
+
+
+def _turn_right(angular_speed=0.5):
+    """Fait tourner le robot à droite"""
+    global _cmd_pub
+    if _cmd_pub:
+        msg = Twist()
+        msg.angular.z = -angular_speed
+        _cmd_pub.publish(msg)
+
+
+# ===========================================================
+#               EXEMPLES D'UTILISATION
+# ===========================================================
+
+"""
+EXEMPLE 1 : Mission simple avec timeout
+----------------------------------------
+def on_mission_step(node, elapsed_time):
+    if elapsed_time >= 30:
+        return "Timeout après 30s"
+    
+    _move_forward(speed=0.3)
+    return None
+
+
+EXEMPLE 2 : Mission avec phases multiples
+------------------------------------------
+def on_mission_step(node, elapsed_time):
+    if elapsed_time < 10:
+        node.get_logger().info("Phase 1: Avance")
+        _move_forward(0.3)
+    elif elapsed_time < 20:
+        node.get_logger().info("Phase 2: Tourne")
+        _turn_left(0.5)
+    elif elapsed_time < 30:
+        node.get_logger().info("Phase 3: Recule")
+        _move_backward(0.2)
+    else:
+        return "Mission en 3 phases terminée"
+    
+    return None
+
+
+EXEMPLE 3 : Mission avec compteur de cycles
+--------------------------------------------
+_cycle_count = 0
+
+def on_mission_step(node, elapsed_time):
+    global _cycle_count
+    
+    phase = int(elapsed_time / 5) % 2
+    
+    if phase == 0 and elapsed_time > 0 and elapsed_time % 5 < 1:
+        _cycle_count += 1
+        node.get_logger().info(f"Cycle {_cycle_count}")
+    
+    if _cycle_count >= 10:
+        return f"Mission terminée après {_cycle_count} cycles"
+    
+    if phase == 0:
+        _move_forward(0.2)
+    else:
+        _turn_right(0.3)
+    
+    return None
+
+
+EXEMPLE 4 : Patrouille en carré
+--------------------------------
+def on_mission_step(node, elapsed_time):
+    # Chaque côté dure 5 secondes
+    side_duration = 5
+    total_sides = 4
+    
+    side_number = int(elapsed_time / side_duration) % (total_sides + 1)
+    
+    if side_number < total_sides:
+        time_in_side = elapsed_time % side_duration
+        
+        if time_in_side < 3:
+            # Avancer pendant 3 secondes
+            _move_forward(0.2)
+        else:
+            # Tourner pendant 2 secondes
+            _turn_left(0.5)
+    else:
+        return "Patrouille carrée terminée"
+    
+    return None
+"""

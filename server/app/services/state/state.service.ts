@@ -18,7 +18,7 @@ export class StateService {
         this.stateListner1 = new rclnodejs.Node('state_listener_backend', 'limo1');
         this.stateSubscription1 = this.stateListner1.createSubscription(
             'std_msgs/msg/String',
-            '/limo1/mission_state',
+            '/limo1/robot_state',
             (msg) => {
                 this.socketService.sendStateToAllSockets('limo1', msg.data);
             }
@@ -28,7 +28,7 @@ export class StateService {
         this.stateListner2 = new rclnodejs.Node('state_listener_backend', 'limo2');
         this.stateSubscription2 = this.stateListner2.createSubscription(
           'std_msgs/msg/String',
-          '/limo2/mission_state',
+          '/limo2/robot_state',
           (msg) => {
             this.socketService.sendStateToAllSockets('limo2', msg.data);
           }
