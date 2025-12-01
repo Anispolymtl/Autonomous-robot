@@ -41,6 +41,8 @@ export class NavService {
         this.points[robot] = [];
         if (!points.length || !this.isInit) return;
         if (!this.isNavigating[robot]) {
+            this.socketService.sendStateToAllSockets(robot, 'Trajet en cours');
+            this.socketService.sendWaypointStatus(robot, 'started');
             this.processPointQueue(robot, points).catch((err) =>
                 this.logger.error(`Failed to process queue for ${robot}`, err.stack),
             );
@@ -52,12 +54,20 @@ export class NavService {
         this.isNavigating[robot] = true;
         const waypoints = queue.splice(0, queue.length);
         console.log(waypoints);
+        let resultStatus: number | undefined;
         try {
-            await this.dispatchWaypoints(robot, waypoints);
+            resultStatus = await this.dispatchWaypoints(robot, waypoints);
         } catch (err) {
             this.logger.error(`Error sending waypoints for ${robot}`, (err as Error).stack);
         } finally {
             this.isNavigating[robot] = false;
+            this.socketService.sendWaypointStatus(robot, 'completed');
+
+            if (resultStatus === 4 /* SUCCEEDED */) {
+                this.socketService.sendStateToAllSockets(robot, 'En attente');
+            } else {
+                this.socketService.sendStateToAllSockets(robot, 'En attente (navigation interrompue)');
+            }
         }
     }
 
@@ -88,6 +98,7 @@ export class NavService {
         );
         const result = await goalHandle.getResult();
         this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+        return result?.status;
     }
 
     private buildRosTime() {

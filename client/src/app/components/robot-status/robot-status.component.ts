@@ -66,4 +66,24 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   identifyRobot(robotId: RobotId): void {
     this.onIdentifyRobot.emit(robotId);
   }
+
+  getDisplayStatus(status: string): string {
+    const normalized = (status || '').toLowerCase();
+
+    if (!normalized || normalized.startsWith('en attente')) {
+      return 'Trajet en attente';
+    }
+
+    if (
+      normalized.includes('nav') ||
+      normalized.includes('waypoint') ||
+      normalized.includes('en route') ||
+      normalized.includes('moving') ||
+      normalized.includes('en cours')
+    ) {
+      return 'Trajet en cours';
+    }
+
+    return status || 'Trajet en cours';
+  }
 }

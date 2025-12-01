@@ -12,6 +12,7 @@ export class MissionStateService implements OnDestroy {
   private limo2State$ = new BehaviorSubject<string>('En attente');
   private limo1Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
   private limo2Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
+  private navigating: Record<'limo1' | 'limo2', boolean> = { limo1: false, limo2: false };
 
   constructor(private readonly socketService: SocketService) {}
 
@@ -39,10 +40,25 @@ export class MissionStateService implements OnDestroy {
 
       console.log(`[CLIENT] État reçu → ${payload.robot}: ${payload.state}`);
 
+      // Si on est en navigation, on ignore les états "En attente" prématurés
+      const isWaitingState = payload.state.toLowerCase().startsWith('en attente');
       if (payload.robot === 'limo1') {
+        if (this.navigating.limo1 && isWaitingState) return;
         this.limo1State$.next(payload.state);
       } else if (payload.robot === 'limo2') {
+        if (this.navigating.limo2 && isWaitingState) return;
         this.limo2State$.next(payload.state);
+      }
+    });
+
+    this.socketService.on('waypointsStatus', (payload: { robot: string; status: 'started' | 'completed' }) => {
+      if (!payload?.robot || !payload.status) return;
+      if (payload.robot === 'limo1') {
+        this.navigating.limo1 = payload.status === 'started';
+        this.limo1State$.next(payload.status === 'started' ? 'Trajet en cours' : 'En attente');
+      } else if (payload.robot === 'limo2') {
+        this.navigating.limo2 = payload.status === 'started';
+        this.limo2State$.next(payload.status === 'started' ? 'Trajet en cours' : 'En attente');
       }
     });
 
