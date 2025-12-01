@@ -63,22 +63,17 @@ interface MissionEventPayload {
   <div class="main-container" [class.logs-open]="isLogsSidebarOpen">
     <!-- Sidebar gauche - Contrôles -->
     <aside class="sidebar sidebar-left">
-      <!-- Éditeur de Mission -->
-      <section class="control-section">
-        <div class="section-header">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      <div class="editor-fab-block">
+        <button class="editor-fab" (click)="navigateToEditPage()" title="Modifier le code">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            <path d="M2 2l7.586 7.586"></path>
+            <circle cx="11" cy="11" r="2"></circle>
           </svg>
-          <h2>Éditeur de Mission</h2>
-        </div>
-        <button class="btn btn-secondary btn-block" (click)="navigateToEditPage()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-          </svg>
-          Modifier le Code
         </button>
-      </section>
+        <span class="editor-caption">Éditeur de code</span>
+      </div>
 
       <!-- Contrôle de Mission -->
       <section class="control-section">
