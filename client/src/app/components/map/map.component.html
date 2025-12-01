@@ -93,23 +93,7 @@
         </button>
       </div>
     </div>
-    
-    <!-- Map Controls Overlay -->
-    <div class="map-controls">
-      <button class="control-btn" title="Réinitialiser la vue" type="button">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
-      </button>
-      <button class="control-btn" *ngIf="originWorld" title="Origine: ({{ originWorld.x | number:'1.2-2' }}m, {{ originWorld.y | number:'1.2-2' }}m)" type="button">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="16"></line>
-          <line x1="8" y1="12" x2="16" y2="12"></line>
-        </svg>
-      </button>
-    </div>
+  
     
     <!-- Map Status Indicator -->
     <div class="map-status" [class.map-status--loaded]="mapObj.map">
