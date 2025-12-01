@@ -75,31 +75,6 @@ interface MissionEventPayload {
         <span class="editor-caption">Éditeur de code</span>
       </div>
 
-      <!-- Contrôle de Mission -->
-      <section class="control-section">
-        <div class="section-header">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polygon points="10 8 16 12 10 16 10 8"></polygon>
-          </svg>
-          <h2>Contrôle Mission</h2>
-        </div>
-        <div class="button-group">
-          <button class="btn btn-primary btn-block" (click)="startMission()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            Démarrer
-          </button>
-          <button class="btn btn-danger btn-block" (click)="stopMission()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="6" y="6" width="12" height="12"></rect>
-            </svg>
-            Arrêter
-          </button>
-        </div>
-      </section>
-
       <!-- État des Robots -->
       <section class="control-section robot-status-section">
         <div class="section-header">
@@ -128,6 +103,66 @@ interface MissionEventPayload {
 
     <!-- Zone centrale - Cartes -->
     <main class="main-content">
+      <!-- Mode Selection Card -->
+      <section class="mode-selection-card">
+        <div class="mode-card-header">
+          <div class="mode-header-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+            <h3>Choisissez votre mode d'exploration</h3>
+          </div>
+          <div class="mode-card-actions">
+            <button class="btn btn-danger btn-sm" (click)="stopMission()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="6" width="12" height="12"></rect>
+              </svg>
+              Arrêter la mission
+            </button>
+          </div>
+        </div>
+        <div class="mode-options">
+          <div class="mode-option">
+            <div class="mode-option-icon mode-icon-auto">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+            <div class="mode-option-content">
+              <h4>Mission Autonome</h4>
+              <p>Exploration automatique par les robots</p>
+            </div>
+            <button class="mode-option-action btn-primary" (click)="startMission()">
+              Démarrer
+            </button>
+          </div>
+          <div class="mode-divider">
+            <span>OU</span>
+          </div>
+          <div class="mode-option">
+            <div class="mode-option-icon mode-icon-manual">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div class="mode-option-content">
+              <h4>Trajectoire Manuelle</h4>
+              <p>Cliquez sur la carte pour définir des points</p>
+            </div>
+            <div class="mode-option-hint">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              <span>Voir la carte ci-dessous</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Carte individuelle -->
       <section class="map-section">
         <div class="map-header">
