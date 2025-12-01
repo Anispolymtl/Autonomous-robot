@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MissionStateService } from '@app/services/state/state.service';
 import { Subscription } from 'rxjs';
 
@@ -7,6 +8,7 @@ type RobotId = 'limo1' | 'limo2';
 @Component({
   selector: 'app-robot-status',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './robot-status.component.html',
   styleUrls: ['./robot-status.component.scss'],
 })
@@ -19,9 +21,13 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   robot2Status = 'En attente';
   robot1Battery = 21;
   robot2Battery = 67;
+  robot1Position: { x: number; y: number } | null = null;
+  robot2Position: { x: number; y: number } | null = null;
 
   private sub1!: Subscription;
   private sub2!: Subscription;
+  private subPos1?: Subscription;
+  private subPos2?: Subscription;
 
   constructor(private missionStateService: MissionStateService) {}
 
@@ -35,11 +41,21 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
     this.sub2 = this.missionStateService.getLimo2State$().subscribe((state) => {
       this.robot2Status = state;
     });
+
+    this.subPos1 = this.missionStateService.getLimo1Position$().subscribe((pos) => {
+      this.robot1Position = pos;
+    });
+
+    this.subPos2 = this.missionStateService.getLimo2Position$().subscribe((pos) => {
+      this.robot2Position = pos;
+    });
   }
 
   ngOnDestroy(): void {
     if (this.sub1) this.sub1.unsubscribe();
     if (this.sub2) this.sub2.unsubscribe();
+    this.subPos1?.unsubscribe();
+    this.subPos2?.unsubscribe();
     this.missionStateService.disconnect();
   }
 

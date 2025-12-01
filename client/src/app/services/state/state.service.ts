@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SocketService } from '@app/services/socket/socket.service';
+import { PoseData } from '@app/interfaces/pose-data';
 
 
 @Injectable({
@@ -9,6 +10,8 @@ import { SocketService } from '@app/services/socket/socket.service';
 export class MissionStateService implements OnDestroy {
   private limo1State$ = new BehaviorSubject<string>('En attente');
   private limo2State$ = new BehaviorSubject<string>('En attente');
+  private limo1Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
+  private limo2Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
 
   constructor(private readonly socketService: SocketService) {}
 
@@ -42,6 +45,18 @@ export class MissionStateService implements OnDestroy {
         this.limo2State$.next(payload.state);
       }
     });
+
+    this.socketService.on('poseUpdate', (payload: { robot: string; poseData: PoseData }) => {
+      if (!payload?.robot || !payload.poseData?.pose?.position) return;
+      const { x, y } = payload.poseData.pose.position;
+      const position = { x, y };
+
+      if (payload.robot === 'limo1') {
+        this.limo1Position$.next(position);
+      } else if (payload.robot === 'limo2') {
+        this.limo2Position$.next(position);
+      }
+    });
   }
 
   getLimo1State$(): Observable<string> {
@@ -50,6 +65,14 @@ export class MissionStateService implements OnDestroy {
 
   getLimo2State$(): Observable<string> {
     return this.limo2State$.asObservable();
+  }
+
+  getLimo1Position$(): Observable<{ x: number; y: number } | null> {
+    return this.limo1Position$.asObservable();
+  }
+
+  getLimo2Position$(): Observable<{ x: number; y: number } | null> {
+    return this.limo2Position$.asObservable();
   }
 
   disconnect() {

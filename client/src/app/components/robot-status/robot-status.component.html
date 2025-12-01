@@ -59,6 +59,16 @@
         <span class="stat-label">Temps</span>
         <span class="stat-value">2m 14s</span>
       </div>
+      <div class="stat position">
+        <span class="stat-label">Position</span>
+        <span class="stat-value">
+          <ng-container *ngIf="robot1Position; else noPos1">
+            <span class="coord">x: {{ robot1Position.x | number:'1.2-2' }} m</span>
+            <span class="coord">y: {{ robot1Position.y | number:'1.2-2' }} m</span>
+          </ng-container>
+          <ng-template #noPos1>—</ng-template>
+        </span>
+      </div>
     </div>
   </div>
 
@@ -121,6 +131,16 @@
       <div class="stat">
         <span class="stat-label">Temps</span>
         <span class="stat-value">0s</span>
+      </div>
+      <div class="stat position">
+        <span class="stat-label">Position</span>
+        <span class="stat-value">
+          <ng-container *ngIf="robot2Position; else noPos2">
+            <span class="coord">x: {{ robot2Position.x | number:'1.2-2' }} m</span>
+            <span class="coord">y: {{ robot2Position.y | number:'1.2-2' }} m</span>
+          </ng-container>
+          <ng-template #noPos2>—</ng-template>
+        </span>
       </div>
     </div>
   </div>
