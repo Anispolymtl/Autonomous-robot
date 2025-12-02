@@ -117,12 +117,12 @@ def launch_with_namespace(context, *args, **kwargs):
         arguments=['0', '-1', '0', '0', '0', '0', 'merge_map', 'limo2/map']
     )
 
-    # static_merge_map_tf = Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
-    #     name='static_tf_merge_map',
-    #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map']
-    # )
+    static_merge_map_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_merge_map',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map']
+    )
 
     # explore_launch = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
@@ -145,7 +145,8 @@ def launch_with_namespace(context, *args, **kwargs):
         merge_map_node,
         static_tf_limo1,
         static_tf_limo2,
-        static_merge_map_tf]
+        # static_merge_map_tf
+        ]
 
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
