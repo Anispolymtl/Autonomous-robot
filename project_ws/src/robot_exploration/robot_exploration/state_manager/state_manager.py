@@ -6,6 +6,7 @@ from threading import Lock
 # Import des messages/services personnalisés
 from limo_interfaces.msg import RobotState as RobotStateMsg
 from limo_interfaces.srv import SetRobotState
+from std_msgs.msg import Bool
 
 
 class StateManager(Node):
@@ -54,6 +55,12 @@ class StateManager(Node):
         self.state_pub = self.create_publisher(
             RobotStateMsg, 
             'robot_state', 
+            10
+        )
+        # Permet de stopper l'exploration lorsqu'on quitte l'état EXPLORATION
+        self.resume_pub = self.create_publisher(
+            Bool,
+            'explore/resume',
             10
         )
         
@@ -109,6 +116,16 @@ class StateManager(Node):
         # Changer l'état (thread-safe)
         with self._state_lock:
             old_state = self._current_state
+            if requested_state == RobotStateMsg.EXPLORATION and old_state != RobotStateMsg.WAIT:
+                self.get_logger().warn(
+                    "⛔ Refus: passage vers EXPLORATION autorisé uniquement depuis WAIT"
+                )
+                response.success = False
+                response.message = "Transition vers EXPLORATION seulement depuis WAIT"
+                return response
+            if old_state == RobotStateMsg.EXPLORATION and requested_state != RobotStateMsg.EXPLORATION:
+                self.get_logger().info("⛔ Arrêt de l'exploration (transition depuis EXPLORATION)")
+                self.resume_pub.publish(Bool(data=False))
             self._current_state = requested_state
         
         # Log

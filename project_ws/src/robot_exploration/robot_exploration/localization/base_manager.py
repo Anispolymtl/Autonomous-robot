@@ -27,12 +27,18 @@ class BaseManager(Node):
 
         self.base_pose_odom = None
         self.return_in_progress = False
+        self.waiting_stop_exploration = False
+        self.pending_return_goal = None
+        self.current_state = None
 
         # Nav2
         self.nav_action_client = ActionClient(self, NavigateToPose, "navigate_to_pose")
 
         # Client pour changer l'état du robot
-        self.state_client = self.create_client(SetRobotState, '/set_state')
+        self.state_client = self.create_client(SetRobotState, 'set_state')
+
+        # Écoute de l'état courant pour synchroniser avec l'exploration
+        self.create_subscription(RobotStateMsg, "robot_state", self.robot_state_callback, 10)
         
         # Attendre que le service soit disponible
         self.get_logger().info("⏳ Attente du State Manager...")
@@ -54,6 +60,22 @@ class BaseManager(Node):
                 f"📍 [{self.namespace}] Base saved at odom x={self.base_pose_odom.position.x:.2f}, "
                 f"y={self.base_pose_odom.position.y:.2f}"
             )
+
+    def robot_state_callback(self, msg: RobotStateMsg):
+        """Met à jour l'état courant et déclenche le retour une fois l'exploration arrêtée."""
+        previous_state = self.current_state
+        self.current_state = msg.state
+
+        # Si on attend l'arrêt de l'exploration, lancer le retour dès que possible
+        if (
+            self.waiting_stop_exploration
+            and previous_state == RobotStateMsg.EXPLORATION
+            and self.current_state != RobotStateMsg.EXPLORATION
+        ):
+            self.get_logger().info("✅ Exploration arrêtée, lancement du retour à la base")
+            self.waiting_stop_exploration = False
+            if not self.return_in_progress and self.pending_return_goal is not None:
+                self._start_return_goal()
 
     def set_robot_state(self, state: int):
         """
@@ -94,7 +116,7 @@ class BaseManager(Node):
             response.message = "Base not known."
             return response
 
-        if self.return_in_progress:
+        if self.return_in_progress or self.waiting_stop_exploration:
             response.success = False
             response.message = "Return already running."
             return response
@@ -134,12 +156,37 @@ class BaseManager(Node):
         base_map_stamped.header.stamp = self.get_clock().now().to_msg()
         base_map_stamped.pose = base_map_pose
 
-        # ---- CHANGER L'ÉTAT → RETURN_TO_BASE ----
-        self.set_robot_state(RobotStateMsg.RETURN_TO_BASE)
-
-        # ---- NAV2 GOAL ----
+        # Conserver le goal pour lancement différé si l'exploration est en cours
         goal = NavigateToPose.Goal()
         goal.pose = base_map_stamped
+        self.pending_return_goal = goal
+
+        # Si on explore encore, demander l'arrêt avant de lancer le retour
+        if self.current_state == RobotStateMsg.EXPLORATION:
+            self.get_logger().info("⏸ Arrêt de l'exploration avant le retour à la base")
+            self.waiting_stop_exploration = True
+            self.set_robot_state(RobotStateMsg.WAIT)
+            response.success = True
+            response.message = "Return-to-base pending: stopping exploration first."
+            return response
+
+        # Sinon on peut lancer directement le retour
+        self._start_return_goal()
+        response.success = True
+        response.message = "Return-to-base sent."
+        return response
+
+    def _start_return_goal(self):
+        """Envoie le goal Nav2 pour retourner à la base et met l'état à jour."""
+        if self.pending_return_goal is None:
+            self.get_logger().warn("⚠️ Aucun goal de retour en attente.")
+            return
+
+        goal = self.pending_return_goal
+        self.pending_return_goal = None
+
+        # ---- CHANGER L'ÉTAT → RETURN_TO_BASE ----
+        self.set_robot_state(RobotStateMsg.RETURN_TO_BASE)
 
         self.get_logger().info(
             f"🏠 [{self.namespace}] Returning to base at MAP x={goal.pose.pose.position.x:.2f}, "
@@ -150,15 +197,13 @@ class BaseManager(Node):
         send_future = self.nav_action_client.send_goal_async(goal)
         send_future.add_done_callback(self.goal_response_callback)
 
-        response.success = True
-        response.message = "Return-to-base sent."
-        return response
-
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().warn(f"⚠️ [{self.namespace}] Return-to-base goal REJECTED")
             self.return_in_progress = False
+            self.pending_return_goal = None
+            self.waiting_stop_exploration = False
             # Retour à l'état WAIT si rejeté
             self.set_robot_state(RobotStateMsg.WAIT)
             return
@@ -169,6 +214,8 @@ class BaseManager(Node):
 
     def result_callback(self, future):
         self.return_in_progress = False
+        self.pending_return_goal = None
+        self.waiting_stop_exploration = False
         
         try:
             result = future.result().result
