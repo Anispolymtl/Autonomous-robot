@@ -1,29 +1,26 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { IdentifyService } from '@app/services/identify/identify.service';
 import { MissionService } from '@app/services/mission/mission.service';
-import { MapComponent } from '@app/components/map/map.component';
 import { RobotStatusComponent } from '@app/components/robot-status/robot-status.component';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MergedMapComponent } from '@app/components/merged-map/merged-map.component';
+import { SocketService } from '@app/services/socket/socket.service';
 
 type RobotId = 'limo1' | 'limo2';
 
 @Component({
   selector: 'app-real-page',
   standalone: true,
-  imports: [MapComponent, RobotStatusComponent, CommonModule, ReactiveFormsModule],
+  imports: [RobotStatusComponent, CommonModule, MergedMapComponent],
   templateUrl: './real-mode-page.component.html',
   styleUrls: ['./real-mode-page.component.scss'],
 })
 export class RealPageComponent implements OnInit {
-  form: FormGroup;
   message: string | null = null;
-  selectedRobotId: RobotId = 'limo1';
-
 
   @ViewChild(RobotStatusComponent)
   robotStatusComponent!: RobotStatusComponent;
@@ -33,30 +30,31 @@ export class RealPageComponent implements OnInit {
     private identifyService: IdentifyService,
     private missionService: MissionService,
     private missionSessionService: MissionSessionService,
-    private missionDatabaseService: MissionDatabaseService
+    private missionDatabaseService: MissionDatabaseService,
+    private socketService: SocketService
   ) {}
 
   ngOnInit(): void {
-    this.missionSessionService.rehydrateActiveMission();
+    void this.missionSessionService.rehydrateActiveMission();
   }
 
-  onIdentify(robotId: number): void {
-    const robotNamespace = this.asRobotNamespace(robotId);
-    this.identifyService.identifyRobot(robotId).subscribe({
+  identifyRobot(robotId: RobotId): void {
+    const robotNumber = robotId === 'limo2' ? 2 : 1;
+    this.identifyService.identifyRobot(robotNumber).subscribe({
       next: (res: any) => {
-        this.message = `Réponse du robot ${robotId} : ${res.message}`;
+        this.message = `Réponse du robot ${robotNumber} : ${res.message}`;
         this.missionSessionService.appendLog({
           category: 'Command',
-          robot: robotNamespace,
+          robot: robotId,
           action: 'identify_robot',
           details: { success: true, message: res?.message ?? null },
         });
       },
       error: (err: HttpErrorResponse) => {
-        this.message = `Erreur lors de l'identification du robot ${robotId} : ${err.message}`;
+        this.message = `Erreur lors de l'identification du robot ${robotNumber} : ${err.message}`;
         this.missionSessionService.appendLog({
           category: 'Command',
-          robot: robotNamespace,
+          robot: robotId,
           action: 'identify_robot',
           details: { success: false, error: err?.message ?? 'unknown' },
         });
@@ -93,12 +91,9 @@ export class RealPageComponent implements OnInit {
     });
   }
 
-  setSelectedRobot(robotId: RobotId): void {
-    this.selectedRobotId = robotId;
-  }
-
-  private asRobotNamespace(robotId: number): RobotId {
-    return robotId === 2 ? 'limo2' : 'limo1';
+  returnToBase(): void {
+    this.message = 'Retour à la base en cours pour tous les robots...';
+    this.socketService.send('nav:return-to-base');
   }
 
   private finalizeMission(): void {

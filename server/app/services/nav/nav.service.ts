@@ -16,6 +16,8 @@ export class NavService {
     private readonly robotStateConstants: any;
     private points: Record<RobotId, Point2D[]> = { limo1: [], limo2: [] };
     private isNavigating: Record<RobotId, boolean> = { limo1: false, limo2: false };
+    private goalHandles: Record<RobotId, any> = { limo1: null, limo2: null };
+    private returnInProgress: Record<RobotId, boolean> = { limo1: false, limo2: false };
     private isInit: boolean = false;
     
     constructor(
@@ -92,8 +94,9 @@ export class NavService {
     private async processPointQueue(robot: RobotId, queue: Point2D[]) {
         const waypoints = queue.splice(0, queue.length);
         console.log(waypoints);
+        let resultStatus: number | undefined;
         try {
-            await this.dispatchWaypoints(robot, waypoints);
+            resultStatus = await this.dispatchWaypoints(robot, waypoints);
         } catch (err) {
             this.logger.error(`Error sending waypoints for ${robot}`, (err as Error).stack);
         } finally {
@@ -126,8 +129,42 @@ export class NavService {
             `[${robot}] current waypoint index: ${feedback?.current_waypoint}, current pose: ${feedback?.current_pose?.pose}`,
         ),
         );
+        this.goalHandles[robot] = goalHandle;
         const result = await goalHandle.getResult();
         this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+        this.goalHandles[robot] = null;
+        return result?.status;
+    }
+
+    /**
+     * Annule la navigation en cours pour un robot et réinitialise l'état.
+     */
+    async cancelNavigation(robot: RobotId) {
+        const handle = this.goalHandles[robot];
+        if (!handle) {
+            this.isNavigating[robot] = false;
+            return;
+        }
+
+        try {
+            await handle.cancelGoal?.();
+            this.logger.log(`[${robot}] Navigation annulée (retour à la base demandé)`);
+        } catch (err) {
+            this.logger.warn(`[${robot}] Échec annulation navigation: ${(err as Error).message}`);
+        } finally {
+            this.goalHandles[robot] = null;
+            this.isNavigating[robot] = false;
+            this.socketService.sendWaypointStatus(robot, 'completed');
+            // Ne pas écraser l'état "Retour à la base" ici : le caller gère l'état affiché
+        }
+    }
+
+    setReturnInProgress(robot: RobotId, inProgress: boolean) {
+        this.returnInProgress[robot] = inProgress;
+    }
+
+    isReturnInProgress(robot: RobotId): boolean {
+        return !!this.returnInProgress[robot];
     }
 
     private async ensureNavigationState(robot: RobotId): Promise<boolean> {

@@ -68,6 +68,9 @@ export class ClientGateway {
 
     @SubscribeMessage('nav:return-to-base')
     onReturnRequest(socket: Socket) {
+        // Informe immédiatement le client pour afficher l'état "Retour à la base"
+        this.socketService.sendStateToAllSockets('limo1', 'Retour à la base');
+        this.socketService.sendStateToAllSockets('limo2', 'Retour à la base');
         this.rosService.returnToBase();
     }
 

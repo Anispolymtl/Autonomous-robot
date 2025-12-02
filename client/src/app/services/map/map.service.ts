@@ -16,6 +16,35 @@ export class MapService {
         private readonly missionSessionService: MissionSessionService
     ) {
     }
+    
+    // Méthode publique pour convertir world → canvas (utilisée par le component)
+    worldToCanvasPublic(worldX: number, worldY: number, mapObj: MapObject): { x: number; y: number } | undefined {
+        return this.worldToCanvas(worldX, worldY, mapObj);
+    }
+
+    // Conversion canvas → map coordinate (pour le hover)
+    canvasToMapCoordinate(mapObj: MapObject, canvasX: number, canvasY: number): MapCoordinate | undefined {
+        if (!mapObj.map) return undefined;
+        
+        const { map } = mapObj;
+        const { width, height } = map;
+        
+        // Convertir canvas → grid (attention au flip Y)
+        const gridX = Math.floor(canvasX);
+        const gridY = height - 1 - Math.floor(canvasY);
+        
+        if (gridX < 0 || gridX >= width || gridY < 0 || gridY >= height) {
+            return undefined;
+        }
+        
+        // Convertir grid → world
+        const worldCoords = this.gridToWorld(gridX, gridY, mapObj);
+        
+        return {
+            cell: { x: gridX, y: gridY },
+            world: worldCoords
+        };
+    }
 
     renderMap(canvas: HTMLCanvasElement, mapObj: MapObject): void {
         if (!mapObj.map) return;
@@ -124,24 +153,36 @@ export class MapService {
         }
     }
 
-    sendPoint(mapObj: MapObject): void{
+    sendPoint(mapObj: MapObject): void {
         const point = mapObj.selectedPoint;
-        if(!point || !mapObj.selectedCanvasCoord) return;
-        this.socketService.send('point', {robot: mapObj.frame, point: point.world});
+        if (!point || !mapObj.selectedCanvasCoord) return;
+        
+        console.log(`[${mapObj.frame}] Sending point:`, point.world);
+        
+        // Envoyer le point au serveur
+        this.socketService.send('point', { robot: mapObj.frame, point: point.world });
+        
+        // Logger l'action
         this.logCommand(mapObj.frame, 'waypoint_added', {
             worldX: Number(point.world.x.toFixed(3)),
             worldY: Number(point.world.y.toFixed(3)),
             cellX: point.cell.x,
             cellY: point.cell.y,
         });
-        mapObj.selectedPoint = undefined;
-        mapObj.selectedCanvasCoord = undefined;
+        
+        // NE PAS ajouter localement - attendre la réponse du serveur via socket newPoints
+        // Ceci évite les duplications et les désynchronisations
+        console.log(`[${mapObj.frame}] Waiting for server confirmation...`);
     }
 
     removePoint(index: number, mapObj: MapObject): void {
         if (index < 0 || index >= mapObj.pointList.length) return;
         const removedPoint = mapObj.pointList[index];
-        this.socketService.send('removePoint', {robot: mapObj.frame, index});
+        
+        console.log(`[${mapObj.frame}] Removing point at index ${index}`);
+        
+        this.socketService.send('removePoint', { robot: mapObj.frame, index });
+        
         this.logCommand(mapObj.frame, 'waypoint_removed', {
             index,
             worldX: removedPoint?.world?.x ?? null,
@@ -155,7 +196,7 @@ export class MapService {
             return;
         }
         console.log('Sending objective:', mapObj.pointList);
-        this.socketService.send('startNavGoal', {robot: mapObj.frame});
+        this.socketService.send('startNavGoal', { robot: mapObj.frame });
         const serializedWaypoints = mapObj.pointList
             .map((point, idx) => `#${idx + 1}(${point.world.x.toFixed(3)},${point.world.y.toFixed(3)})`)
             .join('; ');
@@ -164,7 +205,6 @@ export class MapService {
             waypoints: serializedWaypoints,
         });
     }
-
 
     private gridToWorld(gridX: number, gridY: number, mapObj: MapObject): { x: number; y: number } {
         if (!mapObj.map) return { x: 0, y: 0 };
@@ -237,7 +277,6 @@ export class MapService {
             this.drawPointMarker(ctx, mapObj.selectedCanvasCoord.x, mapObj.selectedCanvasCoord.y, selectedPointColor);
         }
     }
-
 
     private drawPointMarker(ctx: CanvasRenderingContext2D, x: number, y: number, color: string): void {
         ctx.save();

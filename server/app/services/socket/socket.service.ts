@@ -50,6 +50,12 @@ export class SocketService{
         });
     }
 
+    sendWaypointStatus(robot: RobotId, status: 'started' | 'completed') {
+        this.sockets.forEach((socket) => {
+            socket.emit('waypointsStatus', { robot, status });
+        });
+    }
+
     sendMapToAllSockets(mapData: any, robot: RobotId) {
         this.payloads[robot].mapData = mapData;
         this.sockets.forEach((socket) => {

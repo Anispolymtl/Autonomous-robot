@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as rclnodejs from 'rclnodejs';
 import { SocketService } from '@app/services/socket/socket.service';
+import { NavService } from '@app/services/nav/nav.service';
 
 type RobotId = 'limo1' | 'limo2';
 

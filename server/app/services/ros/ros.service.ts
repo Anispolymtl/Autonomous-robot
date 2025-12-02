@@ -7,6 +7,7 @@ import { NavService } from '@app/services/nav/nav.service';
 import { MappingSerivce } from '@app/services/mapping/mapping.service';
 import { StateService } from '@app/services/state/state.service';
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
+import { MissionService } from '@app/services/misson/mission.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -15,12 +16,17 @@ export class RosService implements OnModuleInit {
   private readonly logger = new Logger(RosService.name);
   private limoList: LimoObject[];
 
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
 
   constructor(
     private navService: NavService,
     private stateService: StateService,
     private mappingService: MappingSerivce,
-    private codeEditor: CodeEditorService
+    private codeEditor: CodeEditorService,
+    private missionService: MissionService,
   ) {}
 
   async onModuleInit() {
@@ -28,14 +34,17 @@ export class RosService implements OnModuleInit {
     const nodeLimo1 = new rclnodejs.Node('identify_client_backend', 'limo1');
     const nodeLimo2 = new rclnodejs.Node('identify_client_backend', 'limo2');
     const Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
+    const SetBool = (rclnodejs.require('std_srvs') as any).srv.SetBool;
     const clientIdLimo1 = nodeLimo1.createClient(Trigger, 'identify_robot');
     const clientIdLimo2 = nodeLimo2.createClient(Trigger, 'identify_robot');
     const returnClient1 = nodeLimo1.createClient(Trigger, 'return_to_base');
     const returnClient2 = nodeLimo2.createClient(Trigger, 'return_to_base');
+    const changeModeClient1 = nodeLimo1.createClient(SetBool, 'change_mode');
+    const changeModeClient2 = nodeLimo2.createClient(SetBool, 'change_mode');
 
     this.limoList = [
-      { node: nodeLimo1, identifyClient: clientIdLimo1, returnClient: returnClient1 },
-      { node: nodeLimo2, identifyClient: clientIdLimo2, returnClient: returnClient2}
+      { node: nodeLimo1, identifyClient: clientIdLimo1, returnClient: returnClient1, changeModeClient: changeModeClient1 },
+      { node: nodeLimo2, identifyClient: clientIdLimo2, returnClient: returnClient2, changeModeClient: changeModeClient2 }
     ];
     this.navService.initNavService(nodeLimo1, nodeLimo2);
     this.stateService.initStateService();
@@ -64,22 +73,76 @@ export class RosService implements OnModuleInit {
 
   async returnToBase() {
     const Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
-    this.limoList.forEach((limo, index) => {
-      if (!limo.returnClient) {
-        this.logger.error(`Client retour robot ${index + 1} non initialisé`);
-        return;
-      }
+    // Marquer le retour en cours pour ne pas écraser l'état côté UI
+    this.navService.setReturnInProgress('limo1', true);
+    this.navService.setReturnInProgress('limo2', true);
 
-      const request = new Trigger.Request();
-      limo.returnClient.sendRequest(request, (response) => {
-        if (response?.success) {
-          this.logger.log(`Robot ${index + 1} retourne à la base : ${response.message}`);
-        } else {
-          this.logger.error(
-            `Échec du retour pour le robot ${index + 1} : ${response?.message ?? 'réponse vide'}`
-          );
+    // Stopper mission/exploration en cours pour libérer la navigation
+    try {
+      await this.missionService.stopMission();
+    } catch (err) {
+      this.logger.warn(`Arrêt de mission avant retour: ${(err as Error).message}`);
+    }
+
+    // Forcer la sortie du mode exploration (DoMission) -> passe en navigation
+    await Promise.all(
+      this.limoList.map(async (limo, index) => {
+        if (!limo.changeModeClient) return;
+        try {
+          const request = new ((rclnodejs.require('std_srvs') as any).srv.SetBool.Request)();
+          request.data = false; // false -> mode Navigation, stop exploration
+          await limo.changeModeClient.waitForService(1000);
+          await new Promise<void>((resolve) => {
+            limo.changeModeClient.sendRequest(request, () => resolve());
+          });
+          this.logger.log(`Robot ${index + 1}: mode exploration désactivé`);
+        } catch (err) {
+          this.logger.warn(`Robot ${index + 1}: impossible de changer de mode avant retour (${(err as Error).message})`);
         }
-      });
-    });
+      })
+    );
+
+    // Stoppe les navigations en cours pour éviter les conflits avec le retour
+    await Promise.all([
+      this.navService.cancelNavigation('limo1'),
+      this.navService.cancelNavigation('limo2'),
+    ]);
+
+    // Laisser un petit temps pour que Nav2 libère ses actions avant de demander le retour
+    await this.sleep(200);
+
+    // Envoie le retour, avec retries si la stack n'est pas encore libérée
+    await Promise.all(
+      this.limoList.map(async (limo, index) => {
+        const robotId = index === 0 ? 'limo1' : 'limo2';
+        if (!limo.returnClient) {
+          this.logger.error(`Client retour robot ${index + 1} non initialisé`);
+          this.navService.setReturnInProgress(robotId, false);
+          return;
+        }
+
+        const request = new Trigger.Request();
+        const maxAttempts = 3;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            await limo.returnClient.waitForService(1000);
+            const response: any = await new Promise((resolve) =>
+              limo.returnClient.sendRequest(request, (resp) => resolve(resp))
+            );
+            if (response?.success) {
+              this.logger.log(`Robot ${index + 1} retourne à la base : ${response.message}`);
+              break;
+            }
+            this.logger.warn(`Retour à la base robot ${index + 1} tentative ${attempt}/${maxAttempts} échouée: ${response?.message ?? 'réponse vide'}`);
+          } catch (err) {
+            this.logger.warn(`Retour à la base robot ${index + 1} tentative ${attempt}/${maxAttempts} erreur: ${(err as Error).message}`);
+          }
+          if (attempt < maxAttempts) await this.sleep(300);
+        }
+
+        // Libère le flag retour après les tentatives
+        this.navService.setReturnInProgress(robotId, false);
+      })
+    );
   }
 }

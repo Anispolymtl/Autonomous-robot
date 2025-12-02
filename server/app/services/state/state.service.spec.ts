@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StateService } from './state.service';
 import { SocketService } from '@app/services/socket/socket.service';
+import { NavService } from '@app/services/nav/nav.service';
 import * as rclnodejs from 'rclnodejs';
 
 jest.mock('rclnodejs');
@@ -43,6 +44,12 @@ describe('StateService', () => {
           provide: SocketService,
           useValue: {
             sendStateToAllSockets: jest.fn(),
+          },
+        },
+        {
+          provide: NavService,
+          useValue: {
+            isReturnInProgress: mockIsReturnInProgress,
           },
         },
       ],
@@ -97,5 +104,24 @@ describe('StateService', () => {
     const msg2 = { state: RobotStateMock.RETURN_TO_BASE };
     callbackCaptor[1](msg2);
     expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo2', 'Retour a la base');
+  });
+
+  it('should ignore waiting state when return to base is in progress', () => {
+    mockIsReturnInProgress.mockImplementation((robot: string) => robot === 'limo1');
+
+    const callbackCaptor: Function[] = [];
+    mockCreateSubscription.mockImplementation((_msgType, _topic, callback) => {
+      callbackCaptor.push(callback);
+    });
+
+    service.initStateService();
+
+    const waitingMsg = { data: 'En attente' };
+    callbackCaptor[0](waitingMsg);
+    expect(socketService.sendStateToAllSockets).not.toHaveBeenCalledWith('limo1', 'En attente');
+
+    const normalMsg = { data: 'Trajet en cours' };
+    callbackCaptor[0](normalMsg);
+    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo1', 'Trajet en cours');
   });
 });

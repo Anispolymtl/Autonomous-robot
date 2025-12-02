@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { MapCoordinate } from '@app/interfaces/map-coordinate';
 import { OccupancyGrid } from '@common/interfaces/occupancy-grid';
 import { Orientation } from '@app/interfaces/orientation';
@@ -32,18 +33,34 @@ export interface MapObject {
   imports: [CommonModule],
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
+  animations: [
+    trigger('popupAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translate(-50%, calc(-100% - 15px)) scale(0.9)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'translate(-50%, calc(-100% - 25px)) scale(1)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'translate(-50%, calc(-100% - 15px)) scale(0.9)' }))
+      ])
+    ])
+  ]
 })
 export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('mapCanvas', { static: true }) private mapCanvasRef?: ElementRef<HTMLCanvasElement>;
   mapObj: MapObject = this.createInitialMapObject();
   @Input({ required: true }) robotId!: RobotId;
   
+  // Nouvelles propriétés pour l'UX améliorée
+  hoverCoords: Point2D | undefined;
+  hoverPoint: MapCoordinate | undefined;
+  selectedCanvasCoords: Point2D | undefined;
+  
   constructor(
     private readonly mapService: MapService,
     private readonly socketService: SocketService,
   ) {}
 
-ngOnInit(): void {
+  ngOnInit(): void {
     if (!this.socketService.isSocketAlive()) {
       this.socketService.connect('client');
       const socket = this.socketService.getSocket;
@@ -66,13 +83,81 @@ ngOnInit(): void {
   onCanvasClick(event: MouseEvent): void {
     const canvas = this.canvas;
     if (!canvas) return;
+    
+    // Stocker les coordonnées affichées (corrigées par rapport au conteneur) pour le popup
+    const rect = canvas.getBoundingClientRect();
+    const containerRect = canvas.parentElement?.getBoundingClientRect();
+    const offsetX = containerRect ? rect.left - containerRect.left : 0;
+    const offsetY = containerRect ? rect.top - containerRect.top : 0;
+    this.selectedCanvasCoords = {
+      x: event.clientX - rect.left + offsetX,
+      y: event.clientY - rect.top + offsetY
+    };
+    
     this.mapService.onCanvasClick(event, this.mapObj, canvas);
+  }
+
+  onCanvasHover(event: MouseEvent): void {
+    const canvas = this.canvas;
+    if (!canvas || !this.mapObj.map) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = event.clientX - rect.left;
+    const canvasY = event.clientY - rect.top;
+
+    // Vérifier si on est bien sur le canvas
+    if (canvasX < 0 || canvasY < 0 || canvasX > rect.width || canvasY > rect.height) {
+      this.hoverCoords = undefined;
+      this.hoverPoint = undefined;
+      return;
+    }
+
+    const containerRect = canvas.parentElement?.getBoundingClientRect();
+    const offsetX = containerRect ? rect.left - containerRect.left : 0;
+    const offsetY = containerRect ? rect.top - containerRect.top : 0;
+    this.hoverCoords = { x: canvasX + offsetX, y: canvasY + offsetY };
+
+    // Calculer les coordonnées du point survolé
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const actualX = canvasX * scaleX;
+    const actualY = canvasY * scaleY;
+
+    // Convertir en coordonnées monde
+    const point = this.mapService.canvasToMapCoordinate(
+      this.mapObj,
+      actualX,
+      actualY
+    );
+
+    if (point) {
+      this.hoverPoint = point;
+    }
+  }
+
+  onCanvasLeave(): void {
+    this.hoverCoords = undefined;
+    this.hoverPoint = undefined;
+  }
+
+  clearSelection(): void {
+    this.mapObj.selectedPoint = undefined;
+    this.mapObj.selectedCanvasCoord = undefined;
+    this.selectedCanvasCoords = undefined;
+    
+    // Re-render pour effacer la sélection visuelle
+    if (this.canvas && this.mapObj.map) {
+      this.mapService.renderMap(this.canvas, this.mapObj);
+    }
   }
 
   addPoint(): void {
     const canvas = this.canvas;
     if (!canvas) return;
     this.mapService.sendPoint(this.mapObj);
+    
+    // Clear selection after adding
+    this.clearSelection();
   }
 
   removePoint(index: number): void {
@@ -85,6 +170,11 @@ ngOnInit(): void {
     const canvas = this.canvas;
     if (!canvas) return;
     this.mapService.sendGoal(this.mapObj);
+  }
+
+  // TrackBy function pour optimiser le rendu de la liste
+  trackByIndex(index: number): number {
+    return index;
   }
 
   get originWorld() {
@@ -100,6 +190,34 @@ ngOnInit(): void {
   }
 
   private configureMapSocketFeatures(): void {
+    const handlePoints = (payload: Point2D[] | { robot?: RobotId; points?: Point2D[] }) => {
+      const targetRobot = (payload as any)?.robot ?? this.robotId;
+      if (targetRobot !== this.robotId) return;
+
+      const points: Point2D[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray((payload as any)?.points)
+          ? (payload as any)?.points
+          : [];
+
+      if (!points.length) {
+        this.mapObj.pointList = [];
+        this.mapObj.pointCanvasCoords = [];
+      } else {
+        this.mapObj.pointList = points.map(
+          (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
+        ).filter((point) => point != undefined) as MapCoordinate[];
+
+        this.mapObj.pointCanvasCoords = this.mapObj.pointList
+          .map(coord => this.mapService.worldToCanvasPublic(coord.world.x, coord.world.y, this.mapObj))
+          .filter(coord => coord != undefined) as Point2D[];
+      }
+
+      if (this.canvas && this.mapObj.map) {
+        this.mapService.renderMap(this.canvas, this.mapObj);
+      }
+    };
+
     this.socketService.on(`/${this.robotId}/${MapEvent.RecoverMap}`, (recoveredMap: any) => {
       console.log(MapEvent.RecoverMap)
       this.mapObj.map = this.mapService.generateOccupancyGrid(recoveredMap);
@@ -120,17 +238,16 @@ ngOnInit(): void {
       if (this.canvas && this.mapObj.map) this.mapService.renderMap(this.canvas, this.mapObj);
     });
 
-    this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, (points: Point2D[]) => {
-      if (points.length === 0) console.log('empty array', points)
-      this.mapObj.pointList = points.map(
-        (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
-      ).filter((point) => point != undefined);
-      if (this.canvas && this.mapObj.map) this.mapService.renderMap(this.canvas, this.mapObj);
-    });
+    // Écoute les points sur l'événement namespaced et l'événement global (payload {robot, points})
+    this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, handlePoints);
+    this.socketService.on('newPoints', handlePoints);
   }
 
   private resetMap(): void {
     this.mapObj = this.createInitialMapObject();
+    this.hoverCoords = undefined;
+    this.hoverPoint = undefined;
+    this.selectedCanvasCoords = undefined;
   }
 
   private createInitialMapObject(): MapObject {
