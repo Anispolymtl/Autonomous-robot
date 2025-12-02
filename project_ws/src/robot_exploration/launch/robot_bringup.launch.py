@@ -114,7 +114,7 @@ def launch_with_namespace(context, *args, **kwargs):
         package='tf2_ros',
         executable='static_transform_publisher',
         name='static_tf_limo2',
-        arguments=['0', '-1', '0', '0', '0', '0', 'merge_map', 'limo2/map']
+        arguments=['-2', '-1', '0', '0', '0', '0', 'merge_map', 'limo2/map']
     )
 
     static_merge_map_tf = Node(
