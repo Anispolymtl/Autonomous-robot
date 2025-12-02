@@ -230,29 +230,29 @@
             <tr>
               <th class="col-time">Heure</th>
               <th class="col-robot">Robot</th>
-          <th class="col-details">Détails</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let log of liveLogsData; trackBy: trackByLog" class="log-row">
-          <td class="col-time">
-            <span class="time-badge">{{ log.formattedTime }}</span>
-          </td>
-          <td class="col-robot">
-            <div class="robot-cell">
-              <span class="robot-icon">🚗</span>
-              <span class="robot-name-log">{{ log.robot }}</span>
-            </div>
-          </td>
-          <td class="col-details">
-            <div class="details-container">
-              <ng-container *ngIf="log.detailEntries.length; else noDetails">
-                <span class="detail-tag" *ngFor="let entry of log.detailEntries">
-                  <span class="detail-key">{{ entry.key }}</span>
-                  <span class="detail-value">{{ entry.value }}</span>
-                </span>
-              </ng-container>
-              <ng-template #noDetails>
+              <th class="col-details">Détails</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of liveLogsData" class="log-row">
+              <td class="col-time">
+                <span class="time-badge">{{ formatTime(log.timestamp) }}</span>
+              </td>
+              <td class="col-robot">
+                <div class="robot-cell">
+                  <span class="robot-icon">🚗</span>
+                  <span class="robot-name-log">{{ log.robot }}</span>
+                </div>
+              </td>
+              <td class="col-details">
+                <div class="details-container">
+                  <ng-container *ngIf="detailEntries(log.details).length; else noDetails">
+                    <span class="detail-tag" *ngFor="let entry of detailEntries(log.details)">
+                      <span class="detail-key">{{ entry.key }}</span>
+                      <span class="detail-value">{{ entry.value }}</span>
+                    </span>
+                  </ng-container>
+                  <ng-template #noDetails>
                     <span class="detail-tag">
                       <span class="detail-key">Détails</span>
                       <span class="detail-value">—</span>
