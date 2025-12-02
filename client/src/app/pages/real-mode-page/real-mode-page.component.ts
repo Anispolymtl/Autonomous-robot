@@ -9,6 +9,8 @@ import { MissionSessionService } from '@app/services/mission-session/mission-ses
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
 import { MergedMapComponent } from '@app/components/merged-map/merged-map.component';
 import { SocketService } from '@app/services/socket/socket.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialogComponent } from '@app/components/confirmation-dialog/confirmation-dialog.component';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -31,7 +33,8 @@ export class RealPageComponent implements OnInit {
     private missionService: MissionService,
     private missionSessionService: MissionSessionService,
     private missionDatabaseService: MissionDatabaseService,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -77,17 +80,37 @@ export class RealPageComponent implements OnInit {
   }
 
   stopMission(): void {
-    this.message = 'Mission terminée.';
-    console.log('Mission terminée');
-    this.missionService.cancelMission().subscribe({
-      next: (response: any) => {
-        console.log('Mission stopped successfully:', response);
-        this.finalizeMission();
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '520px',
+      data: {
+        title: 'Terminer la mission',
+        message:
+          'Voulez-vous vraiment terminer la mission ? Cette action entraîne :',
+        consequences: [
+          'Arrêt immédiat de tous les robots.',
+          'Annulation de la navigation ou de l’exploration en cours.',
+          'Clôture et sauvegarde de la mission, puis retour à l’accueil.',
+        ],
+        confirmText: 'Terminer la mission',
+        cancelText: 'Continuer la mission',
+        tone: 'danger',
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error stopping mission:', error);
-        this.finalizeMission();
-      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.message = 'Mission terminée.';
+      console.log('Mission terminée');
+      this.missionService.cancelMission().subscribe({
+        next: (response: any) => {
+          console.log('Mission stopped successfully:', response);
+          this.finalizeMission();
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('Error stopping mission:', error);
+          this.finalizeMission();
+        },
+      });
     });
   }
 

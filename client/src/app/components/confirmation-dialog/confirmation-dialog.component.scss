@@ -1,0 +1,132 @@
+.confirm-dialog {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 14px 40px rgba(17, 24, 39, 0.12);
+
+  &.danger {
+    border-color: #f87171;
+    box-shadow: 0 16px 44px rgba(248, 113, 113, 0.25);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+
+  .eyebrow {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+  }
+
+  h2 {
+    margin: 4px 0 6px;
+    font-size: 1.35rem;
+    color: #111827;
+  }
+
+  .message {
+    margin: 0;
+    color: #374151;
+    line-height: 1.45;
+  }
+
+  .close-btn {
+    border: none;
+    background: #f3f4f6;
+    color: #111827;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+
+    &:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.consequence-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #1f2937;
+    line-height: 1.4;
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      margin-top: 6px;
+      background: #111827;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .btn {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+
+    &.ghost {
+      background: #f9fafb;
+      color: #1f2937;
+
+      &:hover {
+        background: #f3f4f6;
+      }
+    }
+
+    &.primary {
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(17, 24, 39, 0.2);
+      }
+
+      &.danger {
+        background: #b91c1c;
+        border-color: #b91c1c;
+
+        &:hover {
+          box-shadow: 0 8px 18px rgba(185, 28, 28, 0.25);
+        }
+      }
+    }
+  }
+}

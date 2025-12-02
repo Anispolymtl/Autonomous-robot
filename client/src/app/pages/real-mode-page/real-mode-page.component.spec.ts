@@ -7,6 +7,7 @@ import { IdentifyService } from '@app/services/identify/identify.service';
 import { MissionService } from '@app/services/mission/mission.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MatDialog } from '@angular/material/dialog';
 
 const mockRouter = {
   navigate: jasmine.createSpy('navigate')
@@ -32,11 +33,19 @@ const mockMissionDatabaseService = {
   createMission: jasmine.createSpy('createMission')
 };
 
+const mockDialog = {
+  open: jasmine.createSpy('open')
+};
+
 describe('RealPageComponent', () => {
   let component: RealPageComponent;
   let fixture: ComponentFixture<RealPageComponent>;
 
   beforeEach(async () => {
+    mockDialog.open.and.returnValue({
+      afterClosed: () => of(true)
+    } as any);
+
     await TestBed.configureTestingModule({
       imports: [RealPageComponent],
       providers: [
@@ -44,7 +53,8 @@ describe('RealPageComponent', () => {
         { provide: IdentifyService, useValue: mockIdentifyService },
         { provide: MissionService, useValue: mockMissionService },
         { provide: MissionSessionService, useValue: mockMissionSessionService },
-        { provide: MissionDatabaseService, useValue: mockMissionDatabaseService }
+        { provide: MissionDatabaseService, useValue: mockMissionDatabaseService },
+        { provide: MatDialog, useValue: mockDialog }
       ]
     }).compileComponents();
 
@@ -119,6 +129,7 @@ describe('RealPageComponent', () => {
 
       component.stopMission();
 
+      expect(mockDialog.open).toHaveBeenCalled();
       expect(component['finalizeMission']).toHaveBeenCalled();
       expect(component.message).toBe('Mission terminée.');
     });
@@ -130,6 +141,7 @@ describe('RealPageComponent', () => {
 
       component.stopMission();
 
+      expect(mockDialog.open).toHaveBeenCalled();
       expect(component['finalizeMission']).toHaveBeenCalled();
     });
   });

@@ -10,6 +10,7 @@ import { MissionSessionService } from '@app/services/mission-session/mission-ses
 import { MergedMapComponent } from '@app/components/merged-map/merged-map.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CodeEditorDialogComponent } from '@app/components/code-editor-dialog/code-editor-dialog.component';
+import { ConfirmationDialogComponent } from '@app/components/confirmation-dialog/confirmation-dialog.component';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -56,17 +57,38 @@ export class SimulationPageComponent implements OnInit {
   }
 
   stopMission(): void {
-    this.message = 'Mission terminée.';
-    console.log('Mission terminée');
-    this.missonService.cancelMission().subscribe({
-      next: () => {
-        console.log('Mission stopped successfully');
-        this.finalizeMission();
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '520px',
+      data: {
+        title: 'Terminer la mission',
+        message:
+          'Voulez-vous vraiment terminer la mission ? Cette action entraîne :',
+        consequences: [
+          'L’arrêt immédiat des robots.',
+          'L’interruption de la navigation en cours.',
+          'La sauvegarde et la clôture de la mission.',
+          'Un retour à l’accueil.',
+        ],
+        confirmText: 'Terminer la mission',
+        cancelText: 'Continuer la mission',
+        tone: 'danger',
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error stopping mission:', error);
-        this.finalizeMission();
-      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.message = 'Mission terminée.';
+      console.log('Mission terminée');
+      this.missonService.cancelMission().subscribe({
+        next: () => {
+          console.log('Mission stopped successfully');
+          this.finalizeMission();
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('Error stopping mission:', error);
+          this.finalizeMission();
+        }
+      });
     });
   }
 
