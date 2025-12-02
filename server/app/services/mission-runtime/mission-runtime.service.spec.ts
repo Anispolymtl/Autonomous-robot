@@ -1,13 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MissionRuntimeService, MissionCreatePayload, MissionRuntimeSnapshot } from './mission-runtime.service';
 import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
+import { MissionDatabaseService } from '../mission-database/mission-database.service';
+import { SocketService } from '../socket/socket.service';
 
 describe('MissionRuntimeService', () => {
   let service: MissionRuntimeService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MissionRuntimeService],
+      providers: [
+        MissionRuntimeService,
+        { provide: MissionDatabaseService, useValue: { createMission: jest.fn() } },
+        { provide: SocketService, useValue: { getMaps: jest.fn().mockReturnValue({ limo1: {}, limo2: {} }) } },
+      ],
     }).compile();
 
     service = module.get<MissionRuntimeService>(MissionRuntimeService);

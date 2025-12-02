@@ -3,6 +3,7 @@ import { MissionDatabaseService } from './mission-database.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Mission } from '@app/model/database/mission';
+import { Logger } from '@nestjs/common';
 import { CreateMissionDto } from '@app/model/dto/mission/create-mission.dto';
 import { UpdateMissionDto } from '@app/model/dto/mission/update-mission.dto';
 
@@ -19,8 +20,10 @@ const createQueryMock = (result: any) => {
 describe('MissionDatabaseService', () => {
   let service: MissionDatabaseService;
   let model: Partial<Record<keyof Model<Mission>, jest.Mock>>;
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
     model = {
       countDocuments: jest.fn(),
       find: jest.fn(),
@@ -38,6 +41,10 @@ describe('MissionDatabaseService', () => {
     }).compile();
 
     service = module.get<MissionDatabaseService>(MissionDatabaseService);
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
   });
 
   it('should be defined', () => {
@@ -135,7 +142,17 @@ describe('MissionDatabaseService', () => {
 
   describe('createMission', () => {
     it('should create a mission', async () => {
-      const dto: CreateMissionDto = { missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 };
+      const dto: CreateMissionDto = {
+        missionName: 'M1',
+        robots: [],
+        mode: 'SIMULATION',
+        distance: 0,
+        durationSec: 0,
+        maps: {
+          limo1: { header: {}, info: {}, data: [] },
+          limo2: { header: {}, info: {}, data: [] },
+        },
+      };
       model.create.mockResolvedValue(dto);
 
       const result = await service.createMission(dto);

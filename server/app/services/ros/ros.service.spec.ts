@@ -3,6 +3,7 @@ import { RosService } from './ros.service';
 import { NavService } from '../nav/nav.service';
 import { StateService } from '../state/state.service';
 import { MappingSerivce } from '../mapping/mapping.service';
+import { CodeEditorService } from '../code-editor/code-editor.service';
 import * as rclnodejs from 'rclnodejs';
 
 jest.mock('rclnodejs');
@@ -12,6 +13,7 @@ describe('RosService', () => {
   let navService: NavService;
   let stateService: StateService;
   let mappingService: MappingSerivce;
+  const codeEditorMock = { initCodeEditorService: jest.fn() };
 
   const mockSpin = jest.fn();
   const mockCreateClient = jest.fn();
@@ -44,6 +46,7 @@ describe('RosService', () => {
         { provide: NavService, useValue: { initNavService: jest.fn() } },
         { provide: StateService, useValue: { initStateService: jest.fn() } },
         { provide: MappingSerivce, useValue: { initialiseMappingService: jest.fn() } },
+        { provide: CodeEditorService, useValue: codeEditorMock },
       ],
     }).compile();
 

@@ -11,8 +11,22 @@ describe('StateService', () => {
 
   const mockCreateSubscription = jest.fn();
   const mockSpin = jest.fn();
+  const RobotStateMock = {
+    WAIT: 0,
+    EXPLORATION: 1,
+    NAVIGATION: 2,
+    RETURN_TO_BASE: 3,
+    CUSTOM_MISSION: 4,
+  };
 
   beforeEach(async () => {
+    (rclnodejs.require as unknown as jest.Mock).mockImplementation((pkg: string) => {
+      if (pkg === 'limo_interfaces') {
+        return { msg: { RobotState: RobotStateMock } };
+      }
+      return {};
+    });
+
     (rclnodejs.Node as unknown as jest.Mock).mockImplementation((name: string, robotId: string) => {
       return {
         createSubscription: mockCreateSubscription,
@@ -50,10 +64,20 @@ describe('StateService', () => {
     service.initStateService();
 
     expect(rclnodejs.Node).toHaveBeenCalledTimes(2);
-    expect(rclnodejs.Node).toHaveBeenCalledWith('state_listener_backend', 'limo1');
-    expect(rclnodejs.Node).toHaveBeenCalledWith('state_listener_backend', 'limo2');
+    expect(rclnodejs.Node).toHaveBeenCalledWith('state_listener_backend_limo1', 'limo1');
+    expect(rclnodejs.Node).toHaveBeenCalledWith('state_listener_backend_limo2', 'limo2');
 
     expect(mockCreateSubscription).toHaveBeenCalledTimes(2);
+    expect(mockCreateSubscription).toHaveBeenCalledWith(
+      'limo_interfaces/msg/RobotState',
+      '/limo1/robot_state',
+      expect.any(Function),
+    );
+    expect(mockCreateSubscription).toHaveBeenCalledWith(
+      'limo_interfaces/msg/RobotState',
+      '/limo2/robot_state',
+      expect.any(Function),
+    );
     expect(mockSpin).toHaveBeenCalledTimes(2);
   });
 
@@ -66,12 +90,12 @@ describe('StateService', () => {
 
     service.initStateService();
 
-    const msg1 = { data: 'RUNNING' };
+    const msg1 = { state: RobotStateMock.EXPLORATION };
     callbackCaptor[0](msg1);
-    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo1', 'RUNNING');
+    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo1', 'Exploration');
 
-    const msg2 = { data: 'COMPLETED' };
+    const msg2 = { state: RobotStateMock.RETURN_TO_BASE };
     callbackCaptor[1](msg2);
-    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo2', 'COMPLETED');
+    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo2', 'Retour a la base');
   });
 });

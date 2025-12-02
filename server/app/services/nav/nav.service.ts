@@ -10,17 +10,43 @@ export class NavService {
     private readonly logger = new Logger(NavService.name);
     private navClient1: any;
     private navClient2: any;
+    private stateClient1: any;
+    private stateClient2: any;
+    private readonly setStateService: any;
+    private readonly robotStateConstants: any;
     private points: Record<RobotId, Point2D[]> = { limo1: [], limo2: [] };
     private isNavigating: Record<RobotId, boolean> = { limo1: false, limo2: false };
     private isInit: boolean = false;
     
     constructor(
         private socketService: SocketService
-    ) {}
+    ) {
+        // Charger les types/services ROS2 (fallback si non disponibles)
+        let constants;
+        try {
+            const pkg: any = (rclnodejs.require as any)?.('limo_interfaces');
+            constants = pkg?.msg?.RobotState;
+            this.setStateService = pkg?.srv?.SetRobotState;
+        } catch (err) {
+            this.logger.warn('[NAV] Impossible de charger limo_interfaces, utilisation valeurs par defaut', err as Error);
+        }
+
+        this.robotStateConstants = constants ?? {
+            WAIT: 0,
+            EXPLORATION: 1,
+            NAVIGATION: 2,
+            RETURN_TO_BASE: 3,
+            CUSTOM_MISSION: 4,
+        };
+    }
 
     initNavService(nodeLimo1: rclnodejs.Node, nodeLimo2: rclnodejs.Node) {
         this.navClient1 = new rclnodejs.ActionClient(nodeLimo1, 'nav2_msgs/action/FollowWaypoints', 'follow_waypoints');
         this.navClient2 = new rclnodejs.ActionClient(nodeLimo2, 'nav2_msgs/action/FollowWaypoints', 'follow_waypoints');
+        if (this.setStateService) {
+            this.stateClient1 = nodeLimo1.createClient(this.setStateService, 'set_state');
+            this.stateClient2 = nodeLimo2.createClient(this.setStateService, 'set_state');
+        }
         this.isInit = true;
     }
 
@@ -36,20 +62,34 @@ export class NavService {
         this.socketService.sendPointsToAllSockets(payload.robot, this.points[payload.robot]);
     }
 
-    startGoal(robot: RobotId) {
-        const points = this.points[robot];
-        this.points[robot] = [];
-        if (!points.length || !this.isInit) return;
-        if (!this.isNavigating[robot]) {
-            this.processPointQueue(robot, points).catch((err) =>
-                this.logger.error(`Failed to process queue for ${robot}`, err.stack),
-            );
+    async startGoal(robot: RobotId) {
+        if (!this.isInit || this.isNavigating[robot]) return;
+
+        const queue = [...this.points[robot]];
+        if (!queue.length) return;
+
+        this.isNavigating[robot] = true;
+
+        try {
+            const navReady = await this.ensureNavigationState(robot);
+            if (!navReady) {
+                this.logger.warn(`[${robot}] Navigation annulée: impossible de passer en état NAVIGATION`);
+                return;
+            }
+
+            // On purge la liste envoyée au robot
+            this.points[robot] = [];
+            this.socketService.sendPointsToAllSockets(robot, this.points[robot]);
+
+            await this.processPointQueue(robot, queue);
+        } catch (err) {
+            this.logger.error(`Failed to process queue for ${robot}`, (err as Error).stack);
+        } finally {
+            this.isNavigating[robot] = false;
         }
-        this.socketService.sendPointsToAllSockets(robot, this.points[robot]);
     }
 
     private async processPointQueue(robot: RobotId, queue: Point2D[]) {
-        this.isNavigating[robot] = true;
         const waypoints = queue.splice(0, queue.length);
         console.log(waypoints);
         try {
@@ -57,7 +97,7 @@ export class NavService {
         } catch (err) {
             this.logger.error(`Error sending waypoints for ${robot}`, (err as Error).stack);
         } finally {
-            this.isNavigating[robot] = false;
+            await this.setRobotState(robot, this.robotStateConstants.WAIT);
         }
     }
 
@@ -88,6 +128,43 @@ export class NavService {
         );
         const result = await goalHandle.getResult();
         this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+    }
+
+    private async ensureNavigationState(robot: RobotId): Promise<boolean> {
+        const ok = await this.setRobotState(robot, this.robotStateConstants.NAVIGATION);
+        return ok;
+    }
+
+    private async setRobotState(robot: RobotId, state: number): Promise<boolean> {
+        const client = robot === 'limo1' ? this.stateClient1 : this.stateClient2;
+        if (!client) {
+            this.logger.warn(`[${robot}] Client set_state non disponible`);
+            return false;
+        }
+
+        // Attendre le service si possible
+        if (typeof client.waitForService === 'function') {
+            try {
+                await client.waitForService(1000);
+            } catch (err) {
+                this.logger.warn(`[${robot}] Service set_state indisponible`, err as Error);
+                return false;
+            }
+        }
+
+        return new Promise<boolean>((resolve) => {
+            const request = new (this.setStateService as any).Request();
+            request.state = state;
+            client.sendRequest(request, (response: { success?: boolean; message?: string }) => {
+                if (response?.success) {
+                    this.logger.log(`[${robot}] État -> ${state}`);
+                    resolve(true);
+                } else {
+                    this.logger.warn(`[${robot}] Échec set_state: ${response?.message ?? 'réponse vide'}`);
+                    resolve(false);
+                }
+            });
+        });
     }
 
     private buildRosTime() {

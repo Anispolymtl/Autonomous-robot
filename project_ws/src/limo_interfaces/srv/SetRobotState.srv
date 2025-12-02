@@ -1,0 +1,8 @@
+# SetRobotState.srv
+
+# Request: nouvel état (utilise les constantes de RobotState.msg)
+uint8 state
+---
+# Response
+bool success
+string message
