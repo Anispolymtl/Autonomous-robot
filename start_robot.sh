@@ -23,7 +23,7 @@ echo "→ Configuration du port série..."
 sudo chmod 666 /dev/ttyTHS1
 
 # --- 2. Aller dans le workspace ---
-WORKSPACE=/project_ws
+WORKSPACE=project_ws/
 
 echo "→ Passage dans $WORKSPACE"
 cd "$WORKSPACE" || { echo "Workspace introuvable"; exit 1; }
