@@ -145,7 +145,7 @@ def launch_with_namespace(context, *args, **kwargs):
         merge_map_node,
         static_tf_limo1,
         static_tf_limo2,
-        # static_merge_map_tf
+        static_merge_map_tf
         ]
 
 def generate_launch_description():
