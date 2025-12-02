@@ -154,7 +154,7 @@ class MergeMapNode(Node):
         super().__init__("merge_map_node")
 
         # Permettre l'usage de /clock si demandé dans le launch
-        self.declare_parameter("use_sim_time", False)
+        # self.declare_parameter("use_sim_time", False)
 
         self.target_frame = "merge_map"
 
