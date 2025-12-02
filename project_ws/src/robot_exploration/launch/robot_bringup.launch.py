@@ -90,6 +90,40 @@ def launch_with_namespace(context, *args, **kwargs):
         output='screen'
     )
 
+    merge_map_node = Node(
+        package='robot_exploration',
+        executable='map_merge',
+        name='merge_map_node',
+        output='screen',
+        parameters=[{'use_sim_time': True}],
+        remappings=[
+            ("/map1", "/limo1/map"),
+            ("/map2", "/limo2/map"),
+            ("/merge_map", "/merged_map"),   # topic fusionné
+        ],
+    )
+
+    static_tf_limo1 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo1',
+        arguments=['0', '0', '0', '0', '0', '0', 'merge_map', 'limo1/map']
+    )
+
+    static_tf_limo2 = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_limo2',
+        arguments=['0', '-1', '0', '0', '0', '0', 'merge_map', 'limo2/map']
+    )
+
+    static_merge_map_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_merge_map',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'merge_map']
+    )
+
     # explore_launch = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
     #         os.path.join(explore_pkg, 'launch', 'explore.launch.py')
@@ -107,7 +141,12 @@ def launch_with_namespace(context, *args, **kwargs):
         explore
     ])
 
-    return [group]
+    return [group,
+        merge_map_node,
+        static_tf_limo1,
+        static_tf_limo2,
+        static_merge_map_tf
+        ]
 
 def generate_launch_description():
     declare_namespace = DeclareLaunchArgument(
