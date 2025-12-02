@@ -16,6 +16,11 @@ import { Subscription, firstValueFrom } from 'rxjs';
 
 type RobotId = 'limo1' | 'limo2';
 
+type MissionLogView = MissionLogEntry & {
+  formattedTime: string;
+  detailEntries: { key: string; value: MissionLogEntry['details'][string] }[];
+};
+
 interface MissionEventPayload {
   missionId: string;
   mission: Mission;
@@ -36,27 +41,28 @@ interface MissionEventPayload {
 export class SimulationPageComponent implements OnInit, OnDestroy {
   message: string | null = null;
   selectedRobotId: RobotId = 'limo1';
-  
+
   // Logs sidebar state
   isLogsSidebarOpen = false;
   missionId: string | null = null;
   missionName: string | null = null;
-  liveLogsData: MissionLogEntry[] = [];
-  
+  liveLogsData: MissionLogView[] = [];
+
+  private readonly maxLogsToRender = 200;
   private missionSub?: Subscription;
   private socketListenersRegistered = false;
 
   private missionUpdateHandler = (...args: unknown[]) => {
     const payload = args[0] as MissionEventPayload | undefined;
     if (!payload || !this.missionId || payload.missionId !== this.missionId) return;
-    this.liveLogsData = this.sortLogs(payload.mission.logs ?? []);
+    this.applyLogs(payload.mission.logs ?? []);
     this.missionName = payload.mission.missionName ?? this.missionName;
   };
 
   private missionFinalizedHandler = (...args: unknown[]) => {
     const payload = args[0] as MissionEventPayload | undefined;
     if (!payload || !this.missionId || payload.missionId !== this.missionId) return;
-    this.liveLogsData = this.sortLogs(payload.mission.logs ?? []);
+    this.applyLogs(payload.mission.logs ?? []);
   };
 
   constructor(
@@ -82,20 +88,9 @@ export class SimulationPageComponent implements OnInit, OnDestroy {
     this.isLogsSidebarOpen = !this.isLogsSidebarOpen;
   }
 
-  objectKeys = Object.keys;
-  detailEntries = (details: any): { key: string; value: any }[] =>
-    details && typeof details === 'object'
-      ? Object.keys(details).map((key) => ({ key, value: (details as any)[key] }))
-      : [];
-
-  formatTime = (timestamp: string): string => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    } catch {
-      return timestamp;
-    }
-  };
+  trackByLog(_index: number, log: MissionLogView): string {
+    return `${log.timestamp}-${log.robot}-${log.action}`;
+  }
 
   startMission(): void {
     this.message = 'Mission demandée.';
@@ -180,7 +175,7 @@ export class SimulationPageComponent implements OnInit, OnDestroy {
 
       this.missionId = mission.missionId;
       this.missionName = mission.missionName ?? this.missionName;
-      this.liveLogsData = this.sortLogs(mission.logs ?? []);
+      this.applyLogs(mission.logs ?? []);
       await this.ensureSocketConnected();
       this.registerSocketListeners();
     } catch (error) {
@@ -215,9 +210,33 @@ export class SimulationPageComponent implements OnInit, OnDestroy {
     this.socketListenersRegistered = false;
   }
 
+  private applyLogs(logs: MissionLogEntry[]): void {
+    const latestLogs = this.sortLogs(logs).slice(0, this.maxLogsToRender);
+    this.liveLogsData = latestLogs.map((log) => this.mapLog(log));
+  }
+
+  private mapLog(log: MissionLogEntry): MissionLogView {
+    return {
+      ...log,
+      formattedTime: this.formatTime(log.timestamp),
+      detailEntries: this.extractDetailEntries(log.details),
+    };
+  }
+
+  private extractDetailEntries(details: MissionLogEntry['details'] | undefined): MissionLogView['detailEntries'] {
+    if (!details || typeof details !== 'object') return [];
+    return Object.keys(details).map((key) => ({ key, value: details[key] }));
+  }
+
   private sortLogs(logs: MissionLogEntry[]): MissionLogEntry[] {
     return [...logs].sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
+  }
+
+  private formatTime(timestamp: string): string {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
+    return date.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 }
