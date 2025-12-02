@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as rclnodejs from 'rclnodejs';
 import { SocketService } from '@app/services/socket/socket.service';
+import { NavService } from '@app/services/nav/nav.service';
 
 @Injectable()
 export class StateService {
@@ -9,7 +10,10 @@ export class StateService {
     private stateSubscription1: rclnodejs.Subscription | undefined;
     private stateSubscription2: rclnodejs.Subscription | undefined;
     
-    constructor(private socketService: SocketService){}
+    constructor(
+        private socketService: SocketService,
+        private navService: NavService
+    ){}
     
     initStateService() {
         this.setupStateListner()
@@ -20,6 +24,9 @@ export class StateService {
             'std_msgs/msg/String',
             '/limo1/mission_state',
             (msg) => {
+                // Si un retour à la base est en cours, on ignore les états "En attente" prématurés
+                const isWaiting = typeof msg.data === 'string' && msg.data.toLowerCase().startsWith('en attente');
+                if (isWaiting && this.navService.isReturnInProgress('limo1')) return;
                 this.socketService.sendStateToAllSockets('limo1', msg.data);
             }
         );
@@ -30,6 +37,8 @@ export class StateService {
           'std_msgs/msg/String',
           '/limo2/mission_state',
           (msg) => {
+            const isWaiting = typeof msg.data === 'string' && msg.data.toLowerCase().startsWith('en attente');
+            if (isWaiting && this.navService.isReturnInProgress('limo2')) return;
             this.socketService.sendStateToAllSockets('limo2', msg.data);
           }
         );
