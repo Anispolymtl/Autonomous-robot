@@ -71,31 +71,10 @@ class MissionServer(Node):
         self.resume_pub = self.create_publisher(Bool, "explore/resume", 10)
         self.get_logger().info("🛰️ Publication vers /explore/resume")
 
-        # Blocage exploration au démarrage
-        self._disable_exploration_startup()
-
         # Service de mode
         self.mode_srv = self.create_service(SetBool, "change_mode", self.change_mode_callback)
 
         self.get_logger().info(f"Mission Server prêt (ns='{self.get_namespace()}') ✅")
-
-    # --------------------------------------------------------
-    def _disable_exploration_startup(self):
-        """Empêche l’exploration de démarrer automatiquement."""
-        self.get_logger().info("⏳ Attente de /explore/resume...")
-        start_time = time.time()
-
-        while self.count_subscribers("explore/resume") == 0:
-            if time.time() - start_time > 10.0:
-                self.get_logger().warn("⚠️ Aucun subscriber /explore/resume (timeout)")
-                break
-            rclpy.spin_once(self, timeout_sec=0.5)
-
-        msg = Bool(data=False)
-        for _ in range(5):
-            self.resume_pub.publish(msg)
-            time.sleep(0.5)
-            self.get_logger().info("🔒 Exploration désactivée au lancement")
 
     # --------------------------------------------------------
     def publish_state(self):
