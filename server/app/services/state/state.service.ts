@@ -14,7 +14,7 @@ export class StateService {
     private stateSubscriptions: Partial<Record<RobotId, rclnodejs.Subscription>> = {};
 
     constructor(private socketService: SocketService) {
-        this.robotStateConstants = (rclnodejs.require('limo_interfaces') as any).msg.RobotState;
+        this.robotStateConstants = this.loadRobotStateConstants();
         this.stateLabels = {
             [this.robotStateConstants.WAIT]: 'En attente',
             [this.robotStateConstants.EXPLORATION]: 'Exploration',
@@ -34,7 +34,7 @@ export class StateService {
         const topic = `/${robotId}/robot_state`;
 
         const subscription = node.createSubscription(
-            this.robotStateConstants,
+            'limo_interfaces/msg/RobotState',
             topic,
             (msg: { state?: number }) => {
                 const stateValue = msg?.state;
@@ -48,5 +48,22 @@ export class StateService {
         node.spin();
         this.stateListeners[robotId] = node;
         this.stateSubscriptions[robotId] = subscription;
+    }
+
+    private loadRobotStateConstants() {
+        try {
+            const pkg: any = (rclnodejs.require as any)?.('limo_interfaces');
+            const constants = pkg?.msg?.RobotState;
+            if (constants) return constants;
+        } catch (err) {
+            console.warn('[STATE] Impossible de charger limo_interfaces/RobotState, utilisation des valeurs par defaut', err);
+        }
+        return {
+            WAIT: 0,
+            EXPLORATION: 1,
+            NAVIGATION: 2,
+            RETURN_TO_BASE: 3,
+            CUSTOM_MISSION: 4,
+        };
     }
 }

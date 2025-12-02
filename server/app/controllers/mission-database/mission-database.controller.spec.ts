@@ -9,8 +9,10 @@ import { Response } from 'express';
 describe('MissionDatabaseController', () => {
   let controller: MissionDatabaseController;
   let service: Partial<Record<keyof MissionDatabaseService, jest.Mock>>;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     service = {
       getAllMissions: jest.fn(),
       getMissionById: jest.fn(),
@@ -28,6 +30,10 @@ describe('MissionDatabaseController', () => {
     }).compile();
 
     controller = module.get<MissionDatabaseController>(MissionDatabaseController);
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   const mockResponse = () => {
@@ -155,7 +161,17 @@ describe('MissionDatabaseController', () => {
   describe('createMission', () => {
     it('should handle errors', async () => {
       const res = mockResponse();
-      const dto: CreateMissionDto = { missionName: 'M1', robots: [], mode: 'SIMULATION', distance: 0, durationSec: 0 };
+      const dto: CreateMissionDto = {
+        missionName: 'M1',
+        robots: [],
+        mode: 'SIMULATION',
+        distance: 0,
+        durationSec: 0,
+        maps: {
+          limo1: { header: {}, info: {}, data: [] },
+          limo2: { header: {}, info: {}, data: [] },
+        }
+      };
       service.createMission.mockRejectedValue(new Error('Invalid'));
 
       await controller.createMission(dto, res);

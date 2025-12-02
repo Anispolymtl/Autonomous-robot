@@ -3,41 +3,43 @@ import { NavService } from '@app/services/nav/nav.service';
 import { SocketService } from '@app/services/socket/socket.service';
 import * as rclnodejs from 'rclnodejs';
 
-const mockActionClient = jest.fn().mockImplementation(() => ({
-  waitForServer: jest.fn().mockResolvedValue(true),
-  sendGoal: jest.fn().mockResolvedValue({
-    getResult: jest.fn().mockResolvedValue({ status: 'SUCCEEDED' }),
-  }),
-}));
+jest.mock('rclnodejs', () => {
+  const mockActionClient = jest.fn().mockImplementation(() => ({
+    waitForServer: jest.fn().mockResolvedValue(true),
+    sendGoal: jest.fn().mockResolvedValue({
+      getResult: jest.fn().mockResolvedValue({ status: 'SUCCEEDED' }),
+    }),
+  }));
 
-const SetRobotStateMock = function () {};
-// @ts-ignore
-SetRobotStateMock.Request = function () {
-  this.state = 0;
-};
+  const SetRobotStateMock = function () {};
+  // @ts-ignore
+  SetRobotStateMock.Request = function () {
+    this.state = 0;
+  };
 
-jest.mock('rclnodejs', () => ({
-  ActionClient: mockActionClient,
-  require: jest.fn().mockImplementation((pkg: string) => {
-    if (pkg === 'limo_interfaces') {
-      return {
-        msg: {
-          RobotState: {
-            WAIT: 0,
-            EXPLORATION: 1,
-            NAVIGATION: 2,
-            RETURN_TO_BASE: 3,
-            CUSTOM_MISSION: 4,
+  return {
+    ActionClient: mockActionClient,
+    require: jest.fn().mockImplementation((pkg: string) => {
+      if (pkg === 'limo_interfaces') {
+        return {
+          msg: {
+            RobotState: {
+              WAIT: 0,
+              EXPLORATION: 1,
+              NAVIGATION: 2,
+              RETURN_TO_BASE: 3,
+              CUSTOM_MISSION: 4,
+            },
           },
-        },
-        srv: {
-          SetRobotState: SetRobotStateMock,
-        },
-      };
-    }
-    return {};
-  }),
-}));
+          srv: {
+            SetRobotState: SetRobotStateMock,
+          },
+        };
+      }
+      return {};
+    }),
+  };
+});
 
 describe('NavService', () => {
     let service: NavService;
