@@ -98,9 +98,4 @@ export class SimulationPageComponent implements OnInit {
     this.message = 'Retour à la base en cours pour tous les robots...';
     this.socketService.send('nav:return-to-base');
   }
-
-  identifyRobot(robotId: RobotId): void {
-    console.log(`Identification demandée pour ${robotId}`);
-    this.message = `Identification de ${robotId === 'limo1' ? 'Limo 1' : 'Limo 2'}...`;
-  }
 }

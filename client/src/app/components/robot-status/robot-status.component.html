@@ -11,7 +11,11 @@
   <!-- Robot 1 -->
   <div class="robot-card">
     <!-- Bouton Identifier avec texte - coin supérieur droit -->
-    <button class="identify-btn identify-btn-limo1" title="Identifier Limo 1" (click)="identifyRobot('limo1')">
+    <button
+      *ngIf="mode === 'real'"
+      class="identify-btn identify-btn-limo1"
+      title="Identifier Limo 1"
+      (click)="identifyRobot('limo1')">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <circle cx="12" cy="12" r="1"></circle>
         <circle cx="12" cy="12" r="8"></circle>
@@ -84,7 +88,11 @@
   <!-- Robot 2 -->
   <div class="robot-card">
     <!-- Bouton Identifier avec texte - coin supérieur droit -->
-    <button class="identify-btn identify-btn-limo2"  title="Identifier Limo 2" (click)="identifyRobot('limo2')">
+    <button
+      *ngIf="mode === 'real'"
+      class="identify-btn identify-btn-limo2"
+      title="Identifier Limo 2"
+      (click)="identifyRobot('limo2')">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <circle cx="12" cy="12" r="1"></circle>
         <circle cx="12" cy="12" r="8"></circle>
