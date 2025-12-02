@@ -1,0 +1,28 @@
+<div class="confirm-dialog" [class.danger]="data.tone === 'danger'">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">Confirmation</p>
+      <h2>{{ data.title }}</h2>
+      <p class="message">{{ data.message }}</p>
+    </div>
+    <button type="button" class="close-btn" (click)="close(false)" aria-label="Fermer la fenêtre">
+      ×
+    </button>
+  </div>
+
+  <ul class="consequence-list" *ngIf="data.consequences?.length">
+    <li *ngFor="let item of data.consequences">
+      <span class="dot"></span>
+      <span>{{ item }}</span>
+    </li>
+  </ul>
+
+  <div class="actions">
+    <button type="button" class="btn ghost" (click)="close(false)">
+      {{ data.cancelText || 'Annuler' }}
+    </button>
+    <button type="button" class="btn primary danger" (click)="close(true)">
+      {{ data.confirmText || 'Confirmer' }}
+    </button>
+  </div>
+</div>

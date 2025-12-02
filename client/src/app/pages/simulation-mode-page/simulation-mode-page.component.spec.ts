@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MissionService } from '@app/services/mission/mission.service';
 import { MissionSessionService } from '@app/services/mission-session/mission-session.service';
 import { MissionDatabaseService } from '@app/services/mission-database/mission-database.service';
+import { MatDialog } from '@angular/material/dialog';
 
 describe('SimulationPageComponent', () => {
   let component: SimulationPageComponent;
@@ -15,6 +16,7 @@ describe('SimulationPageComponent', () => {
   let mockMissionService: jasmine.SpyObj<MissionService>;
   let mockMissionSessionService: jasmine.SpyObj<MissionSessionService>;
   let mockMissionDatabaseService: jasmine.SpyObj<MissionDatabaseService>;
+  let mockDialog: jasmine.SpyObj<MatDialog>;
 
   beforeEach(async () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
@@ -25,6 +27,10 @@ describe('SimulationPageComponent', () => {
       'completeMission',
     ]);
     mockMissionDatabaseService = jasmine.createSpyObj('MissionDatabaseService', ['createMission']);
+    mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
+    mockDialog.open.and.returnValue({
+      afterClosed: () => of(true),
+    } as any);
 
     await TestBed.configureTestingModule({
       imports: [SimulationPageComponent],
@@ -33,6 +39,7 @@ describe('SimulationPageComponent', () => {
         { provide: MissionService, useValue: mockMissionService },
         { provide: MissionSessionService, useValue: mockMissionSessionService },
         { provide: MissionDatabaseService, useValue: mockMissionDatabaseService },
+        { provide: MatDialog, useValue: mockDialog },
       ],
     }).compileComponents();
 
@@ -71,6 +78,7 @@ describe('SimulationPageComponent', () => {
     spyOn<any>(component, 'finalizeMission');
     component.stopMission();
     tick();
+    expect(mockDialog.open).toHaveBeenCalled();
     expect(component.message).toBe('Mission terminée.');
     expect(mockMissionService.cancelMission).toHaveBeenCalled();
     expect(component['finalizeMission']).toHaveBeenCalled();
@@ -83,6 +91,7 @@ describe('SimulationPageComponent', () => {
     spyOn(console, 'error');
     component.stopMission();
     tick();
+    expect(mockDialog.open).toHaveBeenCalled();
     expect(console.error).toHaveBeenCalledWith('Error stopping mission:', error);
     expect(component['finalizeMission']).toHaveBeenCalled();
   }));
