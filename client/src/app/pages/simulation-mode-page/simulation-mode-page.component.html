@@ -13,24 +13,12 @@
         <h1 class="app-title">Mission de Simulation</h1>
       </div>
       <div class="navbar-right">
-        <button
-          class="icon-btn logs-toggle-btn"
-          (click)="toggleLogsSidebar()"
-          title="Ouvrir les fichiers de logs pour consulter les événements de mission en direct">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          <span class="logs-badge" *ngIf="liveLogsData.length > 0">{{ liveLogsData.length }}</span>
-        </button>
-        <span class="mode-badge">Mission: {{ missionName || missionId || 'Aucune mission' }}</span>
+        <span class="mode-badge">Mode Simulation</span>
       </div>
     </div>
   </header>
 
-  <div class="main-container" [class.logs-open]="isLogsSidebarOpen">
+  <div class="main-container">
     <!-- Sidebar gauche - Contrôles -->
     <aside class="sidebar sidebar-left">
       <div class="editor-fab-block">
@@ -198,79 +186,5 @@
       </section>
     </main>
 
-    <!-- Sidebar droite - Logs (Rétractable) -->
-    <aside class="sidebar sidebar-logs" [class.open]="isLogsSidebarOpen">
-      <div class="logs-sidebar-header">
-        <div class="logs-header-top">
-          <div class="logs-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            <h2>Journal de Mission</h2>
-          </div>
-          <button class="icon-btn-small" (click)="toggleLogsSidebar()" title="Fermer">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="mission-info" *ngIf="missionId">
-          <span class="mission-label">Mission:</span>
-          <span class="mission-value">{{ missionName || missionId }}</span>
-        </div>
-      </div>
-
-      <div class="logs-content">
-        <table class="logs-table">
-          <thead>
-            <tr>
-              <th class="col-time">Heure</th>
-              <th class="col-robot">Robot</th>
-              <th class="col-details">Détails</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let log of liveLogsData" class="log-row">
-              <td class="col-time">
-                <span class="time-badge">{{ formatTime(log.timestamp) }}</span>
-              </td>
-              <td class="col-robot">
-                <div class="robot-cell">
-                  <span class="robot-icon">🚗</span>
-                  <span class="robot-name-log">{{ log.robot }}</span>
-                </div>
-              </td>
-              <td class="col-details">
-                <div class="details-container">
-                  <ng-container *ngIf="detailEntries(log.details).length; else noDetails">
-                    <span class="detail-tag" *ngFor="let entry of detailEntries(log.details)">
-                      <span class="detail-key">{{ entry.key }}</span>
-                      <span class="detail-value">{{ entry.value }}</span>
-                    </span>
-                  </ng-container>
-                  <ng-template #noDetails>
-                    <span class="detail-tag">
-                      <span class="detail-key">Détails</span>
-                      <span class="detail-value">—</span>
-                    </span>
-                  </ng-template>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- État vide -->
-        <div class="empty-state" *ngIf="liveLogsData.length === 0">
-          <div class="empty-icon">📭</div>
-          <div class="empty-title">Aucun log disponible</div>
-          <div class="empty-text">Les événements apparaîtront ici en temps réel</div>
-        </div>
-      </div>
-    </aside>
   </div>
 </div>
