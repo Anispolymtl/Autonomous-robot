@@ -71,7 +71,15 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
     const normalized = (status || '').toLowerCase();
 
     if (!normalized || normalized.startsWith('en attente')) {
-      return 'Trajet en attente';
+      return 'En attente';
+    }
+
+    if (normalized.includes('retour')) {
+      return 'Retour à la base';
+    }
+
+    if (normalized.includes('explor')) {
+      return 'Exploration en cours';
     }
 
     if (

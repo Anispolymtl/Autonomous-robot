@@ -13,6 +13,8 @@ export class MissionStateService implements OnDestroy {
   private limo1Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
   private limo2Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
   private navigating: Record<'limo1' | 'limo2', boolean> = { limo1: false, limo2: false };
+  private returning: Record<'limo1' | 'limo2', boolean> = { limo1: false, limo2: false };
+  private readonly robots: ('limo1' | 'limo2')[] = ['limo1', 'limo2'];
 
   constructor(private readonly socketService: SocketService) {}
 
@@ -40,8 +42,40 @@ export class MissionStateService implements OnDestroy {
 
       console.log(`[CLIENT] État reçu → ${payload.robot}: ${payload.state}`);
 
+      const normalized = payload.state.toLowerCase();
+      const isWaitingState = normalized.startsWith('en attente');
+      const isReturnState = normalized.includes('retour');
+
+      // En retour : on affiche "Retour à la base" et on ignore les autres états tant qu'on n'est pas revenu en attente
+      if (payload.robot === 'limo1') {
+        if (isReturnState) {
+          this.returning.limo1 = true;
+          this.limo1State$.next(payload.state);
+          return;
+        }
+        if (this.returning.limo1) {
+          if (isWaitingState) {
+            this.returning.limo1 = false;
+            this.limo1State$.next(payload.state);
+          }
+          return;
+        }
+      } else if (payload.robot === 'limo2') {
+        if (isReturnState) {
+          this.returning.limo2 = true;
+          this.limo2State$.next(payload.state);
+          return;
+        }
+        if (this.returning.limo2) {
+          if (isWaitingState) {
+            this.returning.limo2 = false;
+            this.limo2State$.next(payload.state);
+          }
+          return;
+        }
+      }
+
       // Si on est en navigation, on ignore les états "En attente" prématurés
-      const isWaitingState = payload.state.toLowerCase().startsWith('en attente');
       if (payload.robot === 'limo1') {
         if (this.navigating.limo1 && isWaitingState) return;
         this.limo1State$.next(payload.state);
@@ -93,6 +127,32 @@ export class MissionStateService implements OnDestroy {
 
   disconnect() {
     this.socketService.disconnect();
+  }
+
+  /**
+   * Met à jour localement l'état d'un robot (sans attendre le backend).
+   */
+  setLocalState(robot: 'limo1' | 'limo2', state: string) {
+    const normalized = (state || '').toLowerCase();
+    const isReturnState = normalized.includes('retour');
+    const isWaiting = normalized.startsWith('en attente');
+
+    if (robot === 'limo1') {
+      this.limo1State$.next(state);
+      this.returning.limo1 = isReturnState ? true : isWaiting ? false : this.returning.limo1;
+      this.navigating.limo1 = normalized.includes('trajet');
+    } else {
+      this.limo2State$.next(state);
+      this.returning.limo2 = isReturnState ? true : isWaiting ? false : this.returning.limo2;
+      this.navigating.limo2 = normalized.includes('trajet');
+    }
+  }
+
+  /**
+   * Met en "Retour à la base" tous les robots localement.
+   */
+  markReturnToBaseAll() {
+    this.robots.forEach((robot) => this.setLocalState(robot, 'Retour à la base'));
   }
 
   ngOnDestroy() {

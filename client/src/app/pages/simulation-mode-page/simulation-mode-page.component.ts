@@ -13,6 +13,7 @@ import { CodeEditorDialogComponent } from '@app/components/code-editor-dialog/co
 import { MissionModeService } from '@app/services/mission-mode/mission-mode.service';
 import { Mission, MissionLogEntry } from '@app/interfaces/mission';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { MissionStateService } from '@app/services/state/state.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -71,7 +72,8 @@ export class SimulationPageComponent implements OnInit, OnDestroy {
     private missionSessionService: MissionSessionService,
     private socketService: SocketService,
     private dialog: MatDialog,
-    private missionModeService: MissionModeService
+    private missionModeService: MissionModeService,
+    private missionStateService: MissionStateService
   ) { }
 
   ngOnInit(): void {
@@ -153,6 +155,8 @@ export class SimulationPageComponent implements OnInit, OnDestroy {
   returnToBase(): void {
     console.log('Retour à la base demandé pour tous les robots');
     this.message = 'Retour à la base en cours pour tous les robots...';
+    // Met à jour instantanément le front (avant retour serveur)
+    this.missionStateService.markReturnToBaseAll();
     this.socketService.send('nav:return-to-base');
   }
 
