@@ -361,6 +361,23 @@ def generate_launch_description():
         output='screen'
     )
 
+    state_manager_limo1 = Node(
+        package='robot_exploration',
+        executable='state_manager',
+        name='state_manager',
+        namespace='limo1',
+        output='screen'
+    )
+
+    state_manager_limo2 = Node(
+        package='robot_exploration',
+        executable='state_manager',
+        name='state_manager',
+        namespace='limo2',
+        output='screen'
+    )
+    
+
     return LaunchDescription([
         SetEnvironmentVariable(name='ROS_DOMAIN_ID', value='66'),
         gz_sim,
@@ -405,6 +422,10 @@ def generate_launch_description():
         base_limo1,
         base_limo2,
         robot_position_monitor_limo1, 
-        robot_position_monitor_limo2
+        robot_position_monitor_limo2,
+
+        # State manager
+        state_manager_limo1,
+        state_manager_limo2
 
     ])

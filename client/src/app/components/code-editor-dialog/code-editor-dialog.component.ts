@@ -28,6 +28,7 @@ export class CodeEditorDialogComponent implements AfterViewInit {
   saving = false;
   editorReady = false;
   customMissionActive = false;
+  private customMissionFlags = { limo1: false, limo2: false };
 
   constructor(
     private dialogRef: MatDialogRef<CodeEditorDialogComponent>,
@@ -51,16 +52,20 @@ export class CodeEditorDialogComponent implements AfterViewInit {
 
   private subscribeToMissionState() {
     this.missionStateService.getLimo1State$().subscribe(state => {
-      if (state === 'Mission personnalisée') {
-        this.customMissionActive = true;
-      }
+      this.customMissionFlags.limo1 = this.isCustomMissionState(state);
+      this.customMissionActive = this.customMissionFlags.limo1 || this.customMissionFlags.limo2;
     });
 
     this.missionStateService.getLimo2State$().subscribe(state => {
-      if (state === 'Mission personnalisée') {
-        this.customMissionActive = true;
-      }
+      this.customMissionFlags.limo2 = this.isCustomMissionState(state);
+      this.customMissionActive = this.customMissionFlags.limo1 || this.customMissionFlags.limo2;
     });
+  }
+
+  private isCustomMissionState(state: string): boolean {
+    const normalized = (state || '').toLowerCase();
+    // Accepte les deux variantes avec/sans accent pour correspondre au backend
+    return normalized.includes('mission personnalis');
   }
 
   // --- SNACKBAR HELPERS ---
