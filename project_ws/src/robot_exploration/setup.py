@@ -35,6 +35,7 @@ setup(
         'base_manager = robot_exploration.localization.base_manager:main',
         'battery_manager = robot_exploration.localization.battery_manager:main',
         'robot_position_monitor = robot_exploration.localization.robot_position_monitor:main',
+        'state_manager = robot_exploration.state_manager.state_manager:main'
     ],
     },
 )

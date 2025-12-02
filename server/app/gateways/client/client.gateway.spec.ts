@@ -4,6 +4,7 @@ import { SocketService } from '@app/services/socket/socket.service';
 import { MissionRuntimeService, MissionCreatePayload } from '@app/services/mission-runtime/mission-runtime.service';
 import { NavService } from '@app/services/nav/nav.service';
 import { Socket } from 'socket.io';
+import { RosService } from '@app/services/ros/ros.service';
 
 
 describe('ClientGateway', () => {
@@ -28,7 +29,8 @@ describe('ClientGateway', () => {
             addPoint: jest.fn(),
             removePoint: jest.fn(),
             startGoal: jest.fn()
-        } }
+        } },
+        { provide: RosService, useValue: { returnToBase: jest.fn() } }
       ],
     }).compile();
 

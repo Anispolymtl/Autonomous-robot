@@ -10,7 +10,13 @@ describe('CreateMissionDto', () => {
     dto.distance = 1500;
     dto.missionName = 'Inspection hangar #12';
     dto.status = 'PENDING';
-    dto.logs = [{ message: 'Log test' }];
+    dto.logs = [{
+      timestamp: new Date().toISOString(),
+      robot: 'Atlas-R2',
+      category: 'Command',
+      action: 'log',
+      details: {}
+    }];
 
     const errors = await validate(dto);
     expect(errors.length).toBe(0);

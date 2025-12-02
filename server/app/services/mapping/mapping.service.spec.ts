@@ -76,25 +76,11 @@ describe('MappingService', () => {
       expect(spyNode).toHaveBeenCalledWith('pose_listener_backend', robotId);
       const nodeInstance = service['poseNode'] as any;
       expect(nodeInstance.createSubscription).toHaveBeenCalledWith(
-        'geometry_msgs/msg/PoseWithCovarianceStamped',
-        'pose',
+        'geometry_msgs/msg/PoseStamped',
+        'current_pose',
         expect.any(Function)
       );
       expect(nodeInstance.spin).toHaveBeenCalled();
-    });
-  });
-
-  describe('extractPosePayload', () => {
-    it('should return header and pose if present', () => {
-      const msg = { header: { frame_id: 'map' }, pose: { pose: { x: 1, y: 2 } } };
-      const result = service['extractPosePayload'](msg);
-      expect(result).toEqual({ header: msg.header, pose: msg.pose.pose });
-    });
-
-    it('should return original msg if pose not present', () => {
-      const msg = { some: 'data' };
-      const result = service['extractPosePayload'](msg);
-      expect(result).toEqual(msg);
     });
   });
 });

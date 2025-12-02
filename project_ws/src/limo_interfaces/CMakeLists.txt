@@ -16,6 +16,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/DoMission.action"
   "srv/GetScript.srv"
   "srv/SaveScript.srv"
+  "msg/RobotState.msg"
+  "srv/SetRobotState.srv"
   DEPENDENCIES action_msgs
 )
 
