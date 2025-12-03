@@ -57,6 +57,13 @@ def launch_with_namespace(context, *args, **kwargs):
             parameters=[{"rate": 10.0}]
     )
 
+    state = Node(
+        package='robot_exploration',
+        executable='state_manager',
+        name='state_manager',
+        output='screen'
+    )
+
     id_srv = Node(
         package='robot_exploration',
         executable='identify_service',
@@ -132,6 +139,7 @@ def launch_with_namespace(context, *args, **kwargs):
     group = GroupAction(actions=[
         PushRosNamespace(namespace),
         limo_launch,
+        state,
         robot_position_monitor,
         id_srv,
         base_srv,

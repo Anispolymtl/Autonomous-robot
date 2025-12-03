@@ -94,14 +94,12 @@ export class NavService {
     private async processPointQueue(robot: RobotId, queue: Point2D[]) {
         const waypoints = queue.splice(0, queue.length);
         console.log(waypoints);
-        let resultStatus: number | undefined;
         try {
-            resultStatus = await this.dispatchWaypoints(robot, waypoints);
+            await this.dispatchWaypoints(robot, waypoints);
         } catch (err) {
             this.logger.error(`Error sending waypoints for ${robot}`, (err as Error).stack);
-        } finally {
-            await this.setRobotState(robot, this.robotStateConstants.WAIT);
         }
+        // La remise à l'état WAIT est maintenant gérée côté ROS (StateManager/Mission).
     }
 
     private async dispatchWaypoints(robot: RobotId, waypoints: Point2D[]) {

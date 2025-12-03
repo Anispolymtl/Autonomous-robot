@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 echo "---- Build du workspace ROS2 ----"
 cd project_ws
-colcon build --merge-install
+colcon build
 source install/setup.sh
 
 echo "---- Lancement du client ----"

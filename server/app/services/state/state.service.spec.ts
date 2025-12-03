@@ -9,6 +9,7 @@ jest.mock('rclnodejs');
 describe('StateService', () => {
   let service: StateService;
   let socketService: SocketService;
+  const mockIsReturnInProgress = jest.fn();
 
   const mockCreateSubscription = jest.fn();
   const mockSpin = jest.fn();
@@ -57,10 +58,12 @@ describe('StateService', () => {
 
     service = module.get<StateService>(StateService);
     socketService = module.get<SocketService>(SocketService);
+    mockIsReturnInProgress.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockIsReturnInProgress.mockReset();
   });
 
   it('should be defined', () => {
@@ -116,12 +119,12 @@ describe('StateService', () => {
 
     service.initStateService();
 
-    const waitingMsg = { data: 'En attente' };
+    const waitingMsg = { state: RobotStateMock.WAIT };
     callbackCaptor[0](waitingMsg);
     expect(socketService.sendStateToAllSockets).not.toHaveBeenCalledWith('limo1', 'En attente');
 
-    const normalMsg = { data: 'Trajet en cours' };
+    const normalMsg = { state: RobotStateMock.NAVIGATION };
     callbackCaptor[0](normalMsg);
-    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo1', 'Trajet en cours');
+    expect(socketService.sendStateToAllSockets).toHaveBeenCalledWith('limo1', 'Navigation');
   });
 });
