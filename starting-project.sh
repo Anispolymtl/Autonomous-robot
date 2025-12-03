@@ -3,6 +3,27 @@ set -e
 
 cd "$(dirname "$0")"
 
+USER_IP=$(hostname -I | awk '{print $1}')
+echo "---- IP détectée : $USER_IP ----"
+
+ENV_DIR="./client/src/environments"
+ENV_FILE="$ENV_DIR/environment.ts"
+ENV_DYNAMIC="$ENV_DIR/environment.prod.ts"
+
+echo "---- Génération du environment.prod.ts ----"
+
+cat <<EOF > "$ENV_DYNAMIC"
+export const environment = {
+    production: false,
+    serverUrl: 'http://$USER_IP:3000',
+};
+EOF
+
+cp "$ENV_DYNAMIC" "$ENV_FILE"
+
+echo "environment.ts mis à jour avec : http://$USER_IP:3000"
+echo
+
 echo "---- Build du workspace ROS2 ----"
 cd project_ws
 colcon build
@@ -10,7 +31,7 @@ source install/setup.sh
 
 echo "---- Lancement du client ----"
 cd ../client
-npm start &
+ng serve --host 0.0.0.0 &
 CLIENT_PID=$!
 
 echo "---- Lancement du serveur ----"
