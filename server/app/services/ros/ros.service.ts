@@ -51,18 +51,38 @@ export class RosService implements OnModuleInit {
 
   async identifyRobot(id: number): Promise<{ success: boolean; message: string }> {
     const obj = this.limoList[id - 1];
-    if (!obj.identifyClient) {
+    if (!obj?.identifyClient) {
       this.logger.error('Client ROS2 non initialisé');
       return { success: false, message: 'ROS2 non initialisé' };
     }
 
-    return new Promise((resolve) => {
-      const request = new ((rclnodejs.require('std_srvs') as any).srv.Trigger.Request)();
-      obj.identifyClient.sendRequest(request, (response) => {
-        if (response) resolve({ success: response.success, message: response.message });
-        else resolve({ success: false, message: 'Échec de l’appel ROS2' });
-      });
-    });
+    const Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
+    const robotLabel = id === 1 ? 'limo1' : 'limo2';
+    const maxAttempts = 3;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await obj.identifyClient.waitForService(1000);
+
+        const request = new Trigger.Request();
+        const response: any = await new Promise((resolve) =>
+          obj.identifyClient.sendRequest(request, (resp) => resolve(resp))
+        );
+
+        if (response?.success) {
+          this.logger.log(`[${robotLabel}] Identification réussie : ${response.message}`);
+          return { success: true, message: response.message };
+        }
+
+        this.logger.warn(`[${robotLabel}] Identification tentative ${attempt}/${maxAttempts} échouée: ${response?.message ?? 'réponse vide'}`);
+      } catch (err) {
+        this.logger.warn(`[${robotLabel}] identify_robot tentative ${attempt}/${maxAttempts} erreur: ${(err as Error).message}`);
+      }
+
+      if (attempt < maxAttempts) await this.sleep(300);
+    }
+
+    return { success: false, message: `Échec de l’identification pour ${robotLabel}` };
   }
 
   async returnToBase() {
