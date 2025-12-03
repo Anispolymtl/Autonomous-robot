@@ -84,6 +84,17 @@ class StateManager(Node):
     def _is_valid_state(self, state: int) -> bool:
         """Vérifie si l'état est valide"""
         return state in self.STATE_NAMES
+
+    def _stop_processes_for_transition(self, current_state: int, next_state: int):
+        """
+        Stoppe proprement les processus de l'état courant avant la transition.
+        À étendre si d'autres états nécessitent un arrêt explicite.
+        """
+        if current_state == RobotStateMsg.EXPLORATION and next_state != RobotStateMsg.EXPLORATION:
+            self.get_logger().info(
+                f"⛔ Arrêt de l'exploration (transition vers {self.STATE_NAMES.get(next_state, next_state)})"
+            )
+            self.resume_pub.publish(Bool(data=False))
     
     def set_state_callback(self, request, response):
         """
@@ -116,16 +127,14 @@ class StateManager(Node):
         # Changer l'état (thread-safe)
         with self._state_lock:
             old_state = self._current_state
-            if requested_state == RobotStateMsg.EXPLORATION and old_state != RobotStateMsg.WAIT:
-                self.get_logger().warn(
-                    "⛔ Refus: passage vers EXPLORATION autorisé uniquement depuis WAIT"
-                )
-                response.success = False
-                response.message = "Transition vers EXPLORATION seulement depuis WAIT"
+            if requested_state == old_state:
+                info_msg = f"État inchangé: déjà en {self.STATE_NAMES[old_state]}"
+                self.get_logger().info(f"ℹ️ {info_msg}")
+                response.success = True
+                response.message = info_msg
                 return response
-            if old_state == RobotStateMsg.EXPLORATION and requested_state != RobotStateMsg.EXPLORATION:
-                self.get_logger().info("⛔ Arrêt de l'exploration (transition depuis EXPLORATION)")
-                self.resume_pub.publish(Bool(data=False))
+
+            self._stop_processes_for_transition(old_state, requested_state)
             self._current_state = requested_state
         
         # Log

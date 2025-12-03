@@ -99,15 +99,14 @@ class MissionServer(Node):
 
             # Mode par défaut : gérer l'exploration
             if not self.use_custom_logic:
-                # Arrêt de l'exploration
-                if old_state == RobotStateMsg.EXPLORATION and self.current_state != RobotStateMsg.EXPLORATION:
-                    self.get_logger().info("⛔ Arrêt de l'exploration")
-                    self.resume_pub.publish(Bool(data=False))
-
                 # Démarrage/Reprise de l'exploration
-                elif self.current_state == RobotStateMsg.EXPLORATION and old_state != RobotStateMsg.EXPLORATION:
+                if self.current_state == RobotStateMsg.EXPLORATION and old_state != RobotStateMsg.EXPLORATION:
                     self.get_logger().info("🟢 (Re)démarrage de l'exploration")
                     self.resume_pub.publish(Bool(data=True))
+                # Arrêt de l'exploration uniquement quand on passe en WAIT
+                elif self.current_state == RobotStateMsg.WAIT and old_state == RobotStateMsg.EXPLORATION:
+                    self.get_logger().info("⛔ Arrêt de l'exploration (WAIT)")
+                    self.resume_pub.publish(Bool(data=False))
 
     # ==========================================================
     #                  ACTION SERVER
