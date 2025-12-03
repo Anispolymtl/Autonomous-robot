@@ -92,6 +92,12 @@ export class SocketService{
         });
     }
 
+    sendBatteryToAllSockets(batteryLevels: Record<RobotId, number>) {
+        this.sockets.forEach(socket =>
+            socket.emit('batteriesUpdate', batteryLevels)
+        );
+    }
+
     getMaps(): Record<RobotId, any> {
         const limo1Map = this.payloads.limo1.mapData;
         const limo2Map = this.payloads.limo2.mapData;

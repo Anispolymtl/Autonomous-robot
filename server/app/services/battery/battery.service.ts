@@ -1,29 +1,36 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { RosService } from "../ros/ros.service";
+import { SocketService } from "../socket/socket.service";
 
 type RobotId = 'limo1' | 'limo2';
 
 @Injectable()
 export class BatteryService {
     private readonly logger = new Logger(BatteryService.name);
-    private readonly tickMs = 10000;
+    private readonly tickMs = 1000;
     private readonly drainPerTick = 1;
     private countdownInterval?: NodeJS.Timeout;
     private batteryLevels: Record<RobotId, number> = { limo1: 100, limo2: 100 };
     private lowBatteryNotified: Record<RobotId, boolean> = { limo1: false, limo2: false };
+
+    constructor(
+        private rosService: RosService,
+        private socketService: SocketService
+    ) {}
 
     /**
      * Starts the battery countdown for both robots if not already running.
      */
     startBattery() {
         if (this.countdownInterval) return;
-
+        this.socketService.sendBatteryToAllSockets(this.batteryLevels)
         this.countdownInterval = setInterval(() => {
             (['limo1', 'limo2'] as RobotId[]).forEach((robot) => {
                 if (this.batteryLevels[robot] <= 0) return;
 
                 this.batteryLevels[robot] = Math.max(0, this.batteryLevels[robot] - this.drainPerTick);
+                this.socketService.sendBatteryToAllSockets(this.batteryLevels)
                 if (this.batteryLevels[robot] <= 30 && !this.lowBatteryNotified[robot]) {
-                    this.lowBatteryNotified[robot] = true;
                     this.handleLowBattery(robot);
                 }
             });
@@ -55,6 +62,7 @@ export class BatteryService {
      */
     private handleLowBattery(robot: RobotId) {
         this.logger.warn(`[${robot}] Battery reached 30%`);
-        // TODO: add low battery handling (e.g., notify UI, trigger return to base)
+        this.lowBatteryNotified[robot] = true;
+        this.rosService.returnToBaseIndividual(robot);
     }
 }

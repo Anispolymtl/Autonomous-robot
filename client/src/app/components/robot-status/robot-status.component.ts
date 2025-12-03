@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { MissionStateService } from '@app/services/state/state.service';
 import { Subscription } from 'rxjs';
+import { SocketService } from '@app/services/socket/socket.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -19,8 +20,8 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
 
   robot1Status = 'En attente';
   robot2Status = 'En attente';
-  robot1Battery = 21;
-  robot2Battery = 67;
+  robot1Battery = 100;
+  robot2Battery = 100;
   robot1Position: { x: number; y: number } | null = null;
   robot2Position: { x: number; y: number } | null = null;
 
@@ -29,7 +30,10 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   private subPos1?: Subscription;
   private subPos2?: Subscription;
 
-  constructor(private missionStateService: MissionStateService) {}
+  constructor(
+    private missionStateService: MissionStateService,
+    private socketService: SocketService
+  ) {}
 
   ngOnInit(): void {
     this.missionStateService.connectToSocket();
@@ -49,6 +53,11 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
     this.subPos2 = this.missionStateService.getLimo2Position$().subscribe((pos) => {
       this.robot2Position = pos;
     });
+
+    this.socketService.on('batteriesUpdate',((batteries: Record<RobotId, number> )=> {
+      this.robot1Battery = batteries.limo1;
+      this.robot2Battery = batteries.limo2;
+    }))
   }
 
   ngOnDestroy(): void {

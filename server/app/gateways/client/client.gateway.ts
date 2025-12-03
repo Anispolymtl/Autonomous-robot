@@ -12,6 +12,7 @@ import { MissionLogEntry } from '@common/interfaces/mission-log-entry';
 import { Mission } from '@app/model/database/mission';
 import { NavService } from '@app/services/nav/nav.service';
 import { RosService } from '@app/services/ros/ros.service';
+import { BatteryService } from '@app/services/battery/battery.service';
 
 type RobotId = 'limo1' | 'limo2';
 type Point2D = { x: number; y: number };
@@ -38,7 +39,8 @@ export class ClientGateway {
         private socketService: SocketService,
         private missionRuntimeService: MissionRuntimeService,
         private navService: NavService,
-        private rosService: RosService
+        private rosService: RosService,
+        private batteryService: BatteryService
     ) {}
 
     handleConnection(socket: Socket) {
@@ -77,6 +79,9 @@ export class ClientGateway {
     @SubscribeMessage('mission:create')
     handleMissionCreate(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionCreatePayload) {
         try {
+            if (payload.mode == 'SIMULATION') {
+                this.batteryService.startBattery();
+            }
             const mission = this.missionRuntimeService.createMission(socket.id, payload);
             socket.emit('mission:created', { missionId: mission.missionId, mission });
         } catch (error) {
