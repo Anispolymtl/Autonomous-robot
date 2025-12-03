@@ -4,6 +4,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from nav2_msgs.action import NavigateToPose
+from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
 from std_srvs.srv import Trigger
 from tf2_ros import Buffer, TransformListener
@@ -62,20 +63,26 @@ class BaseManager(Node):
             )
 
     def robot_state_callback(self, msg: RobotStateMsg):
-        """Met à jour l'état courant et déclenche le retour une fois l'exploration arrêtée."""
-        previous_state = self.current_state
+        """Met à jour l'état courant et déclenche le retour dès que l'état RETURN_TO_BASE est reçu."""
         self.current_state = msg.state
 
-        # Si on attend l'arrêt de l'exploration, lancer le retour dès que possible
+        # Si on attend l'arrêt de l'exploration, lancer le retour dès que l'état n'est plus EXPLORATION
         if (
             self.waiting_stop_exploration
-            and previous_state == RobotStateMsg.EXPLORATION
             and self.current_state != RobotStateMsg.EXPLORATION
+            and not self.return_in_progress
+            and self.pending_return_goal is not None
         ):
             self.get_logger().info("✅ Exploration arrêtée, lancement du retour à la base")
             self.waiting_stop_exploration = False
-            if not self.return_in_progress and self.pending_return_goal is not None:
-                self._start_return_goal()
+            self._start_return_goal()
+            return
+
+        # Démarrer le retour dès que l'état passe à RETURN_TO_BASE
+        if self.current_state == RobotStateMsg.RETURN_TO_BASE:
+            self.get_logger().info("🚦 État RETURN_TO_BASE reçu, lancement du retour à la base")
+            self._request_return_to_base()
+            return
 
     def set_robot_state(self, state: int):
         """
@@ -111,15 +118,22 @@ class BaseManager(Node):
 
     def handle_return_to_base(self, request, response):
 
-        if self.base_pose_odom is None:
-            response.success = False
-            response.message = "Base not known."
-            return response
+        success, message = self._request_return_to_base()
+        response.success = success
+        response.message = message or ""
+        return response
 
-        if self.return_in_progress or self.waiting_stop_exploration:
-            response.success = False
-            response.message = "Return already running."
-            return response
+    def _request_return_to_base(self):
+        """
+        Lance un retour à la base en fonction de l'état courant.
+        """
+        if self.base_pose_odom is None:
+            self.get_logger().warn("⚠️ Base inconnue, retour impossible.")
+            return False, "Base not known."
+
+        if self.return_in_progress:
+            self.get_logger().info("ℹ️ Retour déjà en cours.")
+            return False, "Return already running."
 
         # PoseStamped en ODOM
         base_odom_stamped = PoseStamped()
@@ -137,18 +151,14 @@ class BaseManager(Node):
             )
         except Exception as e:
             self.get_logger().error(f"❌ [{self.namespace}] TF lookup failed: {e}")
-            response.success = False
-            response.message = "TF lookup failed"
-            return response
+            return False, "TF lookup failed"
 
         # ---- TRANSFORM POSE ----
         try:
             base_map_pose = do_transform_pose(base_odom_stamped.pose, transform)
         except Exception as e:
             self.get_logger().error(f"❌ [{self.namespace}] Pose transform failed: {e}")
-            response.success = False
-            response.message = "Pose transform failed"
-            return response
+            return False, "Pose transform failed"
 
         # Reconstruire un PoseStamped en frame 'map'
         base_map_stamped = PoseStamped()
@@ -156,25 +166,22 @@ class BaseManager(Node):
         base_map_stamped.header.stamp = self.get_clock().now().to_msg()
         base_map_stamped.pose = base_map_pose
 
-        # Conserver le goal pour lancement différé si l'exploration est en cours
+        # Conserver le goal pour lancement
         goal = NavigateToPose.Goal()
         goal.pose = base_map_stamped
         self.pending_return_goal = goal
 
-        # Si on explore encore, demander l'arrêt avant de lancer le retour
+        # Si on explore encore, demander d'abord l'arrêt de l'exploration
         if self.current_state == RobotStateMsg.EXPLORATION:
-            self.get_logger().info("⏸ Arrêt de l'exploration avant le retour à la base")
             self.waiting_stop_exploration = True
-            self.set_robot_state(RobotStateMsg.WAIT)
-            response.success = True
-            response.message = "Return-to-base pending: stopping exploration first."
-            return response
+            self.get_logger().info("⏸ Arrêt de l'exploration avant le retour à la base")
+            # Déclenche le passage à RETURN_TO_BASE (StateManager publiera explore/resume=False)
+            self.set_robot_state(RobotStateMsg.RETURN_TO_BASE)
+            return True, "Return-to-base pending: stopping exploration first."
 
         # Sinon on peut lancer directement le retour
         self._start_return_goal()
-        response.success = True
-        response.message = "Return-to-base sent."
-        return response
+        return True, "Return-to-base sent."
 
     def _start_return_goal(self):
         """Envoie le goal Nav2 pour retourner à la base et met l'état à jour."""
@@ -184,6 +191,8 @@ class BaseManager(Node):
 
         goal = self.pending_return_goal
         self.pending_return_goal = None
+        # Placer le flag immédiatement pour éviter les doubles déclenchements via les callbacks d'état
+        self.return_in_progress = True
 
         # ---- CHANGER L'ÉTAT → RETURN_TO_BASE ----
         self.set_robot_state(RobotStateMsg.RETURN_TO_BASE)
@@ -193,7 +202,6 @@ class BaseManager(Node):
             f"y={goal.pose.pose.position.y:.2f}"
         )
 
-        self.return_in_progress = True
         send_future = self.nav_action_client.send_goal_async(goal)
         send_future.add_done_callback(self.goal_response_callback)
 
@@ -218,16 +226,29 @@ class BaseManager(Node):
         self.waiting_stop_exploration = False
         
         try:
-            result = future.result().result
-            self.get_logger().info(f"🎯 [{self.namespace}] Arrived at base. Nav2 result: {result}")
-            
-            # ---- CHANGER L'ÉTAT → WAIT ----
-            self.set_robot_state(RobotStateMsg.WAIT)
-            
+            result_response = future.result()
         except Exception as e:
             self.get_logger().error(f"❌ [{self.namespace}] Nav2 result error: {e}")
-            # En cas d'erreur, retour à WAIT aussi
-            self.set_robot_state(RobotStateMsg.WAIT)
+            # Pas de changement d'état tant que Nav2 n'a pas confirmé succès/échec
+            return
+
+        status = result_response.status
+        result = result_response.result
+
+        status_names = {
+            GoalStatus.STATUS_SUCCEEDED: "SUCCEEDED",
+            GoalStatus.STATUS_ABORTED: "ABORTED",
+            GoalStatus.STATUS_CANCELED: "CANCELED",
+        }
+        status_label = status_names.get(status, f"status={status}")
+
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info(f"🎯 [{self.namespace}] Arrived at base. Nav2 status: {status_label}, result: {result}")
+        else:
+            self.get_logger().warn(f"⚠️ [{self.namespace}] Return-to-base finished with {status_label}, result: {result}")
+
+        # ---- CHANGER L'ÉTAT → WAIT ----
+        self.set_robot_state(RobotStateMsg.WAIT)
 
 
 def main(args=None):

@@ -16,7 +16,7 @@ export class StateService {
 
     constructor(
         private socketService: SocketService,
-        private navService: NavService,
+        // private navService: NavService,
     ) {
         this.robotStateConstants = this.loadRobotStateConstants();
         this.stateLabels = {
@@ -46,12 +46,12 @@ export class StateService {
                     ? this.stateLabels[stateValue] ?? `Inconnu (${stateValue})`
                     : 'Inconnu';
 
-                const shouldIgnoreWaitingState =
-                    stateValue === this.robotStateConstants.WAIT &&
-                    this.navService?.isReturnInProgress(robotId);
-                if (shouldIgnoreWaitingState) {
-                    return;
-                }
+                // const shouldIgnoreWaitingState =
+                //     stateValue === this.robotStateConstants.WAIT &&
+                //     this.navService?.isReturnInProgress(robotId);
+                // if (shouldIgnoreWaitingState) {
+                //     return;
+                // }
 
                 this.socketService.sendStateToAllSockets(robotId, formattedState);
             }

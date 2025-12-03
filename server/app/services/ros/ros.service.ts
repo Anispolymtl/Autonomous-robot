@@ -2,12 +2,10 @@ process.env.ROS_DOMAIN_ID = '66';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as rclnodejs from 'rclnodejs';
 import { LimoObject } from '@app/interfaces/LimoObject';
-import { SocketService } from '@app/services/socket/socket.service';
 import { NavService } from '@app/services/nav/nav.service';
 import { MappingSerivce } from '@app/services/mapping/mapping.service';
 import { StateService } from '@app/services/state/state.service';
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
-import { MissionService } from '@app/services/misson/mission.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -26,7 +24,6 @@ export class RosService implements OnModuleInit {
     private stateService: StateService,
     private mappingService: MappingSerivce,
     private codeEditor: CodeEditorService,
-    private missionService: MissionService,
   ) {}
 
   async onModuleInit() {
@@ -34,17 +31,14 @@ export class RosService implements OnModuleInit {
     const nodeLimo1 = new rclnodejs.Node('identify_client_backend', 'limo1');
     const nodeLimo2 = new rclnodejs.Node('identify_client_backend', 'limo2');
     const Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
-    const SetBool = (rclnodejs.require('std_srvs') as any).srv.SetBool;
     const clientIdLimo1 = nodeLimo1.createClient(Trigger, 'identify_robot');
     const clientIdLimo2 = nodeLimo2.createClient(Trigger, 'identify_robot');
     const returnClient1 = nodeLimo1.createClient(Trigger, 'return_to_base');
     const returnClient2 = nodeLimo2.createClient(Trigger, 'return_to_base');
-    const changeModeClient1 = nodeLimo1.createClient(SetBool, 'change_mode');
-    const changeModeClient2 = nodeLimo2.createClient(SetBool, 'change_mode');
 
     this.limoList = [
-      { node: nodeLimo1, identifyClient: clientIdLimo1, returnClient: returnClient1, changeModeClient: changeModeClient1 },
-      { node: nodeLimo2, identifyClient: clientIdLimo2, returnClient: returnClient2, changeModeClient: changeModeClient2 }
+      { node: nodeLimo1, identifyClient: clientIdLimo1, returnClient: returnClient1 },
+      { node: nodeLimo2, identifyClient: clientIdLimo2, returnClient: returnClient2 }
     ];
     this.navService.initNavService(nodeLimo1, nodeLimo2);
     this.stateService.initStateService();
@@ -76,31 +70,6 @@ export class RosService implements OnModuleInit {
     // Marquer le retour en cours pour ne pas écraser l'état côté UI
     this.navService.setReturnInProgress('limo1', true);
     this.navService.setReturnInProgress('limo2', true);
-
-    // Stopper mission/exploration en cours pour libérer la navigation
-    try {
-      await this.missionService.stopMission();
-    } catch (err) {
-      this.logger.warn(`Arrêt de mission avant retour: ${(err as Error).message}`);
-    }
-
-    // Forcer la sortie du mode exploration (DoMission) -> passe en navigation
-    await Promise.all(
-      this.limoList.map(async (limo, index) => {
-        if (!limo.changeModeClient) return;
-        try {
-          const request = new ((rclnodejs.require('std_srvs') as any).srv.SetBool.Request)();
-          request.data = false; // false -> mode Navigation, stop exploration
-          await limo.changeModeClient.waitForService(1000);
-          await new Promise<void>((resolve) => {
-            limo.changeModeClient.sendRequest(request, () => resolve());
-          });
-          this.logger.log(`Robot ${index + 1}: mode exploration désactivé`);
-        } catch (err) {
-          this.logger.warn(`Robot ${index + 1}: impossible de changer de mode avant retour (${(err as Error).message})`);
-        }
-      })
-    );
 
     // Stoppe les navigations en cours pour éviter les conflits avec le retour
     await Promise.all([

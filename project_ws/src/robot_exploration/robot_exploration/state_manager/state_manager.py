@@ -84,6 +84,33 @@ class StateManager(Node):
     def _is_valid_state(self, state: int) -> bool:
         """Vérifie si l'état est valide"""
         return state in self.STATE_NAMES
+
+    def _can_transition(self, current_state: int, requested_state: int):
+        """Vérifie si la transition demandée est autorisée"""
+        if requested_state == RobotStateMsg.WAIT:
+            return True, None
+
+        if requested_state == RobotStateMsg.EXPLORATION:
+            if current_state == RobotStateMsg.WAIT:
+                return True, None
+            return False, "Transition vers EXPLORATION seulement depuis WAIT"
+
+        if requested_state == RobotStateMsg.NAVIGATION:
+            if current_state in (RobotStateMsg.EXPLORATION, RobotStateMsg.WAIT):
+                return True, None
+            return False, "Transition vers NAVIGATION seulement depuis WAIT ou EXPLORATION"
+
+        if requested_state == RobotStateMsg.RETURN_TO_BASE:
+            if current_state in (
+                RobotStateMsg.NAVIGATION,
+                RobotStateMsg.WAIT,
+                RobotStateMsg.EXPLORATION
+            ):
+                return True, None
+            return False, "Transition vers RETURN_TO_BASE seulement depuis NAVIGATION, WAIT ou EXPLORATION"
+
+        # CUSTOM_MISSION et autres cas non restreints
+        return True, None
     
     def set_state_callback(self, request, response):
         """
@@ -116,15 +143,20 @@ class StateManager(Node):
         # Changer l'état (thread-safe)
         with self._state_lock:
             old_state = self._current_state
-            if requested_state == RobotStateMsg.EXPLORATION and old_state != RobotStateMsg.WAIT:
+            allowed, reason = self._can_transition(old_state, requested_state)
+            if not allowed:
                 self.get_logger().warn(
-                    "⛔ Refus: passage vers EXPLORATION autorisé uniquement depuis WAIT"
+                    f"⛔ Refus transition {self.STATE_NAMES[old_state]} → "
+                    f"{self.STATE_NAMES.get(requested_state, requested_state)} : {reason}"
                 )
                 response.success = False
-                response.message = "Transition vers EXPLORATION seulement depuis WAIT"
+                response.message = reason
                 return response
             if old_state == RobotStateMsg.EXPLORATION and requested_state != RobotStateMsg.EXPLORATION:
-                self.get_logger().info("⛔ Arrêt de l'exploration (transition depuis EXPLORATION)")
+                self.get_logger().info(
+                    f"⛔ Arrêt de l'exploration (transition vers "
+                    f"{self.STATE_NAMES.get(requested_state, requested_state)})"
+                )
                 self.resume_pub.publish(Bool(data=False))
             self._current_state = requested_state
         
