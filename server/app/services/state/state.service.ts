@@ -14,7 +14,10 @@ export class StateService {
     private stateListeners: Partial<Record<RobotId, rclnodejs.Node>> = {};
     private stateSubscriptions: Partial<Record<RobotId, rclnodejs.Subscription>> = {};
 
-    constructor(private socketService: SocketService) {
+    constructor(
+        private socketService: SocketService,
+        private navService: NavService,
+    ) {
         this.robotStateConstants = this.loadRobotStateConstants();
         this.stateLabels = {
             [this.robotStateConstants.WAIT]: 'En attente',
@@ -42,6 +45,14 @@ export class StateService {
                 const formattedState = stateValue !== undefined
                     ? this.stateLabels[stateValue] ?? `Inconnu (${stateValue})`
                     : 'Inconnu';
+
+                const shouldIgnoreWaitingState =
+                    stateValue === this.robotStateConstants.WAIT &&
+                    this.navService?.isReturnInProgress(robotId);
+                if (shouldIgnoreWaitingState) {
+                    return;
+                }
+
                 this.socketService.sendStateToAllSockets(robotId, formattedState);
             }
         );
