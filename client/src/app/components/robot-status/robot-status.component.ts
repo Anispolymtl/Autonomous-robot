@@ -19,6 +19,10 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
 
   robot1Status = 'En attente';
   robot2Status = 'En attente';
+  robot1MissionStatus = 'Idle';
+  robot2MissionStatus = 'Idle';
+  explorationStates = ['Frontier Detection', 'Frontier Clustering', 'Frontier Evaluation'];
+
   robot1Battery = 21;
   robot2Battery = 67;
   robot1Position: { x: number; y: number } | null = null;
@@ -26,6 +30,8 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
 
   private sub1!: Subscription;
   private sub2!: Subscription;
+  private subMission1!: Subscription;
+  private subMission2!: Subscription;
   private subPos1?: Subscription;
   private subPos2?: Subscription;
 
@@ -42,6 +48,14 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
       this.robot2Status = state;
     });
 
+    this.subMission1 = this.missionStateService.getLimo1MissionState$().subscribe((state) => {
+      this.robot1MissionStatus = state;
+    });
+
+    this.subMission2 = this.missionStateService.getLimo2MissionState$().subscribe((state) => {
+      this.robot2MissionStatus = state;
+    });
+
     this.subPos1 = this.missionStateService.getLimo1Position$().subscribe((pos) => {
       this.robot1Position = pos;
     });
@@ -54,6 +68,8 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.sub1) this.sub1.unsubscribe();
     if (this.sub2) this.sub2.unsubscribe();
+    if (this.subMission1) this.subMission1.unsubscribe();
+    if (this.subMission2) this.subMission2.unsubscribe();
     this.subPos1?.unsubscribe();
     this.subPos2?.unsubscribe();
     this.missionStateService.disconnect();

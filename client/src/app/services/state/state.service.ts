@@ -10,6 +10,8 @@ import { PoseData } from '@app/interfaces/pose-data';
 export class MissionStateService implements OnDestroy {
   private limo1State$ = new BehaviorSubject<string>('En attente');
   private limo2State$ = new BehaviorSubject<string>('En attente');
+  private limo1MissionState$ = new BehaviorSubject<string>('Idle');
+  private limo2MissionState$ = new BehaviorSubject<string>('Idle');
   private limo1Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
   private limo2Position$ = new BehaviorSubject<{ x: number; y: number } | null>(null);
   private navigating: Record<'limo1' | 'limo2', boolean> = { limo1: false, limo2: false };
@@ -51,6 +53,21 @@ export class MissionStateService implements OnDestroy {
       }
     });
 
+    this.socketService.on('expStep', (payload: { robot: string; msg: string }) => {
+      if (!payload || !payload.robot || !payload.msg) {
+        console.log('[STATE] Abort Mission message');
+        return;
+      }
+
+      console.log(`[CLIENT] État Mission reçu → ${payload.robot}: ${payload.msg}`);
+
+      if (payload.robot === 'limo1') {
+        this.limo1MissionState$.next(payload.msg);
+      } else if (payload.robot === 'limo2') {
+        this.limo2MissionState$.next(payload.msg);
+      }
+    });
+
     this.socketService.on('waypointsStatus', (payload: { robot: string; status: 'started' | 'completed' }) => {
       if (!payload?.robot || !payload.status) return;
       if (payload.robot === 'limo1') {
@@ -81,6 +98,14 @@ export class MissionStateService implements OnDestroy {
 
   getLimo2State$(): Observable<string> {
     return this.limo2State$.asObservable();
+  }
+
+  getLimo1MissionState$(): Observable<string> {
+    return this.limo1MissionState$.asObservable();
+  }
+
+  getLimo2MissionState$(): Observable<string> {
+    return this.limo2MissionState$.asObservable();
   }
 
   getLimo1Position$(): Observable<{ x: number; y: number } | null> {

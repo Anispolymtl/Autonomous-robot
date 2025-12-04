@@ -90,31 +90,10 @@ export class SocketService{
         });
     }
 
-    sendExplorationDebugToAllSockets(msg: any, robot: RobotId) {
-        console.log(`debug`, msg)
-        this.sockets.forEach(socket => {
-            socket.emit('expDebug', {robot, msg});
-        });
-    }
-
     sendExplorationStepToAllSockets(msg: any, robot: RobotId) {
         console.log('step', msg)
         this.sockets.forEach(socket => {
             socket.emit('expStep', {robot, msg});
-        });
-    }
-
-    sendExplorationCandidateToAllSockets(msg: {x: number, y: number, z: number}, robot: RobotId) {
-        console.log('candidate', msg)
-        this.sockets.forEach(socket => {
-            socket.emit('expCandidate', {robot, msg});
-        });
-    }
-
-    sendExplorationFrontiersToAllSockets(msg: any, robot: RobotId) {
-        console.log('frontier', msg)
-        this.sockets.forEach(socket => {
-            socket.emit('expFrontier', {robot, msg});
         });
     }
 

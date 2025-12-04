@@ -143,25 +143,12 @@ export class RosService implements OnModuleInit {
     const missionNode = new rclnodejs.Node(`exploration_listener`, robotId);
     missionNode.createSubscription(
       'std_msgs/msg/String',
-      `exploration_debug`,
-      (msg) => {
-        this.socketService.sendExplorationDebugToAllSockets(msg, robotId);
-      }
-    );
-    missionNode.createSubscription(
-      'std_msgs/msg/String',
       `exploration_step`,
-      (msg) => {
-        this.socketService.sendExplorationStepToAllSockets(msg, robotId);
+      (msg: { data?: string }) => {
+        const step = msg?.data ?? 'État indéfini';
+        this.socketService.sendExplorationStepToAllSockets(step, robotId);
       }
     );
-    missionNode.createSubscription(
-      'geometry_msgs/msg/Point',
-      `candidate_frontier`,
-      (msg) => {
-        this.socketService.sendExplorationCandidateToAllSockets(msg, robotId);
-      }
-    );
-    missionNode.spin();      
+    missionNode.spin();
   }
 }
