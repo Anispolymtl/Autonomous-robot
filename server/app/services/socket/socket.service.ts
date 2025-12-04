@@ -97,6 +97,12 @@ export class SocketService{
         });
     }
 
+    sendMissedPoints(robot: RobotId, missedPoints: number[], originalWaypoints: Point2D[]) {
+        this.sockets.forEach(socket => {
+            socket.emit(`/${robot}/missedWaypoints`, {missedPoints, originalWaypoints});
+        });
+    }
+
     getMaps(): Record<RobotId, any> {
         const limo1Map = this.payloads.limo1.mapData;
         const limo2Map = this.payloads.limo2.mapData;

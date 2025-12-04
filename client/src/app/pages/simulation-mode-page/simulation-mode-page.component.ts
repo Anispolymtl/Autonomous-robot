@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MissionService } from '@app/services/mission/mission.service';
@@ -11,8 +11,10 @@ import { MergedMapComponent } from '@app/components/merged-map/merged-map.compon
 import { MatDialog } from '@angular/material/dialog';
 import { CodeEditorDialogComponent } from '@app/components/code-editor-dialog/code-editor-dialog.component';
 import { ConfirmationDialogComponent } from '@app/components/confirmation-dialog/confirmation-dialog.component';
+import { Point2D } from '@app/components/map/map.component';
 
 type RobotId = 'limo1' | 'limo2';
+type MissedWaypointPayload = { missedPoints?: number[]; originalWaypoints?: Point2D[] };
 
 @Component({
   selector: 'app-simulation-page',
@@ -26,9 +28,10 @@ type RobotId = 'limo1' | 'limo2';
   templateUrl: './simulation-mode-page.component.html',
   styleUrls: ['./simulation-mode-page.component.scss'],
 })
-export class SimulationPageComponent implements OnInit {
+export class SimulationPageComponent implements OnInit, OnDestroy {
   message: string | null = null;
   selectedRobotId: RobotId = 'limo1';
+  private missedWaypointHandlers: Partial<Record<RobotId, (...args: any[]) => void>> = {};
 
   constructor(
     private router: Router,
@@ -40,6 +43,14 @@ export class SimulationPageComponent implements OnInit {
 
   ngOnInit(): void {
     void this.missionSessionService.rehydrateActiveMission();
+    this.ensureSocketListeners();
+  }
+
+  ngOnDestroy(): void {
+    (['limo1', 'limo2'] as RobotId[]).forEach((robotId) => {
+      const handler = this.missedWaypointHandlers[robotId];
+      if (handler) this.socketService.off(`/${robotId}/missedWaypoints`, handler);
+    });
   }
 
   startMission(): void {
@@ -119,5 +130,56 @@ export class SimulationPageComponent implements OnInit {
     console.log('Retour à la base demandé pour tous les robots');
     this.message = 'Retour à la base en cours pour tous les robots...';
     this.socketService.send('nav:return-to-base');
+  }
+
+  private ensureSocketListeners(): void {
+    if (!this.socketService.isSocketAlive()) {
+      this.socketService.connect('client');
+      const socket = this.socketService.getSocket;
+      if (socket) {
+        socket.once('connect', () => this.registerMissedWaypointListeners());
+      }
+    } else {
+      this.registerMissedWaypointListeners();
+    }
+  }
+
+  private registerMissedWaypointListeners(): void {
+    (['limo1', 'limo2'] as RobotId[]).forEach((robotId) => {
+      const handler = (...args: any[]) => this.handleMissedWaypoints(robotId, args[0] as MissedWaypointPayload);
+      this.missedWaypointHandlers[robotId] = handler;
+      this.socketService.on(`/${robotId}/missedWaypoints`, handler);
+    });
+  }
+
+  private handleMissedWaypoints(robotId: RobotId, payload: MissedWaypointPayload): void {
+    const missedPoints = Array.isArray(payload?.missedPoints) ? payload.missedPoints : [];
+    const originalWaypoints = Array.isArray(payload?.originalWaypoints) ? payload.originalWaypoints : [];
+
+    if (!missedPoints.length || !originalWaypoints.length) return;
+
+    // Il n'y aura qu'un seul point dans missedPoints; on liste tous les waypoints à partir de cet index
+    const startIndex = missedPoints[0];
+    const missedList = originalWaypoints
+      .map((waypoint, index) => ({ waypoint, index }))
+      .filter(({ index }) => index >= startIndex)
+      .map(({ waypoint, index }) => {
+        const x = Number.isFinite(waypoint?.x) ? waypoint.x.toFixed(2) : '?';
+        const y = Number.isFinite(waypoint?.y) ? waypoint.y.toFixed(2) : '?';
+        return `#${index} (${x}, ${y})`;
+      });
+
+    if (!missedList.length) return;
+
+    this.dialog.open(ConfirmationDialogComponent, {
+      width: '520px',
+      data: {
+        title: 'Trajectoire non suivie',
+        message: `${robotId} n'a pu suivre la trajectoire. Il n'a pas pu aller aux points:`,
+        consequences: [...missedList, 'Veuillez définir une nouvelle trajectoire.'],
+        confirmText: 'OK',
+        tone: 'danger',
+      },
+    });
   }
 }
