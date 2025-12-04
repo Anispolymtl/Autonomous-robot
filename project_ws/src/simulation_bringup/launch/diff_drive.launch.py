@@ -376,6 +376,28 @@ def generate_launch_description():
         namespace='limo2',
         output='screen'
     )
+
+    exploration_monitor_limo1 = Node(
+        package="robot_exploration",
+        executable="exploration_monitor",
+        name="exploration_monitor",
+        namespace="limo1",
+        output="screen",
+        parameters=[
+            {"robot_namespace": "limo1"}
+        ]
+    )
+
+    exploration_monitor_limo2 = Node(
+        package="robot_exploration",
+        executable="exploration_monitor",
+        name="exploration_monitor",
+        namespace="limo2",
+        output="screen",
+        parameters=[
+            {"robot_namespace": "limo2"}
+        ]
+    )
     
 
     return LaunchDescription([
@@ -417,6 +439,8 @@ def generate_launch_description():
         # explorer_2,
         explore_limo1,
         explore_limo2,
+        exploration_monitor_limo1,
+        exploration_monitor_limo2,
 
         # battery_limo1,
         base_limo1,

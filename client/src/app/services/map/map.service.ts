@@ -69,8 +69,10 @@ export class MapService {
             canvas.height = height;
         }
 
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
+        // Force a square display footprint with a reasonable minimum so the map is readable.
+        const displaySize = Math.max(400, Math.max(width, height));
+        canvas.style.width = `${displaySize}px`;
+        canvas.style.height = `${displaySize}px`;
 
         ctx.imageSmoothingEnabled = false;
 
@@ -276,6 +278,7 @@ export class MapService {
         if (mapObj.selectedCanvasCoord) {
             this.drawPointMarker(ctx, mapObj.selectedCanvasCoord.x, mapObj.selectedCanvasCoord.y, selectedPointColor);
         }
+        this.drawMissedWaypoints(ctx, mapObj);
     }
 
     private drawPointMarker(ctx: CanvasRenderingContext2D, x: number, y: number, color: string): void {
@@ -311,6 +314,27 @@ export class MapService {
 
     private snapToPixel(x: number, y: number): { x: number; y: number } {
         return { x: Math.round(x), y: Math.round(y) };
+    }
+
+    private drawMissedWaypoints(ctx: CanvasRenderingContext2D, mapObj: MapObject): void {
+        if (!mapObj.missedWaypointCanvasCoords?.length) return;
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 2;
+        const halfSize = 5;
+
+        mapObj.missedWaypointCanvasCoords.forEach(({ x, y }) => {
+            const px = Math.round(x);
+            const py = Math.round(y);
+            ctx.beginPath();
+            ctx.moveTo(px - halfSize, py - halfSize);
+            ctx.lineTo(px + halfSize, py + halfSize);
+            ctx.moveTo(px - halfSize, py + halfSize);
+            ctx.lineTo(px + halfSize, py - halfSize);
+            ctx.stroke();
+        });
+        ctx.restore();
     }
 
     private worldToCanvas(worldX: number, worldY: number, mapObj: MapObject): { x: number; y: number } | undefined {

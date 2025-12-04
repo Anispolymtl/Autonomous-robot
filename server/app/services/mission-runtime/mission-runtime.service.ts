@@ -111,8 +111,7 @@ export class MissionRuntimeService {
             logs: mission.logs ?? [],
             maps: this.socketService.getMaps()
         }
-        const missionDBObj = this.databaseService.createMission(missionCreateObj);
-        console.log(missionDBObj)
+        this.databaseService.createMission(missionCreateObj);
         return mission;
     }
 

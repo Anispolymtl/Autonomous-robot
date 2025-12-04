@@ -22,11 +22,15 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   robot2Status = 'En attente';
   robot1Battery = 100;
   robot2Battery = 100;
+  robot1MissionStatus = 'Idle';
+  robot2MissionStatus = 'Idle';
   robot1Position: { x: number; y: number } | null = null;
   robot2Position: { x: number; y: number } | null = null;
 
   private sub1!: Subscription;
   private sub2!: Subscription;
+  private subMission1!: Subscription;
+  private subMission2!: Subscription;
   private subPos1?: Subscription;
   private subPos2?: Subscription;
 
@@ -46,6 +50,14 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
       this.robot2Status = state;
     });
 
+    this.subMission1 = this.missionStateService.getLimo1MissionState$().subscribe((state) => {
+      this.robot1MissionStatus = state;
+    });
+
+    this.subMission2 = this.missionStateService.getLimo2MissionState$().subscribe((state) => {
+      this.robot2MissionStatus = state;
+    });
+
     this.subPos1 = this.missionStateService.getLimo1Position$().subscribe((pos) => {
       this.robot1Position = pos;
     });
@@ -63,6 +75,8 @@ export class RobotStatusComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.sub1) this.sub1.unsubscribe();
     if (this.sub2) this.sub2.unsubscribe();
+    if (this.subMission1) this.subMission1.unsubscribe();
+    if (this.subMission2) this.subMission2.unsubscribe();
     this.subPos1?.unsubscribe();
     this.subPos2?.unsubscribe();
     this.missionStateService.disconnect();

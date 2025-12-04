@@ -55,7 +55,6 @@ private setupMappingListner(robotId: RobotId) {
       'nav_msgs/msg/OccupancyGrid',
       `/merged_map`,
       (msg) => {
-        console.log(msg);
         this.socketService.sendMergedMapToAllSockets(msg);
       }
     );
