@@ -7,7 +7,7 @@ type RobotId = 'limo1' | 'limo2';
 @Injectable()
 export class BatteryService {
     private readonly logger = new Logger(BatteryService.name);
-    private readonly tickMs = 1000;
+    private readonly tickMs = 6700;
     private readonly drainPerTick = 1;
     private countdownInterval?: NodeJS.Timeout;
     private batteryLevels: Record<RobotId, number> = { limo1: 100, limo2: 100 };
