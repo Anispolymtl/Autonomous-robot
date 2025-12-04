@@ -21,6 +21,7 @@ export interface MapObject {
   map: OccupancyGrid | undefined;
   selectedCanvasCoord: Point2D | undefined;
   pointCanvasCoords: Point2D[];
+  missedWaypointCanvasCoords: Point2D[];
   pointList: MapCoordinate[];
   robotPoses: Record<string, PoseData | undefined>;
   selectedPoint: MapCoordinate | undefined;
@@ -170,6 +171,12 @@ export class MapComponent implements OnInit, OnDestroy {
     const canvas = this.canvas;
     if (!canvas) return;
     this.mapService.sendGoal(this.mapObj);
+    if (this.mapObj.pointList.length) {
+      this.mapObj.missedWaypointCanvasCoords = [];
+      if (this.mapObj.map) {
+        this.mapService.renderMap(canvas, this.mapObj);
+      }
+    }
   }
 
   // TrackBy function pour optimiser le rendu de la liste
@@ -203,6 +210,7 @@ export class MapComponent implements OnInit, OnDestroy {
       if (!points.length) {
         this.mapObj.pointList = [];
         this.mapObj.pointCanvasCoords = [];
+        this.mapObj.missedWaypointCanvasCoords = [];
       } else {
         this.mapObj.pointList = points.map(
           (point: Point2D) => this.mapService.worldPointToMapCoordinate(this.mapObj, point.x, point.y)
@@ -241,6 +249,31 @@ export class MapComponent implements OnInit, OnDestroy {
     // Écoute les points sur l'événement namespaced et l'événement global (payload {robot, points})
     this.socketService.on(`/${this.robotId}/${MapEvent.newPoints}`, handlePoints);
     this.socketService.on('newPoints', handlePoints);
+
+    this.socketService.on(`/${this.robotId}/missedWaypoints`, (payload: { missedPoints?: number[]; originalWaypoints?: Point2D[] }) => {
+      const missedPoints = Array.isArray(payload?.missedPoints) ? payload.missedPoints : [];
+      const originalWaypoints = Array.isArray(payload?.originalWaypoints) ? payload.originalWaypoints : [];
+
+      if (!missedPoints.length || !originalWaypoints.length) {
+        this.mapObj.missedWaypointCanvasCoords = [];
+        return;
+      }
+
+      const startIndex = missedPoints[0];
+      const missedCanvasCoords = originalWaypoints
+        .map((waypoint, index) => ({ waypoint, index }))
+        .filter(({ index }) => index >= startIndex)
+        .map(({ waypoint }) => {
+          if (!waypoint) return undefined;
+          return this.mapService.worldToCanvasPublic(waypoint.x, waypoint.y, this.mapObj);
+        })
+        .filter((coord): coord is Point2D => coord != undefined);
+
+      this.mapObj.missedWaypointCanvasCoords = missedCanvasCoords;
+      if (this.canvas && this.mapObj.map) {
+        this.mapService.renderMap(this.canvas, this.mapObj);
+      }
+    });
   }
 
   private resetMap(): void {
@@ -256,6 +289,7 @@ export class MapComponent implements OnInit, OnDestroy {
       map: undefined,
       selectedCanvasCoord: undefined,
       pointCanvasCoords: [],
+      missedWaypointCanvasCoords: [],
       pointList: [],
       robotPoses: {},
       selectedPoint: undefined,

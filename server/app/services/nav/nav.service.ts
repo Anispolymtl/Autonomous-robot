@@ -129,9 +129,37 @@ export class NavService {
         );
         this.goalHandles[robot] = goalHandle;
         const result = await goalHandle.getResult();
-        this.logger.log(`[${robot}] waypoint result: ${result?.status}`);
+        this.logger.log(`[${robot}] waypoint result: `, result);
+
+        // rclnodejs returns missed_waypoints as an Int32Array, which stringifies like { "0": 1 }.
+        const missed = this.normalizeMissedWaypoints((result as any)?.result?.missed_waypoints ?? (result as any)?.missed_waypoints);
+        if (missed.length > 0) {
+            console.log(missed);
+            this.handleMissedPoints(missed, waypoints, robot);
+        }
         this.goalHandles[robot] = null;
         return result?.status;
+    }
+
+    private normalizeMissedWaypoints(raw: unknown): number[] {
+        if (!raw) return [];
+
+        // Simple fallback: expect plain objects like { "0": 1, "1": 3 }
+        if (typeof raw === 'object') {
+            const obj = raw as Record<string, unknown>;
+            return Object.keys(obj)
+                .filter((key) => /^\d+$/.test(key))
+                .sort((a, b) => Number(a) - Number(b))
+                .map((key) => Number(obj[key]))
+                .filter((n) => Number.isFinite(n));
+        }
+
+        return [];
+    }
+
+    private handleMissedPoints(missedPoints: number[], originalWaypoints: Point2D[], robot: RobotId) {
+        this.logger.warn(`[${robot}] Missed waypoints indices: ${missedPoints.join(', ')}`);
+        this.socketService.sendMissedPoints(robot, missedPoints, originalWaypoints);
     }
 
     /**
