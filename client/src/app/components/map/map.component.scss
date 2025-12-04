@@ -668,3 +668,19 @@ canvas {
     flex-basis: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .map-container {
+    padding: 0.75rem;
+  }
+
+  canvas {
+    max-height: 45vh;
+  }
+
+  .map-controls,
+  .map-status {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+}
