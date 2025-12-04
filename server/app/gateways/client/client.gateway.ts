@@ -113,6 +113,9 @@ export class ClientGateway {
     handleMissionComplete(@ConnectedSocket() socket: Socket, @MessageBody() payload: MissionCompletePayload) {
         try {
             const mission = this.missionRuntimeService.completeMission(payload.missionId);
+            if (mission.mode === 'SIMULATION') {
+                this.batteryService.endBattery();
+            }
             socket.emit('mission:finalized', { missionId: mission.missionId, mission });
         } catch (error) {
             socket.emit('mission:error', { message: (error as Error).message, missionId: payload?.missionId });
