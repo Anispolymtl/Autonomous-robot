@@ -9,7 +9,8 @@ set -e
 #   3) export RMW_IMPLEMENTATION
 #   4) source install/setup.sh
 #   5) npm start dans server
-#   6) npm start dans client
+#   6) detection adresse IP
+#   7) ng serve dans client
 #
 # Usage :
 #   ./start_web.sh <zenoh_host1> [zenoh_host2 ...]
@@ -24,6 +25,27 @@ if [ "$#" -lt 1 ]; then
 fi
 
 PIDS=()
+
+USER_IP=$(hostname -I | awk '{print $1}')
+echo "→ IP détectée : $USER_IP"
+
+ENV_DIR="./client/src/environments"
+ENV_FILE="$ENV_DIR/environment.ts"
+ENV_DYNAMIC="$ENV_DIR/environment.prod.ts"
+
+echo "→ Génération du environment.prod.ts..."
+
+cat <<EOF > "$ENV_DYNAMIC"
+export const environment = {
+    production: false,
+    serverUrl: 'http://$USER_IP:3000',
+};
+EOF
+
+cp "$ENV_DYNAMIC" "$ENV_FILE"
+
+echo "→ environment.ts mis à jour : http://$USER_IP:3000"
+echo
 
 echo "→ Construction de la config Zenoh..."
 ENDPOINTS=""
@@ -59,7 +81,7 @@ PIDS+=("$SERVER_PID")
 
 echo "→ Lancement du client..."
 cd ../client || { echo "client introuvable"; exit 1; }
-npm start &
+npx ng serve --host 0.0.0.0 &
 CLIENT_PID=$!
 PIDS+=("$CLIENT_PID")
 
