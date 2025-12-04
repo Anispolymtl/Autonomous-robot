@@ -6,6 +6,7 @@ import { NavService } from '@app/services/nav/nav.service';
 import { MappingSerivce } from '@app/services/mapping/mapping.service';
 import { StateService } from '@app/services/state/state.service';
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service';
+import { SocketService } from '../socket/socket.service';
 
 type RobotId = 'limo1' | 'limo2';
 
@@ -24,6 +25,7 @@ export class RosService implements OnModuleInit {
     private stateService: StateService,
     private mappingService: MappingSerivce,
     private codeEditor: CodeEditorService,
+    private socketService: SocketService
   ) {}
 
   async onModuleInit() {
@@ -44,6 +46,8 @@ export class RosService implements OnModuleInit {
     this.stateService.initStateService();
     this.mappingService.initialiseMappingService();
     this.codeEditor.initCodeEditorService();
+    this.startMissionListners('limo1');
+    this.startMissionListners('limo2');
     nodeLimo1.spin();
     nodeLimo2.spin();
     this.logger.log('ROS2 client prêt !');
@@ -133,5 +137,31 @@ export class RosService implements OnModuleInit {
         this.navService.setReturnInProgress(robotId, false);
       })
     );
+  }
+
+  startMissionListners(robotId: RobotId) {
+    const missionNode = new rclnodejs.Node(`exploration_listener`, robotId);
+    missionNode.createSubscription(
+      'std_msgs/msg/String',
+      `exploration_debug`,
+      (msg) => {
+        this.socketService.sendExplorationDebugToAllSockets(msg, robotId);
+      }
+    );
+    missionNode.createSubscription(
+      'std_msgs/msg/String',
+      `exploration_step`,
+      (msg) => {
+        this.socketService.sendExplorationStepToAllSockets(msg, robotId);
+      }
+    );
+    missionNode.createSubscription(
+      'geometry_msgs/msg/Point',
+      `candidate_frontier`,
+      (msg) => {
+        this.socketService.sendExplorationCandidateToAllSockets(msg, robotId);
+      }
+    );
+    missionNode.spin();      
   }
 }

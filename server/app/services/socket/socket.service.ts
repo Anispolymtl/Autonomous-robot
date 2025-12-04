@@ -73,7 +73,6 @@ export class SocketService{
     sendMergedMapToAllSockets(mapData?: any) {
         if (mapData) {
             this.mergedMap = mapData;
-            console.log(mapData);
             this.sockets.forEach((socket) => {
                 socket.emit('mergedMapUpdate', { map: mapData });
             });
@@ -86,9 +85,36 @@ export class SocketService{
 
     sendPointsToAllSockets(robot: RobotId, points: Point2D[]) {
         this.payloads[robot].points = points;
-        console.log(this.payloads[robot].points);
         this.sockets.forEach(socket => {
             socket.emit('newPoints', {robot, points});
+        });
+    }
+
+    sendExplorationDebugToAllSockets(msg: any, robot: RobotId) {
+        console.log(`debug`, msg)
+        this.sockets.forEach(socket => {
+            socket.emit('expDebug', {robot, msg});
+        });
+    }
+
+    sendExplorationStepToAllSockets(msg: any, robot: RobotId) {
+        console.log('step', msg)
+        this.sockets.forEach(socket => {
+            socket.emit('expStep', {robot, msg});
+        });
+    }
+
+    sendExplorationCandidateToAllSockets(msg: {x: number, y: number, z: number}, robot: RobotId) {
+        console.log('candidate', msg)
+        this.sockets.forEach(socket => {
+            socket.emit('expCandidate', {robot, msg});
+        });
+    }
+
+    sendExplorationFrontiersToAllSockets(msg: any, robot: RobotId) {
+        console.log('frontier', msg)
+        this.sockets.forEach(socket => {
+            socket.emit('expFrontier', {robot, msg});
         });
     }
 
