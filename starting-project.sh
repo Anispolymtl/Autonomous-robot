@@ -31,7 +31,7 @@ source install/setup.sh
 
 echo "---- Lancement du client ----"
 cd ../client
-ng serve --host 0.0.0.0 &
+npx ng serve --host 0.0.0.0 &
 CLIENT_PID=$!
 
 echo "---- Lancement du serveur ----"

@@ -81,7 +81,7 @@ PIDS+=("$SERVER_PID")
 
 echo "→ Lancement du client..."
 cd ../client || { echo "client introuvable"; exit 1; }
-ng serve --host 0.0.0.0 &
+npx ng serve --host 0.0.0.0 &
 CLIENT_PID=$!
 PIDS+=("$CLIENT_PID")
 
