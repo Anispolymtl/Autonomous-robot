@@ -73,7 +73,6 @@ export class SocketService{
     sendMergedMapToAllSockets(mapData?: any) {
         if (mapData) {
             this.mergedMap = mapData;
-            console.log(mapData);
             this.sockets.forEach((socket) => {
                 socket.emit('mergedMapUpdate', { map: mapData });
             });
@@ -86,9 +85,15 @@ export class SocketService{
 
     sendPointsToAllSockets(robot: RobotId, points: Point2D[]) {
         this.payloads[robot].points = points;
-        console.log(this.payloads[robot].points);
         this.sockets.forEach(socket => {
             socket.emit('newPoints', {robot, points});
+        });
+    }
+
+    sendExplorationStepToAllSockets(msg: any, robot: RobotId) {
+        console.log('step', msg)
+        this.sockets.forEach(socket => {
+            socket.emit('expStep', {robot, msg});
         });
     }
 
