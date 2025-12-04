@@ -136,7 +136,43 @@ export class RosService implements OnModuleInit {
         // Libère le flag retour après les tentatives
         this.navService.setReturnInProgress(robotId, false);
       })
-    );
+    ); 
+  }
+
+  async returnToBaseIndividual(robot: RobotId) {
+    const Trigger = (rclnodejs.require('std_srvs') as any).srv.Trigger;
+
+    this.navService.setReturnInProgress(robot, true);
+    await this.navService.cancelNavigation(robot);
+
+    const limo = robot == 'limo1' ? this.limoList[0] : this.limoList[1];
+    if (!limo.returnClient) {
+      this.logger.error(`Client retour ${robot} non initialisé`);
+      this.navService.setReturnInProgress(robot, false);
+      return;
+    }
+
+    const request = new Trigger.Request();
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await limo.returnClient.waitForService(1000);
+        const response: any = await new Promise((resolve) =>
+          limo.returnClient.sendRequest(request, (resp) => resolve(resp))
+        );
+        if (response?.success) {
+          this.logger.log(`${robot} retourne à la base : ${response.message}`);
+          break;
+        }
+        this.logger.warn(`Retour à la base ${robot} tentative ${attempt}/${maxAttempts} échouée: ${response?.message ?? 'réponse vide'}`);
+      } catch (err) {
+        this.logger.warn(`Retour à la base ${robot} tentative ${attempt}/${maxAttempts} erreur: ${(err as Error).message}`);
+      }
+      if (attempt < maxAttempts) await this.sleep(300);
+    }
+
+    // Libère le flag retour après les tentatives
+    this.navService.setReturnInProgress(robot, false);
   }
 
   startMissionListners(robotId: RobotId) {

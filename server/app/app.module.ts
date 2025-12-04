@@ -17,6 +17,7 @@ import { StateService } from './services/state/state.service';
 import { MappingSerivce } from './services/mapping/mapping.service';
 import { CodeEditorController } from '@app/controllers/code-editor/code-editor.controller'
 import { CodeEditorService } from '@app/services/code-editor/code-editor.service'
+import { BatteryService } from './services/battery/battery.service';
 // import { MapController } from '@app/controllers/map/map.controller';
 // import { MapService } from '@app/services/map/map.service';
 
@@ -40,6 +41,6 @@ import { CodeEditorService } from '@app/services/code-editor/code-editor.service
         MongooseModule.forFeature([{ name: Mission.name, schema: missionSchema }], 'robot_ops'),
     ],
     controllers: [ RosController, MissionController, MissionDatabaseController, CodeEditorController],
-    providers: [Logger, RosService, MissionService, MissionDatabaseService, SocketService, ClientGateway, MissionRuntimeService, CodeEditorService, NavService, StateService, MappingSerivce],
+    providers: [Logger, RosService, MissionService, MissionDatabaseService, SocketService, ClientGateway, MissionRuntimeService, BatteryService, CodeEditorService, NavService, StateService, MappingSerivce],
 })
 export class AppModule {}

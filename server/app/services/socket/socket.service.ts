@@ -90,6 +90,12 @@ export class SocketService{
         });
     }
 
+    sendBatteryToAllSockets(batteryLevels: Record<RobotId, number>) {
+        this.sockets.forEach(socket =>
+            socket.emit('batteriesUpdate', batteryLevels)
+        );
+    }
+    
     sendExplorationStepToAllSockets(msg: any, robot: RobotId) {
         console.log('step', msg)
         this.sockets.forEach(socket => {
