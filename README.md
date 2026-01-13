@@ -1,3 +1,19 @@
+# Architecture logicielle générale
+<img width="877" height="345" alt="Screenshot 2026-01-13 at 3 04 32 PM" src="https://github.com/user-attachments/assets/d6682a25-9316-44d3-b974-a443b9abde19" />
+
+
+# Aperçus de l'utilisation des robots & de l'application Web
+
+1.Page de connexion.
+<img width="628" height="366" alt="Screenshot 2026-01-13 at 3 05 48 PM" src="https://github.com/user-attachments/assets/43794b3c-ff67-42f0-8f87-1042869fa8e5" />
+
+2.Page principale.
+<img width="1081" height="586" alt="Screenshot 2026-01-13 at 3 05 29 PM" src="https://github.com/user-attachments/assets/de81a90b-dc2b-4a6d-bcd5-f0d3c0a85cbb" />
+
+3.Page de journalisation
+<img width="646" height="264" alt="Screenshot 2026-01-13 at 3 06 10 PM" src="https://github.com/user-attachments/assets/f2393294-fb1b-43b3-beaf-98d692941be7" />
+
+
 # 🚀 Guide Général — Démarrage Robot & Application Web
 
 Ce guide regroupe **toutes les étapes** nécessaires pour démarrer les robots et l’application web, de manière **simple et uniforme**.
